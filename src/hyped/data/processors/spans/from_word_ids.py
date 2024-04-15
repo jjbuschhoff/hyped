@@ -1,3 +1,4 @@
+"""Token Spans from Word Ids Processor."""
 from typing import Any
 
 import numpy as np
@@ -15,7 +16,7 @@ from .common import SpansOutputs
 
 
 class TokenSpansFromWordIdsConfig(BaseDataProcessorConfig):
-    """Token Spans from Word Ids Processor Config
+    """Token Spans from Word Ids Processor Config.
 
     Convert word-ids to token-level spans. Word-ids are typically
     provided by the tokenizer (see `HuggingFaceTokenizer`).
@@ -39,7 +40,7 @@ class TokenSpansFromWordIdsConfig(BaseDataProcessorConfig):
 
 
 class TokenSpansFromWordIds(BaseDataProcessor[TokenSpansFromWordIdsConfig]):
-    """Token Spans from Word Ids Processor Config
+    """Token Spans from Word Ids Processor Config.
 
     Convert word-ids to token-level spans. Word-ids are typically
     provided by the tokenizer (see `HuggingFaceTokenizer`).
@@ -49,10 +50,11 @@ class TokenSpansFromWordIds(BaseDataProcessor[TokenSpansFromWordIdsConfig]):
         self,
         config: TokenSpansFromWordIdsConfig = TokenSpansFromWordIdsConfig(),
     ) -> None:
+        """Initialize Data Processor."""
         super(TokenSpansFromWordIds, self).__init__(config)
 
     def map_features(self, features: Features) -> Features:
-        """Check word-ids feature and return token level span features
+        """Check word-ids feature and return token level span features.
 
         Arguments:
             features (Features): input features
@@ -80,7 +82,7 @@ class TokenSpansFromWordIds(BaseDataProcessor[TokenSpansFromWordIdsConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
             example (dict[str, Any]): example to process

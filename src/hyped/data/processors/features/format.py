@@ -1,3 +1,5 @@
+"""Format Dataset Features Data Processor."""
+
 from typing import Any, ClassVar
 
 from datasets import Features
@@ -10,7 +12,7 @@ from hyped.data.processors.base import (
 
 
 class FormatFeaturesConfig(BaseDataProcessorConfig):
-    """(Re-Format) Dataset Features Processor Config
+    """(Re-)Format Dataset Features Processor Config.
 
     Re-Formats Features of the dataset according to the
     specified mapping.
@@ -30,7 +32,7 @@ class FormatFeaturesConfig(BaseDataProcessorConfig):
 
 
 class FormatFeatures(BaseDataProcessor[FormatFeaturesConfig]):
-    """(Re-Format) Dataset Features Processor
+    """(Re-Format) Dataset Features Processor.
 
     Re-Formats Features of the dataset according to the
     mapping in the config.
@@ -40,15 +42,20 @@ class FormatFeatures(BaseDataProcessor[FormatFeaturesConfig]):
     """
 
     def map_features(self, features: Features) -> Features:
-        """Pass input features through. The actual formatting is
-        done by the base data processor."""
+        """Map dataset features.
+
+        Pass input features through. The actual formatting is
+        done by the base data processor.
+        """
         return features
 
     def internal_batch_process(
         self, examples: dict[str, list[Any]], index: list[int], rank: int
     ) -> tuple[dict[str, list[Any]], list[int]]:
-        """Pass through all features requested for reformatting.
-        The actual formatting is done by the base data processor
+        """Process example.
+
+        Pass through all features requested for reformatting.
+        The actual formatting is done by the base data processor.
         """
         keys = set(self.raw_features.keys())
         return (

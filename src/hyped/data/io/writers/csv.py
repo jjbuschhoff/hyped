@@ -1,3 +1,4 @@
+"""CSV Dataset Writer."""
 import csv
 import os
 from typing import Any
@@ -12,7 +13,7 @@ from .base import BaseDatasetWriter
 
 
 class CsvDatasetWriter(BaseDatasetWriter):
-    """CSV Dataset Writer
+    """CSV Dataset Writer.
 
     Implements the `BaseDatasetWriter` class to write a dataset
     to the disk in csv format.
@@ -35,11 +36,26 @@ class CsvDatasetWriter(BaseDatasetWriter):
     def worker_shard_file_obj(
         self, path: str, worker_id: int
     ) -> _io.TextIOWrapper:
+        """Worker Shard File Object.
+
+        Arguments:
+            path (str): path to store the file
+            worker_id (int): worker id
+
+        Returns:
+            f (_io.TextIOWrapper): file object to write the dataset to
+        """
         return open(os.path.join(path, "data_shard_%i.csv" % worker_id), "w+")
 
     def consume(
         self, data: datasets.Dataset | datasets.IterableDataset
     ) -> None:
+        """Consume a given dataset.
+
+        Arguments:
+            data (datasets.Dataset, datasets.IterableDataset):
+                the dataset to consume
+        """
         if not all(
             check_feature_equals(
                 feature, (datasets.Value, datasets.ClassLabel)
@@ -56,6 +72,7 @@ class CsvDatasetWriter(BaseDatasetWriter):
         super(CsvDatasetWriter, self).consume(data)
 
     def initialize_worker(self) -> None:
+        """Initialize csv writer process."""
         super(CsvDatasetWriter, self).initialize_worker()
         # create csv writer
         worker_info = get_worker_info()

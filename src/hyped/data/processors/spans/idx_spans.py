@@ -1,3 +1,4 @@
+"""Covered Index Span Data Processor."""
 from typing import Any
 
 from datasets import Features
@@ -19,7 +20,7 @@ from .common import SpansOutputs, compute_spans_overlap_matrix
 
 
 class CoveredIndexSpansConfig(BaseDataProcessorConfig):
-    """Covered Index Span Data Processor Config
+    """Covered Index Span Data Processor Config.
 
     Let q = (b, e) be a query span and A = [(b_k, e_k)]_k be an
     ordered span sequence in the same domain. Then the processor
@@ -67,7 +68,7 @@ class CoveredIndexSpansConfig(BaseDataProcessorConfig):
 
 
 class CoveredIndexSpans(BaseDataProcessor[CoveredIndexSpansConfig]):
-    """Covered Index Span Data Processor Config
+    """Covered Index Span Data Processor Config.
 
     Let q = (b, e) be a query span and A = [(b_k, e_k)]_k be an
     ordered span sequence in the same domain. Then the processor
@@ -86,7 +87,9 @@ class CoveredIndexSpans(BaseDataProcessor[CoveredIndexSpansConfig]):
     """
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and return feature mapping
+        """Map dataset features.
+
+        Check input features and return feature mapping
         for token-level span annotations.
 
         Arguments:
@@ -153,7 +156,7 @@ class CoveredIndexSpans(BaseDataProcessor[CoveredIndexSpansConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
             example (dict[str, Any]): example to process

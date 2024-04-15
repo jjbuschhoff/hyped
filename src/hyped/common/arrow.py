@@ -1,3 +1,4 @@
+"""PyArrow helper functionality."""
 import json
 
 import pyarrow as pa
@@ -6,7 +7,9 @@ from datasets.features.features import FeatureType
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
-    """converts a datasets.FeatureType into a pyarrow.DataType,
+    """Get nested arrow type.
+
+    Converts a datasets.FeatureType into a pyarrow.DataType,
     and acts as the inverse of `datasets.Dataset.generate_from_arrow_type`.
 
     It performs double-duty as the implementation of Features.type and
@@ -42,7 +45,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
 
 
 def convert_features_to_arrow_schema(features: Features) -> pa.Schema:
-    """Convert dataset.Features to pyarrow.Schema
+    """Convert dataset.Features to pyarrow.Schema.
 
     This is similar to the `datasets.Dataset.arrow_schema` property
     but parses the features slightly differently to ensure the schema

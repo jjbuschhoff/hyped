@@ -1,3 +1,4 @@
+"""Offset Conversion Data Processor."""
 from typing import Any
 
 import numpy as np
@@ -18,7 +19,7 @@ from .common import SpansOutputs, make_spans_exclusive
 
 
 class LocalToGlobalOffsetsConfig(BaseDataProcessorConfig):
-    """Offset Conversion Data Processor
+    r"""Offset Conversion Data Processor.
 
     Convert local offsets to global offsets. Useful when
     tokenizing pre-tokenized words and needing the global
@@ -26,15 +27,17 @@ class LocalToGlobalOffsetsConfig(BaseDataProcessorConfig):
 
     Specifically the i-th token span is computed as follows:
 
-        span_begin[i] = (
-            local_offsets_begin[i] + global_offsets_begin[
-                local_to_global_mapping[i]
+    .. math::
+
+        span\_begin_i = (
+            local\_offsets\_begin_i + global\_offsets\_begin[
+                local\_to_global\_mapping_i
             ]
         )
 
-        span_end[i] = (
-            local_offsets_end[i] + global_offsets_begin[
-                local_to_global_mapping[i]
+        span\_end_i = (
+            local\_offsets\_end_i + global\_offsets\_begin[
+                local\_to\_global\_mapping_i
             ]
         )
 
@@ -56,6 +59,7 @@ class LocalToGlobalOffsetsConfig(BaseDataProcessorConfig):
         local_offsets_inclusive (bool):
             bool indicating whether the local offset spans are inclusive
             or not. Defaults to False.
+
     """
 
     # local offsets
@@ -69,7 +73,7 @@ class LocalToGlobalOffsetsConfig(BaseDataProcessorConfig):
 
 
 class LocalToGlobalOffsets(BaseDataProcessor[LocalToGlobalOffsetsConfig]):
-    """Offset Conversion Data Processor
+    r"""Offset Conversion Data Processor.
 
     Convert local offsets to global offsets. Useful when
     tokenizing pre-tokenized words and needing the global
@@ -77,21 +81,25 @@ class LocalToGlobalOffsets(BaseDataProcessor[LocalToGlobalOffsetsConfig]):
 
     Specifically the i-th token span is computed as follows:
 
-        span_begin[i] = (
-            local_offsets_begin[i] + global_offsets_begin[
-                local_to_global_mapping[i]
+    .. math::
+
+        span\_begin_i = (
+            local\_offsets\_begin_i + global\_offsets\_begin[
+                local\_to_global\_mapping_i
             ]
         )
 
-        span_end[i] = (
-            local_offsets_end[i] + global_offsets_begin[
-                local_to_global_mapping[i]
+        span\_end_i = (
+            local\_offsets\_end_i + global\_offsets\_begin[
+                local\_to\_global\_mapping_i
             ]
         )
     """
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and return feature mapping
+        """Map dataset features.
+
+        Check input features and return feature mapping
         for global offsets.
 
         Arguments:
@@ -167,17 +175,20 @@ class LocalToGlobalOffsets(BaseDataProcessor[LocalToGlobalOffsetsConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
-            example (dict[str, Any]): example to process
-            index (int): dataset index of the example
-            rank (int): execution process rank
+            example (dict[str, Any]):
+                example to process
+            index (int):
+                dataset index of the example
+            rank (int):
+                execution process rank
 
         Returns:
-            out (dict[str, Any]): global offsets
+            out (dict[str, Any]):
+                global offsets
         """
-
         # get local offset spans
         local_offsets = zip(
             self.config.local_offsets_begin.index_example(example),

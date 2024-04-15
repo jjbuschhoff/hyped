@@ -1,3 +1,4 @@
+"""Histogram for single Discrete Value Features."""
 import multiprocessing as mp
 from collections import Counter
 from typing import Any
@@ -21,7 +22,7 @@ from hyped.data.processors.statistics.report import StatisticsReportStorage
 
 
 class DiscreteHistogramConfig(BaseDataStatisticConfig):
-    """Discrete Histogram Data Statistic Config
+    """Discrete Histogram Data Statistic Config.
 
     Build a histogram of a given discrete value feature,
     e.g. ClassLabel or string.
@@ -41,7 +42,7 @@ class DiscreteHistogramConfig(BaseDataStatisticConfig):
 class DiscreteHistogram(
     BaseDataStatistic[DiscreteHistogramConfig, dict[Any, int]]
 ):
-    """Histogram Data Statistic
+    """Histogram Data Statistic.
 
     Build a histogram of a given discrete value feature,
     e.g. ClassLabel or string.
@@ -63,7 +64,7 @@ class DiscreteHistogram(
     def initial_value(
         self, features: Features, manager: mp.Manager
     ) -> dict[Any, int]:
-        """Initial histogram
+        """Initial histogram.
 
         The return value is a dict proxy to allow to share
         it between processes instead of copying the whole
@@ -71,6 +72,7 @@ class DiscreteHistogram(
 
         Arguments:
             features (Features): input dataset features
+            manager (mp.Manager): multiprocessing manager
 
         Returns:
             init_val (dict[Any, int]): inital histogram dictionary
@@ -98,7 +100,7 @@ class DiscreteHistogram(
         index: list[int],
         rank: int,
     ) -> dict[Any, int]:
-        """Compute the histogram for the given batch of examples
+        """Compute the histogram for the given batch of examples.
 
         Arguments:
             examples (dict[str, list[Any]]): batch of examples
@@ -134,7 +136,7 @@ class DiscreteHistogram(
     def update(
         self, report: StatisticsReportStorage, val: dict[Any, int]
     ) -> None:
-        """Write the new histogram values to the report
+        """Write the new histogram values to the report.
 
         Arguments:
             report (StatisticsReportStorage):

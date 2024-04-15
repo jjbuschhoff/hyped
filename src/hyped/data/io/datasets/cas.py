@@ -1,3 +1,4 @@
+"""CAS Dataset Generator."""
 from __future__ import annotations
 
 import logging
@@ -28,7 +29,7 @@ _PRIMITIVE_TYPE_MAP = {
 def _get_types_from_typesystem(
     typesystem: cassis.TypeSystem, type_names: None | list[str] = None
 ) -> list[cassis.typesystem.Type]:
-    """Get list of types from typesystem
+    """Get list of types from typesystem.
 
     Arguments:
         typesystem (cassis.TypeSystem): the typesystem containing the types
@@ -53,8 +54,7 @@ def _get_types_from_typesystem(
 
 
 def _init_process(config: CasDatasetConfig) -> None:
-    """Initialize worker process"""
-
+    """Initialize worker process."""
     # get the current process object
     proc = mp.current_process()
 
@@ -67,8 +67,10 @@ def _init_process(config: CasDatasetConfig) -> None:
 
 
 def _worker(fpath: str) -> None | dict[str, Any]:
-    """Worker process loading a cas object from the given file and convert
-    it into a dictionary
+    """Worker function.
+
+    Worker process loading a cas object from the given file and convert
+    it into a dictionary.
 
     This function assumes that the executing process executed `_init_process`
     beforehand to have access to the config (`mp.current_process().config`)
@@ -157,7 +159,7 @@ def _worker(fpath: str) -> None | dict[str, Any]:
 
 @dataclass
 class CasDatasetConfig(datasets.BuilderConfig):
-    """Cas Dataset Configuration
+    """Cas Dataset Configuration.
 
     The attributes of the configuration are typically set by providing
     them as keyword arguments to the `datasets.load_dataset` function.
@@ -179,7 +181,7 @@ class CasDatasetConfig(datasets.BuilderConfig):
 
 
 class CasDataset(datasets.GeneratorBasedBuilder):
-    """Cas Dataset
+    """Cas Dataset.
 
     Typically used by call to `datasets.load_dataset with appropriate
     keyword arguments (see `CasDatasetConfig` for defails)
@@ -193,6 +195,7 @@ class CasDataset(datasets.GeneratorBasedBuilder):
 
     @property
     def features(self) -> datasets.Features:
+        """CAS Dataset features."""
         # load typesystem
         with open(self.config.typesystem, "rb") as f:
             typesystem = cassis.load_typesystem(f)

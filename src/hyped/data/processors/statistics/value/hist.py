@@ -1,3 +1,5 @@
+"""Histogram for single Value Features."""
+
 import multiprocessing as mp
 from typing import Any
 
@@ -20,7 +22,7 @@ from hyped.data.processors.statistics.report import StatisticsReportStorage
 
 
 class HistogramConfig(BaseDataStatisticConfig):
-    """Histogram Data Statistic Config
+    """Histogram Data Statistic Config.
 
     Build a histogram of a given value feature.
 
@@ -44,7 +46,7 @@ class HistogramConfig(BaseDataStatisticConfig):
 
 
 class Histogram(BaseDataStatistic[HistogramConfig, list[int]]):
-    """Histogram Data Statistic Config
+    """Histogram Data Statistic Config.
 
     Build a histogram of a given value feature.
     """
@@ -71,6 +73,7 @@ class Histogram(BaseDataStatistic[HistogramConfig, list[int]]):
 
         Arguments:
             features (Features): input dataset features
+            manager (mp.Manager): multiprocessing manager
 
         Returns:
             init_val (list[int]): inital histogram of all zeros
@@ -98,7 +101,7 @@ class Histogram(BaseDataStatistic[HistogramConfig, list[int]]):
         index: list[int],
         rank: int,
     ) -> tuple[NDArray, NDArray]:
-        """Compute the histogram for the given batch of examples
+        """Compute the histogram for the given batch of examples.
 
         Arguments:
             examples (dict[str, list[Any]]): batch of examples
@@ -139,12 +142,12 @@ class Histogram(BaseDataStatistic[HistogramConfig, list[int]]):
     def update(
         self, report: StatisticsReportStorage, val: tuple[NDArray, NDArray]
     ) -> None:
-        """Write the new histogram values to the report
+        """Write the new histogram values to the report.
 
         Arguments:
             report (StatisticsReportStorage):
                 report storage to update the statistic in
-            cal (tuple[NDArray, NDArray]): total sub-histogram
+            val (tuple[NDArray, NDArray]): total sub-histogram
         """
         # get histogram
         hist = report.get(self.config.statistic_key)

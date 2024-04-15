@@ -1,3 +1,4 @@
+"""Process Graph."""
 import re
 from enum import Enum
 from itertools import count, groupby
@@ -13,7 +14,7 @@ from hyped.data.processors.statistics.base import BaseDataStatistic
 
 
 class NodeType(str, Enum):
-    """Enumeration of node types of a `ProcessGraph`"""
+    """Enumeration of node types of a `ProcessGraph`."""
 
     INPUT_FEATURE = "input_feature"
     OUTPUT_FEATURE = "output_feature"
@@ -22,7 +23,7 @@ class NodeType(str, Enum):
 
 
 class NodeAttribute(str, Enum):
-    """Enumeration of node attributes"""
+    """Enumeration of node attributes."""
 
     TYPE = "node_type"
     """The type of the node. Values to this attribute are defined by the
@@ -43,7 +44,7 @@ class NodeAttribute(str, Enum):
 
 
 class EdgeAttribute(str, Enum):
-    """Enumeration of edge attributes"""
+    """Enumeration of edge attributes."""
 
     FEATURES = "edge_features"
     """A list of feature keys refering to the features that are passed from
@@ -51,7 +52,7 @@ class EdgeAttribute(str, Enum):
 
 
 class ProcessGraph(nx.DiGraph):
-    """Process Graph
+    """Process Graph.
 
     Graph representation of a `DataPipe` object. It consists of all input and
     output features as well as the processors that process the input to the
@@ -59,19 +60,21 @@ class ProcessGraph(nx.DiGraph):
 
     Nodes and edges have a set of attributes. See `NodeAttributes` and
     `EdgeAttributes` for more details.
-
-    Arguments:
-        features (Features): input features to be processed by the data pipe
-        pipe (DataPipe): data pipe to represent as a directed graph
     """
 
     def __init__(self, features: Features, pipe: DataPipe) -> None:
+        """Initialize Process Graph.
+
+        Arguments:
+            features (Features): input features to be processed by the data pipe
+            pipe (DataPipe): data pipe to represent as a directed graph
+        """
         # create an empty graph
         super(ProcessGraph, self).__init__()
         self.build_process_graph(features, pipe)
 
     def build_process_graph(self, features: Features, pipe: DataPipe) -> None:
-        """Build the graph given the input features and data pipe
+        """Build the graph given the input features and data pipe.
 
         Arguments:
             features (Features):
@@ -191,7 +194,7 @@ class ProcessGraph(nx.DiGraph):
         ax: None | plt.Axes = None,
         **kwargs,
     ) -> plt.Axes:
-        """Plot the graph
+        """Plot the graph.
 
         Arguments:
             pos (None | dict[str, list[float]]):
@@ -211,7 +214,6 @@ class ProcessGraph(nx.DiGraph):
         Returns:
             ax (plt.Axes): axes containing plot of the graph
         """
-
         # limit the maximum number of character in a single line in nodes
         max_node_line_length = node_size // (font_size * 65)
 

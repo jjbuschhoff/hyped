@@ -1,3 +1,5 @@
+"""Huggingface Transformers Tokenizer Data Processor."""
+
 from enum import Enum
 from typing import Annotated, Any
 
@@ -26,7 +28,7 @@ from hyped.data.processors.base import (
 
 
 class HuggingFaceTokenizerOutputs(str, Enum):
-    """Enumeration of the outputs of the HuggingFace (transformers) Tokenizer
+    """Enumeration of the outputs of the HuggingFace (transformers) Tokenizer.
 
     Note that some of the output columns are optional and controlled by the
     specific type of tokenizer and the configuration. Furthermore there might
@@ -73,13 +75,11 @@ class HuggingFaceTokenizerOutputs(str, Enum):
 
 
 class HuggingFaceTokenizerConfig(BaseDataProcessorConfig):
-    """HuggingFace (Transformers) Tokenizer Config
+    """HuggingFace (Transformers) Tokenizer Config.
 
     Data Processor applying a pre-trained huggingface tokenizer.
     For more information please refer to the documentation of
     the hugginface transformers `PreTrainedTokenizer` class.
-
-    Type Identifier: `"hyped.data.processors.tokenizer.hf'
 
     Attributes:
         tokenizer (str | PreTrainedTokenizer):
@@ -174,7 +174,7 @@ class HuggingFaceTokenizerConfig(BaseDataProcessorConfig):
 
 
 class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
-    """HuggingFace (Transformers) Tokenizer
+    """HuggingFace (Transformers) Tokenizer.
 
     Data Processor applying a pre-trained huggingface tokenizer.
     For more information please refer to the documentation of
@@ -206,6 +206,11 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
     ]
 
     def __init__(self, config: HuggingFaceTokenizerConfig) -> None:
+        """Initialize the data processor.
+
+        Arguments:
+            config (HuggingFaceTokenizerConfig): processor configuration
+        """
         super(HuggingFaceTokenizer, self).__init__(config)
         # prepare tokenizer
         tokenizer = self.config.tokenizer
@@ -234,7 +239,7 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
                 )
 
     def _check_text_feature(self, key: FeatureKey, features: Features) -> None:
-        """Check textual input dataset features
+        """Check textual input dataset features.
 
         Raises KeyError when the key is not present in the feature mapping.
         Raises TypeError when the feature type is invalid, i.e. when the
@@ -244,7 +249,6 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
             key (FeatureKey): feature key to check
             features (Features): feature mapping
         """
-
         # make sure feature exists
         feature = key.index_features(features)
         # check type
@@ -257,7 +261,7 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
             raise_feature_equals(key, feature, Value("string"))
 
     def _check_input_features(self, features: Features) -> None:
-        """Check input features"""
+        """Check input features."""
         # make sure some input is specified
         if self.config.text is None:
             raise ValueError("No text input to tokenizer specified")
@@ -290,7 +294,9 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
             )
 
     def _get_output_sequence_length(self) -> int:
-        """Infers the (fixed) sequence length of the output sequences such
+        """Get output sequence length.
+
+        Infers the (fixed) sequence length of the output sequences such
         as the `input_ids` and `attention_mask` given the config. Returns
         -1 when the sequence length is not guaranteed to be constant.
 
@@ -310,8 +316,10 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
         return self.config.max_length if is_constant else -1
 
     def _build_output_features(self) -> Features:
-        """Build the output feature mapping based on the return options
-        set in the config
+        """Build output features.
+
+        Build the output feature mapping based on the return options
+        set in the config.
 
         Returns:
             features (Features): output feature mapping
@@ -354,8 +362,7 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
         return out_features
 
     def map_features(self, features: Features) -> Features:
-        """Check the input features and return the
-        output features of the tokenizer.
+        """Check tokenizer input and return output features.
 
         Arguments:
             features (Features): the input dataset features
@@ -397,7 +404,7 @@ class HuggingFaceTokenizer(BaseDataProcessor[HuggingFaceTokenizerConfig]):
     def internal_batch_process(
         self, examples: dict[str, list[Any]], index: list[int], rank: int
     ) -> tuple[dict[str, list[Any]], list[int]]:
-        """Tokenize a batch of examples
+        """Tokenize a batch of examples.
 
         Arguments:
             examples (dict[str, list[Any]]): batch of examples to process

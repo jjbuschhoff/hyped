@@ -10,7 +10,7 @@ from tests.data.processors.base import BaseTestDataProcessor
 
 
 class ConstantDataProcessorConfig(BaseDataProcessorConfig):
-    """Configuration for `ConstantDataProcessor`
+    """Configuration for `ConstantDataProcessor`.
 
     Attributes:
         name (str): name of the feature to be added
@@ -22,7 +22,7 @@ class ConstantDataProcessorConfig(BaseDataProcessorConfig):
 
 
 class ConstantDataProcessor(BaseDataProcessor[ConstantDataProcessorConfig]):
-    """Data Processor that adds a constant string feature to every example"""
+    """Data Processor that adds a constant string feature to every example."""
 
     def map_features(self, features):
         return Features({self.config.name: Value("string")})
@@ -32,14 +32,14 @@ class ConstantDataProcessor(BaseDataProcessor[ConstantDataProcessorConfig]):
 
 
 class ConstantGeneratorDataProcessorConfig(ConstantDataProcessorConfig):
-    """Configuration for `ConstantGeneratorDataProcessor`"""
+    """Configuration for `ConstantGeneratorDataProcessor`."""
 
     n: int = 3
 
 
 class ConstantGeneratorDataProcessor(ConstantDataProcessor):
     """Data Processor that generates n examples from every source example
-    and adds a constant string feature to each
+    and adds a constant string feature to each.
     """
 
     # overwrite config type

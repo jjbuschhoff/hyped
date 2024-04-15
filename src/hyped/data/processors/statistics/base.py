@@ -1,3 +1,5 @@
+"""Base class for Data Statistic Processors."""
+
 import multiprocessing as mp
 from abc import abstractmethod
 from typing import Any, Generic, TypeVar
@@ -16,7 +18,7 @@ from hyped.data.processors.statistics.report import (
 
 
 class BaseDataStatisticConfig(BaseDataProcessorConfig):
-    """Base Statistic Data Processor Config
+    """Base Statistic Data Processor Config.
 
     Attributes:
         statistic_key (str):
@@ -33,7 +35,7 @@ U = TypeVar("U")
 
 
 class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
-    """Abstract Base Statistic Data Processor
+    """Abstract Base Statistic Data Processor.
 
     Provides basic functionality to implement data statistics
     as data processors. Sub-types need to define the abstract
@@ -55,7 +57,7 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
     def internal_batch_process(
         self, examples: dict[str, list[Any]], index: list[int], rank: int
     ) -> tuple[dict[str, list[Any]], list[int]]:
-        """Internal batch process
+        """Internal batch process.
 
         Updates the statistic in all active reports given the batch of
         examples. The actual computations are outsourced to the
@@ -73,7 +75,6 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
             out_batch (dict[str, list[Any]]): empty dictionary
             src_index (list[int]): enumeration of input examples
         """
-
         extracted_value = self.extract(examples, index, rank)
         # update reports
         for report in statistics_report_manager.reports():
@@ -97,7 +98,7 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
         return {}, range(len(index))
 
     def map_features(self, features: Features) -> Features:
-        """Map features function
+        """Map features function.
 
         This function checks the input features and registers the
         statistic key to all active reports. The statistic key is
@@ -125,7 +126,7 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
 
     @abstractmethod
     def check_features(self, features: Features) -> None:
-        """Abstract check features function. Checks validity of input features
+        """Abstract check features function. Checks validity of input features.
 
         Arguments:
             features (Features): input dataset features
@@ -134,8 +135,9 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
 
     @abstractmethod
     def initial_value(self, features: Features, manager: mp.Manager) -> U:
-        """Abstract initial value function. Computes the initial value for
-        the statistic.
+        """Abstract initial value function.
+
+        Returns the initial value for the statistic.
 
         Arguments:
             features (Features): input dataset features
@@ -179,9 +181,10 @@ class BaseDataStatistic(BaseDataProcessor[T], Generic[T, U]):
         val: U,
         ext: Any,
     ) -> U:
-        """Abstract compute statistic function. Computes the updated statistic
-        value based on the values extracted from the examples using the
-        `extract` function.
+        """Abstract compute statistic function.
+
+        Computes the updated statistic value based on the values extracted
+        from the examples using the `extract` function.
 
         Arguments:
             val (Any): current statistic value

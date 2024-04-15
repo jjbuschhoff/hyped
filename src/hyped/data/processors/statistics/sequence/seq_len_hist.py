@@ -1,3 +1,4 @@
+"""Histogram over Length of a Sequence Features."""
 import warnings
 from typing import Any
 
@@ -19,7 +20,7 @@ from hyped.data.processors.statistics.value.hist import (
 
 
 class SequenceLengthHistogramConfig(HistogramConfig):
-    """Sequence Length Histogram Data Statistic Config
+    """Sequence Length Histogram Data Statistic Config.
 
     Build a histogram over the lengths of a given sequence feature.
 
@@ -42,6 +43,7 @@ class SequenceLengthHistogramConfig(HistogramConfig):
     num_bins: float = Field(default=0, init_var=False)
 
     def model_post_init(self, __context) -> None:
+        """Initialize configuration."""
         # set values
         self.low = 0
         self.high = self.num_bins = self.max_length
@@ -52,7 +54,7 @@ class SequenceLengthHistogramConfig(HistogramConfig):
 
 
 class SequenceLengthHistogram(Histogram):
-    """Sequence Length Histogram Data Statistic
+    """Sequence Length Histogram Data Statistic.
 
     Build a histogram over the lengths of a given sequence feature.
     """
@@ -87,7 +89,9 @@ class SequenceLengthHistogram(Histogram):
         index: list[int],
         rank: int,
     ) -> tuple[NDArray, NDArray]:
-        """Compute the sequence length histogram for the given
+        """Extract histogram values from batch.
+
+        Compute the sequence length histogram for the given
         batch of examples.
 
         Arguments:

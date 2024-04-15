@@ -1,3 +1,4 @@
+"""Json Data Writer."""
 import os
 from typing import Any
 
@@ -9,7 +10,7 @@ from .base import BaseDatasetWriter
 
 
 class JsonDatasetWriter(BaseDatasetWriter):
-    """Json Dataset Writer
+    """Json Dataset Writer.
 
     Implements the `BaseDatasetWriter` class to write a dataset
     to the disk in json-line format.
@@ -32,12 +33,21 @@ class JsonDatasetWriter(BaseDatasetWriter):
     def worker_shard_file_obj(
         self, path: str, worker_id: int
     ) -> _io.TextIOWrapper:
+        """Worker Shard File Object.
+
+        Arguments:
+            path (str): path to store the file
+            worker_id (int): worker id
+
+        Returns:
+            f (_io.TextIOWrapper): file object to write the dataset to
+        """
         return open(
             os.path.join(path, "data_shard_%i.jsonl" % worker_id), "wb+"
         )
 
     def finalize_worker(self) -> None:
-        """Cleanup and close the save file"""
+        """Cleanup and close the save file."""
         # finalize the worker
         super(JsonDatasetWriter, self).finalize_worker()
 

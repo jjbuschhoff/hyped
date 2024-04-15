@@ -1,3 +1,4 @@
+"""Dataset Consumer."""
 import multiprocessing as mp
 import os
 import traceback
@@ -15,12 +16,25 @@ from tqdm.std import EMA
 
 
 class ConsumerProcessException(Exception):
+    """Consumer Process Exception.
+
+    Exception wrapper for exceptions thrown in worker processes.
+    """
+
     def __init__(self, rank: int, exc: Exception, tb: str) -> None:
+        """Initialize Consumer Process Exception.
+
+        Arguments:
+            rank (int): worker rank
+            exc (Exception): exception raised during worker process
+            tb (str): stack traceback of the raised exception
+        """
         self.rank = rank
         self.exc = exc
         self.tb = tb
 
     def short_desc(self) -> str:
+        """Short string representation of the exception."""
         return "Exception in Process %i: %s: %s" % (
             self.rank,
             type(self.exc).__name__,
@@ -28,14 +42,28 @@ class ConsumerProcessException(Exception):
         )
 
     def __str__(self) -> str:
+        """String representation of the exception."""
         return "Exception in Process %i: %s" % (self.rank, self.tb)
 
 
 class ConsumerProcessExceptionGroup(Exception):
+    """Consumer Process Exception Group.
+
+    Collection of all Exceptions raised in consumer worker processes.
+    Raised when any of the worker processes raises an exception during
+    processing.
+    """
+
     def __init__(self, exc_group: list[ConsumerProcessException]) -> None:
+        """Initialize Exception Group.
+
+        Arguments:
+            exc_group (list[ConsumerProcessException]): exception group
+        """
         self.exc_group = exc_group
 
     def __str__(self) -> str:
+        """String representation of the exception group."""
         return (
             "\n"
             + "\n\n".join(map(str, self.exc_group))
@@ -51,12 +79,16 @@ class ConsumerProcessExceptionGroup(Exception):
 
 
 class ConsumerProcess(mp.Process):
+    """Consumer Process."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize consumer process."""
         mp.Process.__init__(self, *args, **kwargs)
         self._pconn, self._cconn = mp.Pipe(duplex=False)
         self._exception = None
 
     def run(self):
+        """Worker function."""
         try:
             mp.Process.run(self)
             self._cconn.send(None)
@@ -67,13 +99,17 @@ class ConsumerProcess(mp.Process):
 
     @property
     def exception(self) -> None | tuple[Exception, str]:
+        """Exception raised in worker function.
+
+        Falls back to None in case no exception was raised.
+        """
         if self._pconn.poll():
             self._exception = self._pconn.recv()
         return self._exception
 
 
 class BaseDatasetConsumer(ABC):
-    """Abstract base class for dataset consumers
+    """Abstract base class for dataset consumers.
 
     The idea of consumer classes is to stream the items of a given dataset
     in order to execute some function on them. This is especially usefull
@@ -83,16 +119,6 @@ class BaseDatasetConsumer(ABC):
     support to parallelize the workload.
 
     Subclasses must specify the `consume_example` function.
-
-    Arguments:
-        num_proc (None | int):
-            The number of processes to use. Defaults to the number of
-            cpu cores available.
-        tqdm_kwargs (dict[str, Any]):
-            extra keyword arguments passed to the tqdm progress bar
-        tqdm_update_interval (float):
-            the minimum update interval in seconds in which the tqdm bar
-            needs to be updated
     """
 
     def __init__(
@@ -101,13 +127,25 @@ class BaseDatasetConsumer(ABC):
         tqdm_kwargs: dict[str, Any] = {},
         tqdm_update_interval: float = 0.2,
     ):
+        """Initialize Dataset Consumer.
+
+        Arguments:
+            num_proc (None | int):
+                The number of processes to use. Defaults to the number of
+                cpu cores available.
+            tqdm_kwargs (dict[str, Any]):
+                extra keyword arguments passed to the tqdm progress bar
+            tqdm_update_interval (float):
+                the minimum update interval in seconds in which the tqdm bar
+                needs to be updated
+        """
         self.num_proc = num_proc or os.cpu_count()
         # tqdm arguments
         self.tqdm_kwargs = tqdm_kwargs
         self.tqdm_update_interval = tqdm_update_interval
 
     def get_num_proc(self, data: datasets.IterableDataset) -> int:
-        """Get the number of workers to use for a given dataset
+        """Get the number of workers to use for a given dataset.
 
         Arguments:
             data (datasets.IterableDataset): dataset to be processed
@@ -122,13 +160,12 @@ class BaseDatasetConsumer(ABC):
     def consume(
         self, data: datasets.Dataset | datasets.IterableDataset
     ) -> None:
-        """Consume a given dataset
+        """Consume a given dataset.
 
         Arguments:
             data (datasets.Dataset, datasets.IterableDataset):
                 the dataset to consume
         """
-
         # convert dataset to iterable dataset
         if isinstance(data, datasets.Dataset):
             data = data.to_iterable_dataset(num_shards=self.num_proc)
@@ -182,14 +219,14 @@ class BaseDatasetConsumer(ABC):
     def _tqdm(
         self, readers: list[mp.connection.Connection], total: int
     ) -> None:
-        """tqdm bar
+        """Tqdm bar.
 
         Manages the tqdm progress bar for the consumer.
 
         Arguments:
             readers (list[mp.connection.Connection]):
                 connections to consumer workers to listen to
-            kwargs (Any): keyword arguments passed to tqdm
+            total (int): number of expected iterations.
         """
         # create a progress bar
         kwargs = self.tqdm_kwargs | {
@@ -230,7 +267,7 @@ class BaseDatasetConsumer(ABC):
             dt = t - pbar.last_print_t
             # compute examples throughput and update tqdm postfix
             if dn_examples != 0:
-                throughput = ema_dn(dn_examples) / ema_dt(dt)
+                throughput = ema_dn(dn_examples) / max(ema_dt(dt), 1e-5)
                 formatted_total_examples = (
                     "%d" if total_examples < 10**6 else "%.2e"
                 ) % total_examples
@@ -248,7 +285,7 @@ class BaseDatasetConsumer(ABC):
         pbar.close()
 
     def _yield_shard_ids(self, shard_queue: mp.Queue) -> Iterable[int]:
-        """Yield shard ids from a queue of shard ids to be processed"""
+        """Yield shard ids from a queue of shard ids to be processed."""
         while not shard_queue.empty():
             try:
                 yield shard_queue.get(timeout=1)
@@ -262,7 +299,7 @@ class BaseDatasetConsumer(ABC):
         data: datasets.IterableDataset,
         tqdm_writer: mp.connection.Connection,
     ) -> None:
-        """Consumer worker function
+        """Consumer worker function.
 
         Implements general consumer loop and progress report to
         tqdm worker.
@@ -278,7 +315,6 @@ class BaseDatasetConsumer(ABC):
             data (datasets.IterableDataset): dataset to consume shards of
             tqdm_writer (mp.connection.Connection): connection to tqdm worker
         """
-
         # set worker info
         torch.utils.data._utils.worker._worker_info = WorkerInfo(
             id=worker_id,
@@ -327,7 +363,7 @@ class BaseDatasetConsumer(ABC):
             tqdm_writer.send(None)
 
     def initialize_worker(self) -> None:
-        """Initialize worker
+        """Initialize worker.
 
         Overwrite this function to implement logic to be executed once
         before starting the worker loop.
@@ -335,7 +371,7 @@ class BaseDatasetConsumer(ABC):
         pass
 
     def finalize_worker(self) -> None:
-        """Finalize worker
+        """Finalize worker.
 
         Overwrite this function to implement logic to be executed once
         after the worker loop finished.
@@ -349,7 +385,7 @@ class BaseDatasetConsumer(ABC):
         example_id: int,
         example: dict[str, Any],
     ) -> None:
-        """Abstract function to consume a given example
+        """Abstract function to consume a given example.
 
         This function implements the actual consume logic in subclasses.
 

@@ -1,3 +1,4 @@
+"""Histogram over Discrete Values for a Sequence Features."""
 from itertools import chain
 from typing import Any
 
@@ -18,7 +19,7 @@ from hyped.data.processors.statistics.value.disc_hist import (
 
 
 class DiscreteSequenceValueHistogramConfig(DiscreteHistogramConfig):
-    """Discrete Sequence Value Histogram Data Statistic Config
+    """Discrete Sequence Value Histogram Data Statistic Config.
 
     Build a histogram of a given discrete sequence feature,
     e.g. ClassLabel or string.
@@ -34,7 +35,7 @@ class DiscreteSequenceValueHistogramConfig(DiscreteHistogramConfig):
 
 
 class DiscreteSequenceValueHistogram(DiscreteHistogram):
-    """Discrete Sequence Value Histogram Data Statistic
+    """Discrete Sequence Value Histogram Data Statistic.
 
     Build a histogram of a given discrete sequence feature,
     e.g. ClassLabel or string.

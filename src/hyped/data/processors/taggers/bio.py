@@ -1,3 +1,5 @@
+"""Begin-In-Out (BIO) Tagger Data Processor."""
+
 from enum import Enum
 from typing import Any
 
@@ -21,14 +23,14 @@ from ..spans.common import make_spans_exclusive
 
 
 class BioTaggerOutputs(str, Enum):
-    """Enumeration of outputs of the bio tagger processor"""
+    """Enumeration of outputs of the bio tagger processor."""
 
     BIO_TAGS = "bio_tags"
     """Output column containing the generated bio tag sequence"""
 
 
 class BioTaggerConfig(BaseDataProcessorConfig):
-    """Begin-In-Out (BIO) Tagger Config
+    """Begin-In-Out (BIO) Tagger Config.
 
     Convert Entity span annotations to per-token labels
     using the BIO-tagging scheme.
@@ -75,7 +77,7 @@ class BioTaggerConfig(BaseDataProcessorConfig):
 
 
 class BioTagger(BaseDataProcessor[BioTaggerConfig]):
-    """Begin-In-Out (BIO) Tagger Config
+    """Begin-In-Out (BIO) Tagger Config.
 
     Convert Entity span annotations to per-token labels
     using the BIO-tagging scheme.
@@ -86,7 +88,7 @@ class BioTagger(BaseDataProcessor[BioTaggerConfig]):
 
     @property
     def entity_label_space(self) -> None | ClassLabel:
-        """Entity label-space extracted from input features"""
+        """Entity label-space extracted from input features."""
         feature = self.config.entity_spans_label.index_features(
             self.in_features
         )
@@ -95,14 +97,16 @@ class BioTagger(BaseDataProcessor[BioTaggerConfig]):
 
     @property
     def bio_label_space(self) -> None | ClassLabel:
-        """Bio tags label-space extracted from new features"""
+        """Bio tags label-space extracted from new features."""
         feature = self.raw_features[BioTaggerOutputs.BIO_TAGS]
         feature = get_sequence_feature(feature)
         return feature if isinstance(feature, ClassLabel) else None
 
     def _tag_sequence_feature(self, features: Features) -> Sequence:
-        """Build the tag sequence dataset feature given the input
-        feature mapping
+        """Tag sequence feature.
+
+        Build the tag sequence dataset feature given the input
+        feature mapping.
 
         If the entity labels feature is a sequence of class labels, then
         the bio tag label-space is inferred from it by applying the BIO
@@ -152,7 +156,9 @@ class BioTagger(BaseDataProcessor[BioTaggerConfig]):
         return Sequence(Value("string"), length=length)
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and return feature mapping
+        """Map dataaset features.
+
+        Check input features and return feature mapping
         for the bio tags.
 
         Arguments:
@@ -204,7 +210,7 @@ class BioTagger(BaseDataProcessor[BioTaggerConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
             example (dict[str, Any]): example to process

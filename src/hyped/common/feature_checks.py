@@ -1,3 +1,4 @@
+"""Feature checking functionality."""
 from inspect import isclass
 from typing import Any
 
@@ -35,7 +36,7 @@ INDEX_TYPES = INT_TYPES + UINT_TYPES
 def check_feature_equals(
     feature: FeatureType, target: FeatureType | list[FeatureType]
 ) -> bool:
-    """Check whether a given feature equals a target feature
+    """Check whether a given feature equals a target feature.
 
     This confirms exact matches, including for instance
     checking that the lengths of sequences match.
@@ -56,7 +57,6 @@ def check_feature_equals(
             bool indicating whether the feature matches
             the target feature type
     """
-
     if isinstance(target, (list, tuple)):
         # if multiple valid targets are given the feature
         # should match any one of them
@@ -104,7 +104,9 @@ def check_feature_is_sequence(
     feature: FeatureType,
     value_type: None | FeatureType | list[FeatureType] = None,
 ) -> bool:
-    """Check if a given feature is a sequence of values of
+    """Check Feature is Sequence.
+
+    Check if a given feature is a sequence of values of
     a given value type (and arbitrary length).
 
     Arguments:
@@ -124,7 +126,6 @@ def check_feature_is_sequence(
             whether the feature is a sequence of (one of) the
             given value type(s)
     """
-
     if value_type is None:
         # only check if the feature is a sequence
         return isinstance(feature, (Sequence, list, tuple))
@@ -135,7 +136,7 @@ def check_feature_is_sequence(
 
 
 def get_sequence_length(seq: Sequence | list | tuple) -> int:
-    """Get the length of a given sequence feature
+    """Get the length of a given sequence feature.
 
     Arguments:
         seq (Sequence | list | tuple): sequence to get the length of
@@ -150,7 +151,7 @@ def get_sequence_length(seq: Sequence | list | tuple) -> int:
 
 
 def get_sequence_feature(seq: Sequence | list | tuple) -> FeatureType:
-    """Get the item feature type of a given sequence feature
+    """Get the item feature type of a given sequence feature.
 
     Arguments:
         seq (Sequence | list | tuple):
@@ -167,11 +168,11 @@ def get_sequence_feature(seq: Sequence | list | tuple) -> FeatureType:
 def check_sequence_lengths_match(
     seq_A: Sequence | list | tuple, seq_B: Sequence | list | tuple
 ) -> bool:
-    """Check whether the lengths of two sequences match
+    """Check whether the lengths of two sequences match.
 
     Arguments:
-        sequence_A (Sequence | list | tuple): sequence A
-        sequence_B (Sequence | list | tuple): sequence B
+        seq_A (Sequence | list | tuple): sequence A
+        seq_B (Sequence | list | tuple): sequence B
 
     Returns:
         match (bool): bool indicating if the lengths match
@@ -180,7 +181,7 @@ def check_sequence_lengths_match(
 
 
 def check_object_matches_feature(obj: Any, feature: FeatureType):
-    """Check whether the object is of the given feature type
+    """Check whether the object is of the given feature type.
 
     Arguments:
         obj (Any): the object whichs type to check
@@ -191,7 +192,6 @@ def check_object_matches_feature(obj: Any, feature: FeatureType):
             boolean indicating whether the object is of the
             feature type or not
     """
-
     # preparation
     data = {"__obj__": [obj]}
     features = Features({"__obj__": feature})
@@ -209,7 +209,7 @@ def check_object_matches_feature(obj: Any, feature: FeatureType):
 def raise_feature_equals(
     name: str, feature: FeatureType, target: FeatureType | list[FeatureType]
 ) -> None:
-    """Check whether a given feature equals a target feature
+    """Check whether a given feature equals a target feature.
 
     This confirms exact matches, including for instance
     checking that the lengths of sequences match.
@@ -229,7 +229,6 @@ def raise_feature_equals(
     Raises:
         exc (TypeError): when the feature doesn't equal the target
     """
-
     if not check_feature_equals(feature, target):
         if isinstance(target, list):
             # slightly different error message for list of
@@ -247,7 +246,7 @@ def raise_feature_equals(
 def raise_features_align(
     name_A: str, name_B: str, feature_A: FeatureType, feature_B: FeatureType
 ) -> None:
-    """Check if two features align/match
+    """Check if two features align/match.
 
     Arguments:
         name_A (str): name of feature A, only used in error message
@@ -258,7 +257,6 @@ def raise_features_align(
     Raises:
         exp (TypeError): when features don't match
     """
-
     if not check_feature_equals(feature_A, feature_B):
         raise TypeError(
             "Feature type of %s doesn't match the feature type of %s,"
@@ -271,7 +269,9 @@ def raise_feature_is_sequence(
     feature: FeatureType,
     value_type: None | FeatureType | list[FeatureType] = None,
 ) -> None:
-    """Check if a given feature is a sequence of values of
+    """Raise Feature is Sequence.
+
+    Check if a given feature is a sequence of values of
     a given value type (and arbitrary length).
 
     Arguments:
@@ -313,7 +313,7 @@ def raise_feature_is_sequence(
 
 
 def raise_object_matches_feature(obj: Any, feature: FeatureType):
-    """Check whether the object is of the given feature type
+    """Check whether the object is of the given feature type.
 
     Arguments:
         obj (Any): the object whichs type to check
@@ -323,7 +323,6 @@ def raise_object_matches_feature(obj: Any, feature: FeatureType):
         exc (TypeError):
             when the object is not of the feature type
     """
-
     if not check_object_matches_feature(obj, feature):
         raise TypeError(
             "Expected object to be of type %s, got %s" % (feature, obj)

@@ -1,3 +1,4 @@
+"""Feature Key Module."""
 from __future__ import annotations
 
 from enum import Enum
@@ -21,6 +22,10 @@ from .feature_checks import (
 def _iter_keys_in_features(
     features: FeatureType, max_depth: int, max_seq_len_to_unpack: int
 ) -> Iterable[tuple[str | int | slice]]:
+    """Internal helper function.
+
+    Iterate through all sub-feature keys of a given feature.
+    """
     if max_depth == 0:
         # trivial case, maximum depth reached
         yield tuple()
@@ -70,7 +75,7 @@ def _iter_keys_in_features(
 
 
 class FeatureKey(tuple[str | int | slice]):
-    """Feature Key used to index features and examples
+    """Feature Key used to index features and examples.
 
     Arguments:
         *key (str | int | slice): key entries
@@ -78,9 +83,22 @@ class FeatureKey(tuple[str | int | slice]):
 
     @classmethod
     def from_tuple(self, key: tuple[str | int | slice]) -> FeatureKey:
+        """Generate a feature key from a tuple.
+
+        Arguments:
+            key (tuple[str|int|slice]): key entries
+
+        Returns:
+            key (FeatureKey): feature key
+        """
         return FeatureKey(*key)
 
     def __new__(self, *key: str | int | slice) -> None:
+        """Instantiate a new feature key.
+
+        Arguments:
+            *key (tuple[str|int|slice]): key entries
+        """
         if len(key) == 1 and isinstance(key[0], tuple):
             return FeatureKey.from_tuple(key[0])
 
@@ -103,6 +121,7 @@ class FeatureKey(tuple[str | int | slice]):
         return tuple.__new__(FeatureKey, key)
 
     def __getitem__(self, idx) -> FeatureKey | str | int | slice:
+        """Get specific key entries of the feature key."""
         if isinstance(idx, slice) and (
             (idx.start == 0) or (idx.start is None)
         ):
@@ -110,15 +129,18 @@ class FeatureKey(tuple[str | int | slice]):
         return super(FeatureKey, self).__getitem__(idx)
 
     def __str__(self) -> str:
+        """String representation of the feature key."""
         return "FeatureKey(%s)" % "->".join(map(repr, self))
 
     def __repr__(self) -> str:
+        """String representation of the feature key."""
         return str(self)
 
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
+        """Integrate feature key with pydantic."""
         return core_schema.no_info_after_validator_function(
             cls, handler(str | tuple)
         )
@@ -148,7 +170,6 @@ class FeatureKey(tuple[str | int | slice]):
         Returns:
             is_simple (bool): boolean indicating whether the key is simple
         """
-
         return all(
             isinstance(k, str) or (isinstance(k, slice) and k == slice(None))
             for k in self
@@ -163,12 +184,11 @@ class FeatureKey(tuple[str | int | slice]):
         Raises:
             exc (TypeError): when the given key is complex
         """
-
         if not self.is_simple:
             raise TypeError("Expected simple key, got %s" % str(str))
 
     def cutoff_at_slice(self) -> FeatureKey:
-        """Cutoff given key at first occurance of a slice
+        """Cutoff given key at first occurance of a slice.
 
         Consider the following example:
 
@@ -190,7 +210,7 @@ class FeatureKey(tuple[str | int | slice]):
 
     @property
     def simple_subkey(self) -> FeatureKey:
-        """Get simple subkey of the feature key
+        """Get simple subkey of the feature key.
 
         Consider the following example:
 
@@ -201,7 +221,6 @@ class FeatureKey(tuple[str | int | slice]):
             simple_subkey (FeatureKey):
                 truncated key guaranteed to be simple
         """
-
         for i in range(2, len(self)):
             if not self[:i].is_simple:
                 return self[: i - 1]
@@ -220,7 +239,6 @@ class FeatureKey(tuple[str | int | slice]):
             feature (FeatureType):
                 the extracted feature type at the given key.
         """
-
         for i, key_entry in enumerate(self):
             if isinstance(key_entry, str):
                 # check feature type
@@ -275,7 +293,6 @@ class FeatureKey(tuple[str | int | slice]):
         Returns:
             value (Any): the value of the example at the given key.
         """
-
         for i, key_entry in enumerate(self):
             if isinstance(key_entry, slice):
                 assert isinstance(example, list)
@@ -292,7 +309,9 @@ class FeatureKey(tuple[str | int | slice]):
         return example
 
     def index_batch(self, batch: dict[str, list[Any]]) -> list[Any]:
-        """Index a batch of examples with the given key and retrieve
+        """Index batch.
+
+        Index a batch of examples with the given key and retrieve
         the batch of values.
 
         Arguments:
@@ -305,7 +324,7 @@ class FeatureKey(tuple[str | int | slice]):
         return FeatureKey(self[0], slice(None), *self[1:]).index_example(batch)
 
     def remove_from_features(self, features: Features) -> Features:
-        """Remove a feature from a feature mapping
+        """Remove a feature from a feature mapping.
 
         Arguments:
             features (Features): features to remove the feature from
@@ -313,7 +332,6 @@ class FeatureKey(tuple[str | int | slice]):
         Returns:
             remaining_features (Features): the remaining features
         """
-
         if not self[:-1].is_simple:
             raise ValueError(
                 "Can only remove from feature at simple key, "
@@ -371,7 +389,7 @@ class FeatureKey(tuple[str | int | slice]):
         return features
 
     def remove_from_example(self, example: dict[str, Any]) -> dict[str, Any]:
-        """Remove a feature from a given example
+        """Remove a feature from a given example.
 
         Arguments:
             example (dict[str, Any]): example
@@ -379,7 +397,6 @@ class FeatureKey(tuple[str | int | slice]):
         Returns:
             remaining_example (dict[str, Any]): remaining example
         """
-
         if not self[:-1].is_simple:
             raise ValueError(
                 "Can only remove from feature at simple key, "
@@ -415,7 +432,7 @@ class FeatureKey(tuple[str | int | slice]):
     def remove_from_batch(
         self, batch: dict[str, list[Any]]
     ) -> dict[str, list[Any]]:
-        """Remove a feature from a given batch
+        """Remove a feature from a given batch.
 
         Arguments:
             batch (dict[str, list[Any]]): batch
@@ -437,7 +454,7 @@ class FeatureKey(tuple[str | int | slice]):
         max_depth: int = -1,
         max_seq_len_to_unpack: int = 8,
     ) -> Iterable[FeatureKey]:
-        """Iterate over all keys present in the given features
+        """Iterate over all keys present in the given features.
 
         Take for example the following feature mapping
 
@@ -465,7 +482,6 @@ class FeatureKey(tuple[str | int | slice]):
         Returns:
             keys (Iterable[FeatureKey]): iterator over keys
         """
-
         return map(
             FeatureKey.from_tuple,
             _iter_keys_in_features(features, max_depth, max_seq_len_to_unpack),
@@ -482,6 +498,7 @@ _FeatureKeyCollectionValue = (
 def _convert_to_feature_keys(
     col: _FeatureKeyCollectionValue | str | tuple[str | int | slice],
 ) -> _FeatureKeyCollectionValue:
+    """Internal helper function."""
     if isinstance(col, dict):
         return {k: _convert_to_feature_keys(v) for k, v in col.items()}
     if isinstance(col, list):
@@ -497,6 +514,7 @@ def _convert_to_feature_keys(
 def _collect_from_example(
     col: _FeatureKeyCollectionValue, example: dict[str, Any]
 ) -> Any:
+    """Internal helper function."""
     if isinstance(col, FeatureKey):
         return col.index_example(example)
     if isinstance(col, dict):
@@ -511,12 +529,31 @@ def _collect_from_example(
 
 
 class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
+    """Feature Key Collection.
+
+    Represents a (nested) collection of feature keys in the form of
+    a dictionary on the top-level but can include lists in nested
+    structures.
+    """
+
     def __init__(
         self, collection: dict[str, _FeatureKeyCollectionValue] = {}
     ) -> None:
+        """Instantiate new feature key collection.
+
+        Arguments:
+            collection (dict[str, _FeatureKeyCollectionValue]):
+                feature key collection
+        """
         dict.__init__(self, _convert_to_feature_keys(collection))
 
     def __setitem__(self, idx: str, val: _FeatureKeyCollectionValue) -> None:
+        """Set value in collection.
+
+        Arguments:
+            idx (str): string index key
+            val (_FeatureKeyCollectionValue): new value
+        """
         super(FeatureKeyCollection, self).__setitem__(
             idx, _convert_to_feature_keys(val)
         )
@@ -540,14 +577,13 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
             FeatureKeyCollection({"A": {"X": ("A", "X"), "Y": ("A", "Y")}})
 
         Arguments:
-            keys (Iterable[FeatureKey]):
+            feature_keys (Iterable[FeatureKey]):
                 iterable of feature keys to build a collection from
 
         Returns:
             collection (FeatureCollection):
                 resulting feature collection
         """
-
         collection = FeatureKeyCollection()
 
         for key in feature_keys:
@@ -565,19 +601,24 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
         return collection
 
     def __str__(self) -> str:
+        """String representation of the feature key collection."""
         return "FeatureKeyCollection(%s)" % str(dict(self))
 
     def __repr__(self) -> str:
+        """String representation of the feature key collection."""
         return str(self)
 
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
+        """Integrate feature key with pydantic."""
         return core_schema.no_info_after_validator_function(cls, handler(dict))
 
     @property
     def feature_keys(self) -> Iterable[FeatureKey]:
+        """Iterator over all feature keys listed in the collection."""
+
         def _iter_feature_keys(col: _FeatureKeyCollectionValue):
             if isinstance(col, FeatureKey):
                 yield col
@@ -591,8 +632,10 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
         yield from _iter_feature_keys(self)
 
     def collect_features(self, features: Features) -> Features:
-        """Collect all features requested in the feature collection
-        and maintain the format of the collection
+        """Collect features.
+
+        Collect all features requested in the feature collection
+        and maintain the format of the collection.
 
         Arguments:
             features (Features):
@@ -627,8 +670,10 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
         return Features({key: _collect(val) for key, val in self.items()})
 
     def collect_values(self, example: dict[str, Any]) -> dict[str, Any]:
-        """Collect all values requested by the feature collection
-        and maintain the format of the collection
+        """Collect Values.
+
+        Collect all values requested by the feature collection
+        and maintain the format of the collection.
 
         Arguments:
             example (dict[str, Any]):
@@ -638,14 +683,15 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
             collected_values (dict[str, Any]):
                 collected values in the format of the feature key collection
         """
-
         return _collect_from_example(self, example)
 
     def collect_batch(
         self, batch: dict[str, list[Any]]
     ) -> dict[str, list[Any]]:
-        """Collect all values from a batch of examples requested by the
-        feature collection and maintain the format of the collection
+        """Collect Batch.
+
+        Collect all values from a batch of examples requested by the
+        feature collection and maintain the format of the collection.
 
         Arguments:
             batch (dict[str, list[Any]]):
@@ -655,7 +701,6 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
             collected_values (dict[str, list[Any]]):
                 collected values in the format of the feature key collection
         """
-
         collected_batch = {key: [] for key in self.keys()}
         for example in _batch_to_examples(batch):
             for key, col in self.items():

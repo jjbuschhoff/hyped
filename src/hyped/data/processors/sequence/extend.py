@@ -1,3 +1,4 @@
+"""Extend Sequence Data Processor."""
 from itertools import chain
 from typing import Any
 
@@ -17,7 +18,7 @@ from hyped.data.processors.base import (
 
 
 class ExtendSequenceConfig(BaseDataProcessorConfig):
-    """Extend Sequence Data Processor Config
+    """Extend Sequence Data Processor Config.
 
     Extend a sequence feature by appending or prepending
     new values.
@@ -36,13 +37,21 @@ class ExtendSequenceConfig(BaseDataProcessorConfig):
 
 
 class ExtendSequence(BaseDataProcessor[ExtendSequenceConfig]):
-    """Extend Sequence Data Processor
+    """Extend Sequence Data Processor.
 
     Extend a sequence feature by appending or prepending
     new values.
     """
 
     def map_features(self, features: Features) -> Features:
+        """Map dataset features.
+
+        Arguments:
+            features (Features): input dataset features
+
+        Returns:
+            out (Features): output dataset features
+        """
         # check feature
         sequence = self.config.sequence.index_features(features)
         raise_feature_is_sequence(self.config.sequence, sequence)
@@ -65,6 +74,16 @@ class ExtendSequence(BaseDataProcessor[ExtendSequenceConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
+        """Process example.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (dict[str, Any]): processed example
+        """
         # get sequence and add new values
         sequence = self.config.sequence.index_example(example)
         sequence = chain(self.config.prepend, sequence, self.config.append)

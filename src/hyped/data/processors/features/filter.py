@@ -1,3 +1,4 @@
+"""Filter Features Data Processor."""
 from typing import Any
 
 from datasets import Features
@@ -11,7 +12,7 @@ from hyped.data.processors.base import (
 
 
 class FilterFeaturesConfig(BaseDataProcessorConfig):
-    """Filter Features Data Processor Config
+    """Filter Features Data Processor Config.
 
     Removes dataset features based on the specified filters,
     i.e. the list of features to keep or remove.
@@ -57,7 +58,7 @@ class FilterFeaturesConfig(BaseDataProcessorConfig):
 
 
 class FilterFeatures(BaseDataProcessor[FilterFeaturesConfig]):
-    """Filter Features Data Processor
+    """Filter Features Data Processor.
 
     Removes dataset features based on the specified filters,
     i.e. the list of features to keep or remove.
@@ -65,6 +66,7 @@ class FilterFeatures(BaseDataProcessor[FilterFeaturesConfig]):
 
     @property
     def required_feature_keys(self) -> list[FeatureKey]:
+        """Required feature keys."""
         # TODO: when remove is defined this should be input_features \ remove
         if self.config.remove is not None:
             raise NotImplementedError()
@@ -72,7 +74,7 @@ class FilterFeatures(BaseDataProcessor[FilterFeaturesConfig]):
         return list(self.config.required_feature_keys)
 
     def map_features(self, features: Features) -> Features:
-        """Filter dataset feature mapping
+        """Filter dataset feature mapping.
 
         Arguments:
             features (Features): input dataset features
@@ -80,7 +82,6 @@ class FilterFeatures(BaseDataProcessor[FilterFeaturesConfig]):
         Returns:
             out (Features): filtered dataset features
         """
-
         keep = self.config.keep
         remove = self.config.remove
         # make sure all features exist
@@ -112,7 +113,7 @@ class FilterFeatures(BaseDataProcessor[FilterFeaturesConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Filter features in example
+        """Filter features in example.
 
         Arguments:
             example (dict[str, Any]): example to filter

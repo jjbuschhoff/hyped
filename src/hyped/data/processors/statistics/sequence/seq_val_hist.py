@@ -1,3 +1,4 @@
+"""Histogram over Values for a Sequence Features."""
 from itertools import chain
 from typing import Any
 
@@ -15,7 +16,7 @@ from hyped.data.processors.statistics.value.hist import (
 
 
 class SequenceValueHistogramConfig(HistogramConfig):
-    """Sequence Value Histogram Data Statistic Config
+    """Sequence Value Histogram Data Statistic Config.
 
     Build a histogram of the values of a given sequence feature.
 
@@ -33,7 +34,7 @@ class SequenceValueHistogramConfig(HistogramConfig):
 
 
 class SequenceValueHistogram(Histogram):
-    """Sequence Value Histogram Data Statistic
+    """Sequence Value Histogram Data Statistic.
 
     Build a histogram of the values of a given sequence feature.
     """
@@ -64,7 +65,9 @@ class SequenceValueHistogram(Histogram):
         index: list[int],
         rank: int,
     ) -> tuple[NDArray, NDArray]:
-        """Compute the sequence value histogram for the given batch
+        """Extract values from batch.
+
+        Compute the sequence value histogram for the given batch
         of examples.
 
         Arguments:

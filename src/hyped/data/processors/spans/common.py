@@ -1,3 +1,4 @@
+"""Module of common span helper functionality."""
 from enum import Enum
 from typing import Sequence
 
@@ -5,7 +6,10 @@ import numpy as np
 
 
 class SpansOutputs(str, Enum):
-    """Output column of data processors generating a sequence of spans"""
+    """Spans Outputs.
+
+    Output column of data processors generating a sequence of spans.
+    """
 
     BEGINS = "span_begins"
     """Output column of the sequence of begins to the generated spans"""
@@ -15,8 +19,10 @@ class SpansOutputs(str, Enum):
 
 
 class LabelledSpansOutputs(str, Enum):
-    """Output column of data processors generating a sequence of labelled
-    spans"""
+    """Labelled Spans outputs.
+
+    Output column of data processors generating a sequence of labelled spans.
+    """
 
     BEGINS = "span_begins"
     """Output column of the sequence of begins to the generated spans"""
@@ -29,7 +35,9 @@ class LabelledSpansOutputs(str, Enum):
 
 
 class ResolveOverlapsStrategy(str, Enum):
-    """Enum of strategies to apply when resolving overlaps
+    """Resolve Overlaps Strategy Enum.
+
+    Enum of strategies to apply when resolving overlaps
     Used as an argument to `resolve_overlaps`.
     """
 
@@ -60,17 +68,18 @@ class ResolveOverlapsStrategy(str, Enum):
 def make_spans_exclusive(
     spans: Sequence[tuple[int]], is_inclusive: bool
 ) -> list[tuple[int]] | tuple[int]:
-    """Convert arbitrary (inclusive or exclusive) spans
-    to be exclusive.
+    """Convert arbitrary (inclusive or exclusive) spans to be exclusive.
 
     Arguments:
-        spans (Sequence[tuple[int]]): sequence of spans to process
+        spans (Sequence[tuple[int]]):
+            sequence of spans to process
         is_inclusive (bool):
             bool indicating whether the given spans are inclusive or not
 
     Returns:
         exclusive_spans (list[tuple[int]] | tuple[int]):
             processed spans guaranteed to be exclusive
+
     """
     spans = np.asarray(list(spans)).reshape(-1, 2)
     spans[..., 1] += int(is_inclusive)
@@ -83,12 +92,13 @@ def compute_spans_overlap_matrix(
     is_source_inclusive: bool = False,
     is_target_inclusive: bool = False,
 ) -> np.ndarray:
-    """Compute the span overlap matrix
+    """Compute the span overlap matrix.
 
-    The span overlap matrix `O` is a binary matrix of shape (n, m) where
-    n is the number of source spans and m is the number of target
-    spans. The boolean value `O_ij` indicates whether the i-th source
-    span overlaps with the j-th target span.
+    The span overlap matrix :math:`O` is a binary matrix of shape
+    :math:`(n, m)` where :math:`n` is the number of source spans
+    and :math:`m` is the number of target spans. The boolean value
+    :math:`O_{ij}` indicates whether the :math:`i`-th source span
+    overlaps with the :math:`j`-th target span.
 
     Arguments:
         source_spans (Sequence[tuple[int]]):
@@ -101,7 +111,8 @@ def compute_spans_overlap_matrix(
             bool indicating whether the target spans are inclusive or not
 
     Returns:
-        O (np.ndarray): binary overlap matrix
+        O (np.ndarray):
+            binary overlap matrix
     """
     # make all spans exclusive
     source_spans = make_spans_exclusive(source_spans, is_source_inclusive)
@@ -138,7 +149,7 @@ def resolve_overlaps(
     spans: Sequence[tuple[int]],
     strategy: ResolveOverlapsStrategy = ResolveOverlapsStrategy.APPROX,
 ) -> list[bool]:
-    """Resolve span overlaps
+    """Resolve span overlaps.
 
     Iteratively removes the span which overlaps with most other
     spans in the given sequence, while satisfying the resolve
@@ -156,7 +167,6 @@ def resolve_overlaps(
             Specifically the mask marks spans to keep with true and spans
             to remove to resolve the overlaps with false
     """
-
     spans = np.asarray(list(spans)).reshape(-1, 2)
     # for each span find the spans it overlaps with
     overlap = compute_spans_overlap_matrix(spans, spans)

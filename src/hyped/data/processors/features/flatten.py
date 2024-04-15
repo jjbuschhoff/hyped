@@ -1,3 +1,4 @@
+"""Flatten Dataset Features Processor."""
 from datasets import Features
 from pydantic import Field
 
@@ -13,25 +14,28 @@ from hyped.data.processors.features.format import (
 
 
 class FlattenFeaturesConfig(FormatFeaturesConfig):
-    """Flatten Dataset Features Processor Config
+    """Flatten Dataset Features Processor Config.
 
     Similar to formatting features (see `hyped.data.processors.helpers.format`)
     but flattens nested features
-
-    Type Identifier: `hyped.data.processors.features.flatten`
 
     Attributes:
         to_flatten (None | list[str]):
             dataset features to flatten. By default flattens all features
             present in the source feature mapping
-        delimiter (str): delimiter used to join nested keys, defaults to ':'
+
+        delimiter (str):
+            delimiter used to join nested keys, defaults to ':'
+
         depth (int):
             when set to a positive integer, the nested structure
             of the feature mapping will only be flattened to the
             specified depth. Defaults to -1.
+
         max_seq_length_to_unpack (int):
             upper threshold of length to unpack sequences. If the sequence
             length exceeds this threshold, the sequence will not be unpacked
+
     """
 
     to_flatten: None | list[FeatureKey] = None
@@ -45,7 +49,7 @@ class FlattenFeaturesConfig(FormatFeaturesConfig):
 
 
 class FlattenFeatures(FormatFeatures):
-    """Flatten Dataset Features Processor
+    """Flatten Dataset Features Processor.
 
     Similar to formatting features (see `hyped.data.processors.helpers.format`)
     but flattens nested features
@@ -59,12 +63,13 @@ class FlattenFeatures(FormatFeatures):
     CONFIG_TYPE = FlattenFeaturesConfig
 
     def __init__(self, config: None | FlattenFeaturesConfig = None) -> None:
+        """Initialize Flatten Features Data Processor."""
         super(FlattenFeatures, self).__init__(
             config=config or FlattenFeaturesConfig()
         )
 
     def map_features(self, features: Features) -> Features:
-        """Flatten dataset feature mapping
+        """Flatten dataset feature mapping.
 
         Arguments:
             features (Features): input dataset features
@@ -72,7 +77,6 @@ class FlattenFeatures(FormatFeatures):
         Returns:
             out (Features): flattened feature mapping
         """
-
         # get features to flatten, default to all features
         # in the feature mapping
         to_flatten = (

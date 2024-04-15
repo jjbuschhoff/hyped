@@ -1,3 +1,4 @@
+"""Type Register."""
 import inspect
 from abc import ABC, ABCMeta
 from types import MappingProxyType
@@ -7,18 +8,18 @@ from datasets.packaged_modules import _hash_python_lines
 
 
 class Registrable(ABC):
-    """Base Class for Registrable Types"""
+    """Base Class for Registrable Types."""
 
     @classmethod
     @property
     def type_id(cls) -> str:
-        """Type identifier"""
+        """Type identifier."""
         return ".".join([cls.__module__, cls.__name__])
 
     @classmethod
     @property
     def type_hash(cls) -> str:
-        """Get type hash
+        """Get type hash.
 
         The computed hash-code is based on the source code of the
         type and *not* runtime specific. This allows for type
@@ -42,7 +43,7 @@ class Registrable(ABC):
 
 
 class TypeRegistry(object):
-    """Type Registry
+    """Type Registry.
 
     Stores registrable types and holds functionality to get all
     registered sub-types of a given root type.
@@ -51,12 +52,13 @@ class TypeRegistry(object):
     """
 
     def __init__(self):
+        """Initialize Type Registry."""
         self.global_hash_register: dict[str, str] = dict()
         self.global_type_register: dict[str, type] = dict()
         self.hash_tree: dict[str, list[str]] = dict()
 
     def register_type(self, T: type, bases: tuple[type]):
-        """Register a type
+        """Register a type.
 
         Arguments:
             T (type): the type to register, must be a subclass of `Registrable`
@@ -80,7 +82,7 @@ class TypeRegistry(object):
         self.hash_tree[h] = set()
 
     def hash_tree_bfs(self, root: str) -> Iterator[str]:
-        """Breadth-Frist Search through inheritance tree rooted at given type
+        """Breadth-Frist Search through inheritance tree rooted at given type.
 
         Arguments:
             root (str): hash of the root type
@@ -101,7 +103,7 @@ class TypeRegistry(object):
             yield node
 
     def get_hash_register(self, root: type) -> dict[str, str]:
-        """Get the hash register for sub-types of a given root type
+        """Get the hash register for sub-types of a given root type.
 
         Arguments:
             root (type): root type
@@ -123,7 +125,7 @@ class TypeRegistry(object):
         }
 
     def get_type_register(self, root: type) -> dict[str, type]:
-        """Get the type register for sub-types of a given root type
+        """Get the type register for sub-types of a given root type.
 
         Arguments:
             root (type): root type
@@ -140,50 +142,56 @@ class TypeRegistry(object):
 
 
 class RootedTypeRegistryView(object):
-    """Rooted Type Registry View
+    """Rooted Type Registry View.
 
     Only has access to registered types that inherit the specified root.
-
-    Arguments:
-        root (type): root type
-        registry (TypeRegistry): type registry
     """
 
     def __init__(self, root: type, registry: TypeRegistry) -> None:
+        """Initialize Rooted Type Registry.
+
+        Arguments:
+            root (type): root type
+            registry (TypeRegistry): type registry
+        """
         self.root = root
         self.registry = registry
 
     @property
     def hash_register(self) -> dict[str, str]:
-        """Immutable hash register mapping type id to the
-        corresponding type hash
+        """Hash Register.
+
+        Immutable hash register mapping type id to the
+        corresponding type hash.
         """
         return MappingProxyType(self.registry.get_hash_register(self.root))
 
     @property
     def type_register(self) -> dict[str, type]:
-        """Immutable type register mapping type hash to the
-        corresponding type
+        """Type Register.
+
+        Immutable type register mapping type hash to the
+        corresponding type.
         """
         return MappingProxyType(self.registry.get_type_register(self.root))
 
     @property
     def type_ids(self) -> list[type]:
-        """List of all registered type identifiers"""
+        """List of all registered type identifiers."""
         return list(self.hash_register.keys())
 
     @property
     def types(self) -> list[type]:
-        """List of all registered types"""
+        """List of all registered types."""
         return list(self.type_register.values())
 
     @property
     def concrete_types(self) -> list[type]:
-        """List of all concrete (i.e. non-abstract) registered types"""
+        """List of all concrete (i.e. non-abstract) registered types."""
         return [t for t in self.types if not inspect.isabstract(t)]
 
     def get_type_by_t(self, t: str) -> type:
-        """Get registered type by type id
+        """Get registered type by type id.
 
         Arguments:
             t (int): type identifier
@@ -201,7 +209,7 @@ class RootedTypeRegistryView(object):
         return self.get_type_by_hash(self.hash_register[t])
 
     def get_type_by_hash(self, h: str) -> type:
-        """Get registered type by type hash
+        """Get registered type by type hash.
 
         Arguments:
             h (str): type hash
@@ -221,12 +229,16 @@ class RootedTypeRegistryView(object):
 
 # create default type registry
 default_registry = TypeRegistry()
+"""Default type registry tracking all registrable types"""
 
 
 class register_meta_mixin:
+    """register type metaclass mixin."""
+
     _registry: ClassVar[TypeRegistry] = default_registry
 
     def __new__(cls, name, bases, attrs) -> None:
+        """Register new types to registry."""
         # create new type and register it
         T = super().__new__(cls, name, bases, attrs)
         cls._registry.register_type(T, bases)
@@ -235,17 +247,22 @@ class register_meta_mixin:
 
     @property
     def type_registry(cls) -> RootedTypeRegistryView:
+        """Type Registry rooted at the current type."""
         return RootedTypeRegistryView(root=cls, registry=cls._registry)
 
 
 class register_type_meta(register_meta_mixin, ABCMeta):
-    """meta-class to automatically register sub-types of a specific
-    type in a type registry
+    """Register type meta.
+
+    meta-class to automatically register sub-types of a specific
+    type in a type registry.
     """
 
 
 # TODO: rename to RegisterTypeMixin
 class RegisterTypes(Registrable, metaclass=register_type_meta):
-    """Base class that automatically registers sub-types to the
-    default type registry
+    """Register Types.
+
+    Base class that automatically registers sub-types to the
+    default type registry.
     """

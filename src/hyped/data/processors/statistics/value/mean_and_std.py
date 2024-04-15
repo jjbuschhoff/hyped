@@ -1,3 +1,4 @@
+"""Mean and Standard Deviation Statistic for single Value Features."""
 from __future__ import annotations
 
 import multiprocessing as mp
@@ -23,7 +24,7 @@ from hyped.data.processors.statistics.base import (
 
 @dataclass
 class MeanAndStdTuple(object):
-    """Mean and Standard Deviation Container
+    """Mean and Standard Deviation Container.
 
     Packs the mean and standard deviation values into a statistic
     container.
@@ -39,6 +40,15 @@ class MeanAndStdTuple(object):
     n: int = 0
 
     def __eq__(self, other) -> bool:
+        """Compare mean and standard deviation values.
+
+        Arguments:
+            other (MeanAndStdTuple): object to compare to
+
+        Returns:
+            is_equal (bool):
+                boolean indicating whether the values are equal
+        """
         return (
             (self.n == other.n)
             and abs((self.mean - other.mean) < 1e-8)
@@ -50,7 +60,9 @@ class MeanAndStdTuple(object):
         a: MeanAndStdTuple,
         b: MeanAndStdTuple,
     ) -> MeanAndStdTuple:
-        """Implementations for the incremental Mean and Standard Deviation
+        """Incremental mean and Standard Deviation.
+
+        Implementations for the incremental Mean and Standard Deviation
         formulas. Computes the combined mean and standard deviation of two
         seperate instances.
 
@@ -76,7 +88,7 @@ class MeanAndStdTuple(object):
 
 
 class MeanAndStdConfig(BaseDataStatisticConfig):
-    """Mean and Standard Deviation Data Statistic Config
+    """Mean and Standard Deviation Data Statistic Config.
 
     Compute the mean and standard deviation of a given
     feature.
@@ -94,7 +106,7 @@ class MeanAndStdConfig(BaseDataStatisticConfig):
 
 
 class MeanAndStd(BaseDataStatistic[MeanAndStdConfig, MeanAndStdTuple]):
-    """Mean and Standard Deviation Data Statistic Config
+    """Mean and Standard Deviation Data Statistic Config.
 
     Compute the mean and standard deviation of a given
     feature.
@@ -103,10 +115,11 @@ class MeanAndStd(BaseDataStatistic[MeanAndStdConfig, MeanAndStdTuple]):
     def initial_value(
         self, features: Features, manager: mp.Manager
     ) -> MeanAndStdTuple:
-        """Initial value for mean and standard deviation statistic
+        """Initial value for mean and standard deviation statistic.
 
         Arguments:
             features (Features): input dataset features
+            manager (mp.Manager): multiprocessing manager
 
         Returns:
             init_val (MeanAndStdTuple): inital value of all zeros
@@ -134,7 +147,7 @@ class MeanAndStd(BaseDataStatistic[MeanAndStdConfig, MeanAndStdTuple]):
         index: list[int],
         rank: int,
     ) -> MeanAndStdTuple:
-        """Extract mean and standard deviation from batch of examples
+        """Extract mean and standard deviation from batch of examples.
 
         Arguments:
             examples (dict[str, list[Any]]): batch of examples
@@ -155,7 +168,7 @@ class MeanAndStd(BaseDataStatistic[MeanAndStdConfig, MeanAndStdTuple]):
         val: MeanAndStdTuple,
         ext: MeanAndStdTuple,
     ) -> MeanAndStdTuple:
-        """Compute updated statistic
+        """Compute updated statistic.
 
         Applies incremental formulas for mean and standard deviation on
         the current statistic value and the extracted mean and standard

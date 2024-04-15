@@ -1,3 +1,4 @@
+"""Apply Mask Data Processor."""
 from itertools import compress
 from typing import Any
 
@@ -16,7 +17,7 @@ from hyped.data.processors.base import (
 
 
 class ApplyMaskConfig(BaseDataProcessorConfig):
-    """Apply Mask Data Processor Config
+    """Apply Mask Data Processor Config.
 
     Apply a given mask onto a set of sequences
 
@@ -35,14 +36,16 @@ class ApplyMaskConfig(BaseDataProcessorConfig):
 
 
 class ApplyMask(BaseDataProcessor[ApplyMaskConfig]):
-    """Apply Mask Data Processor
+    """Apply Mask Data Processor.
 
     Apply a given mask onto a set of sequences
     """
 
     def map_features(self, features: Features) -> Features:
-        """Check mask and sequence features and overwrite sequence
-        features
+        """Map dataset features.
+
+        Check mask and sequence features and overwrite sequence
+        features.
 
         Arguments:
             features (Features): input dataset features
@@ -83,7 +86,7 @@ class ApplyMask(BaseDataProcessor[ApplyMaskConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
             example (dict[str, Any]): example to process
@@ -93,7 +96,6 @@ class ApplyMask(BaseDataProcessor[ApplyMaskConfig]):
         Returns:
             out (dict[str, Any]):
         """
-
         # get the mask
         mask = self.config.mask.index_example(example)
 

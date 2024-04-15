@@ -1,3 +1,4 @@
+"""Typed JSON Dataset Generator."""
 import datetime
 import io
 from dataclasses import dataclass, field
@@ -37,7 +38,7 @@ DATASETS_VALUE_TYPE_MAPPING = {
 def pydantic_model_from_features(
     features: datasets.Features,
 ) -> pydantic.BaseModel:
-    """Create a pydantic model from dataset features
+    """Create a pydantic model from dataset features.
 
     Arguments:
         features (Features): datasets features to build the pydantic model for
@@ -46,7 +47,6 @@ def pydantic_model_from_features(
         model (pydantic.BaseModel):
             pydantic model matching the structure of the dataset features.
     """
-
     fields = {}
     for k, field_type in features.items():
         if isinstance(field_type, datasets.Value):
@@ -92,7 +92,7 @@ def pydantic_model_from_features(
 
 @dataclass
 class TypedJsonDatasetConfig(JsonConfig):
-    """Typed Json Dataset Configuration
+    """Typed Json Dataset Configuration.
 
     Matches the huggingface datasets json dataset implementation.
     Please refer to the huggingface documentation for more information.
@@ -117,6 +117,7 @@ class TypedJsonDatasetConfig(JsonConfig):
     _batch_feature_model: pydantic.BaseModel = field(init=False)
 
     def __post_init__(self) -> None:
+        """Build pydantic models from feature description."""
         if self.features is None:
             raise ValueError(
                 "No dataset features provided. Please specify the expeted "
@@ -129,21 +130,20 @@ class TypedJsonDatasetConfig(JsonConfig):
         )
 
     def __getstate__(self):
-        """Pickle get state function avoid to pickle feature pydantic
-        models defined during runtime."""
+        """Avoid pickle pydantic model types defined at runtime."""
         d = self.__dict__.copy()
         _ = d.pop("_feature_model")
         _ = d.pop("_batch_feature_model")
         return d
 
     def __setstate__(self, d):
-        """Pickle set state function recreating pydantic models."""
+        """Recreate pydantic model types at runtime."""
         self.__dict__ = d
         self.__post_init__()
 
 
 class TypedJsonDataset(Json):
-    """Typed Json Dataset
+    """Typed Json Dataset.
 
     Typically used by call to `datasets.load_dataset with appropriate
     keyword arguments (see `TypedJsonDatasetConfig` for defails)

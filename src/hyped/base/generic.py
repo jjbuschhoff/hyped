@@ -1,7 +1,9 @@
+"""Helper functionality to work with generic types."""
 from typing import Generic, TypeVar, _GenericAlias, get_args, get_origin
 
 
 def _get_typevar_index(t: type, T: TypeVar) -> None | int:
+    """Internal helper function."""
     # trivial case
     if not hasattr(t, "__orig_bases__"):
         return None
@@ -23,7 +25,7 @@ def _get_typevar_index(t: type, T: TypeVar) -> None | int:
 
 
 def solve_typevar(t: type, T: TypeVar) -> type | None:
-    """Resolve type variable from inheritance tree of given type
+    """Resolve type variable from inheritance tree of given type.
 
     Arguments:
         t (type): type to analyse for specification of typevar

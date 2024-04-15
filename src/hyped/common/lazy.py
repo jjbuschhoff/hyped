@@ -1,3 +1,4 @@
+"""Lazy instance utilities."""
 import os
 import pickle
 import tempfile
@@ -8,45 +9,50 @@ T = TypeVar("T")
 
 
 class LazyInstance(Generic[T]):
-    """Lazy Instance
+    """Lazy Instance.
 
     Creates the object instance just as it is interacted with.
-
-    Arguments:
-        factory (Callable[[], T]): instance factory
     """
 
     def __init__(self, factory: Callable[[], T]) -> None:
+        """Instantiate lazy instance.
+
+        Arguments:
+            factory (Callable[[], T]): instance factory
+        """
         self.factory = factory
         self.instance: None | T = None
 
     def __getattr__(self, name: str) -> Any:
+        """Forward all requests to the instance."""
         if self.instance is None:
             self.instance = self.factory()
         # forward all requests to the instance
         return getattr(self.instance, name)
 
     def _is_instantiated(self) -> bool:
-        """Check whether the lazy object is instantiated"""
+        """Check whether the lazy object is instantiated."""
         return self.instance is not None
 
 
 class LazySharedInstance(LazyInstance[T]):
-    """Lazy Shared Instance
+    """Lazy Shared Instance.
 
     Shares a lazy instance with all subprocesses
 
     The instance will be shared only with processes spawned after
     creating the lazy object, however the underlying instance can
     be created after.
-
-    Arguments:
-        identifier (str):
-            instance identifier used to track instance accross processes
-        factory (Callable[[], T]): instance factory
     """
 
     def __init__(self, identifier: str, factory: Callable[[], T]) -> None:
+        """Instantiate lazy instance.
+
+        Arguments:
+            identifier (str):
+                instance identifier used to track instance accross processes
+            factory (Callable[[], T]): instance factory
+        """
         # environment keys used to share the object
         env_key = "__HYPED_SHARED_INSTANCE_%s" % identifier
 

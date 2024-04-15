@@ -1,3 +1,5 @@
+"""Relation Extraction Tagger Data Processor."""
+
 from enum import Enum
 from typing import Any
 
@@ -21,14 +23,14 @@ from ..spans.common import make_spans_exclusive
 
 
 class RelExTaggerOutputs(str, Enum):
-    """Enumeration of outputs of the relation extraction tagger"""
+    """Enumeration of outputs of the relation extraction tagger."""
 
     MARKED_SEQUENCE = "marked_sequence"
     """Output column containing the marked input sequence"""
 
 
 class RelExTaggerConfig(BaseDataProcessorConfig):
-    """Relation Extraction Tagger
+    """Relation Extraction Tagger.
 
     Marks source and target entities in the input sequence.
 
@@ -95,7 +97,7 @@ class RelExTaggerConfig(BaseDataProcessorConfig):
 
     @property
     def markers(self) -> list[str | int]:
-        """List of Source and Target markers"""
+        """List of Source and Target markers."""
         return [
             self.source_begin_marker,
             self.source_end_marker,
@@ -105,12 +107,20 @@ class RelExTaggerConfig(BaseDataProcessorConfig):
 
 
 class RelExTagger(BaseDataProcessor[RelExTaggerConfig]):
-    """Relation Extraction Tagger
+    """Relation Extraction Tagger.
 
     Marks source and target entities in the input sequence.
     """
 
     def _marked_sequence_feature(self, sequence: Sequence) -> Sequence:
+        """Marked sequence feature.
+
+        Arguments:
+            sequence (Sequence): source sequence feature
+
+        Returns:
+            marked_sequence (Sequence): marked sequence feature
+        """
         # increase length by four to account for the entity markers
         length = get_sequence_length(sequence)
         length = -1 if length == -1 else (length + 4)
@@ -121,13 +131,14 @@ class RelExTagger(BaseDataProcessor[RelExTaggerConfig]):
         return Sequence(get_sequence_feature(sequence), length=length)
 
     def _get_sequence_value_type(self) -> Value | list[Value]:
-        """Check the marker configuration and infer the expected
-        value type of the items in the input sequence from it
+        """Get sequence value type.
+
+        Check the marker configuration and infer the expected
+        value type of the items in the input sequence from it.
 
         Returns:
             value_type (Value | list[Value]): expected value type(s)
         """
-
         if (
             isinstance(self.config.source_begin_marker, str)
             and isinstance(self.config.source_end_marker, str)
@@ -163,6 +174,14 @@ class RelExTagger(BaseDataProcessor[RelExTaggerConfig]):
             )
 
     def map_features(self, features: Features) -> Features:
+        """Map input features to *new* features.
+
+        Arguments:
+            features (Features): input dataset features
+
+        Returns:
+            out (Features): new dataset features
+        """
         # make sure the maximum sequence length value is valid if set
         if (self.config.max_sequence_length is not None) and (
             self.config.max_sequence_length <= 0
@@ -200,6 +219,17 @@ class RelExTagger(BaseDataProcessor[RelExTaggerConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
+        """Process given example.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (dict[str, Any]): output
+
+        """
         # get input sequence from example
         input_sequence = self.config.input_sequence.index_example(example)
         input_sequence = list(input_sequence)

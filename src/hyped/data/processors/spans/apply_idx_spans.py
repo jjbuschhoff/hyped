@@ -1,3 +1,4 @@
+"""Apply Index Spans Data Processor."""
 from typing import Any
 
 import numpy as np
@@ -20,7 +21,7 @@ from .common import SpansOutputs, make_spans_exclusive
 
 
 class ApplyIndexSpansConfig(BaseDataProcessorConfig):
-    """Apply Index Spans Data Processor Config
+    """Apply Index Spans Data Processor Config.
 
     Let (i, j) be an index span over the span sequence A=[(b_k, e_k)]_k.
     Then the data processor computes the following output span:
@@ -65,7 +66,7 @@ class ApplyIndexSpansConfig(BaseDataProcessorConfig):
 
 
 class ApplyIndexSpans(BaseDataProcessor[ApplyIndexSpansConfig]):
-    """Apply Index Spans Data Processor Config
+    """Apply Index Spans Data Processor Config.
 
     Let (i, j) be an index span over the span sequence A=[(b_k, e_k)]_k.
     Then the data processor computes the following output span:
@@ -81,7 +82,9 @@ class ApplyIndexSpans(BaseDataProcessor[ApplyIndexSpansConfig]):
     """
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and return feature mapping
+        """Map dataset features.
+
+        Check input features and return feature mapping
         for token-level span annotations.
 
         Arguments:
@@ -90,7 +93,6 @@ class ApplyIndexSpans(BaseDataProcessor[ApplyIndexSpansConfig]):
         Returns:
             out (Features): token-level span annotation features
         """
-
         # get all input features
         idx_spans_begin = self.config.idx_spans_begin.index_features(features)
         idx_spans_end = self.config.idx_spans_end.index_features(features)
@@ -149,6 +151,16 @@ class ApplyIndexSpans(BaseDataProcessor[ApplyIndexSpansConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
+        """Process example.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (dict[str, Any]): processed example
+        """
         # get index span values
         idx_spans_begin = self.config.idx_spans_begin.index_example(example)
         idx_spans_end = self.config.idx_spans_end.index_example(example)

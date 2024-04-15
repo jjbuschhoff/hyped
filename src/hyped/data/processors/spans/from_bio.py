@@ -1,3 +1,4 @@
+"""Token Spans from Begin-In-Out (BIO) Tags Processor."""
 from typing import Any
 
 from datasets import ClassLabel, Features, Sequence, Value
@@ -16,16 +17,19 @@ from .common import LabelledSpansOutputs
 
 
 class TokenSpansFromBioTagsConfig(BaseDataProcessorConfig):
-    """Token Spans from Begin-In-Out (BIO) Tags Processor Config
+    """Token Spans from Begin-In-Out (BIO) Tags Processor Config.
 
     Convert Bio Tags to token-level spans
 
     Attributes:
         bio_tags (FeatureKey):
             input feature containing the bio tag sequence to parse
-        begin_tag_prefix (str): tag prefix marking begin tags
-        in_tag_prefix (str): tag prefix marking in tags
-        out_tag (str): out tag
+        begin_tag_prefix (str):
+            tag prefix marking begin tags
+        in_tag_prefix (str):
+            tag prefix marking in tags
+        out_tag (str):
+            out tag
     """
 
     # bio tags
@@ -37,25 +41,27 @@ class TokenSpansFromBioTagsConfig(BaseDataProcessorConfig):
 
 
 class TokenSpansFromBioTags(BaseDataProcessor[TokenSpansFromBioTagsConfig]):
-    """Token Spans from Begin-In-Out (BIO) Tags Processor
+    """Token Spans from Begin-In-Out (BIO) Tags Processor.
 
     Convert Bio Tags to token-level spans
     """
 
     @property
     def tag_feature(self) -> Value | ClassLabel:
-        """The item feature of the tag sequence"""
+        """The item feature of the tag sequence."""
         feature = self.config.bio_tags.index_features(self.in_features)
         return get_sequence_feature(feature)
 
     @property
     def label_feature(self) -> Value | ClassLabel:
-        """The item feature of the label sequence"""
+        """The item feature of the label sequence."""
         feature = self.raw_features[LabelledSpansOutputs.LABELS]
         return get_sequence_feature(feature)
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and return feature mapping
+        """Map dataset features.
+
+        Check input features and return feature mapping
         for token-level span annotations and labels.
 
         If the bio tags feature is a sequence of class labels,
@@ -64,10 +70,12 @@ class TokenSpansFromBioTags(BaseDataProcessor[TokenSpansFromBioTagsConfig]):
         of strings indicating the entity labels.
 
         Arguments:
-            features (Features): input dataset features
+            features (Features):
+                input dataset features
 
         Returns:
-            out (Features): token-level span annotation features
+            out (Features):
+                token-level span annotation features
         """
         # make sure bio tags feature exists and is a sequence
         # of either class labels or strings indicating the label
@@ -113,17 +121,20 @@ class TokenSpansFromBioTags(BaseDataProcessor[TokenSpansFromBioTagsConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
-            example (dict[str, Any]): example to process
-            index (int): dataset index of the example
-            rank (int): execution process rank
+            example (dict[str, Any]):
+                example to process
+            index (int):
+                dataset index of the example
+            rank (int):
+                execution process rank
 
         Returns:
-            out (dict[str, Any]): token-level span annotations
+            out (dict[str, Any]):
+                token-level span annotations
         """
-
         tags = self.config.bio_tags.index_example(example)
         # convert tag-ids to tags
         if isinstance(self.tag_feature, ClassLabel):

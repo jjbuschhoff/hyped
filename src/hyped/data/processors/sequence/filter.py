@@ -1,3 +1,4 @@
+"""Filter Sequence Data Processor."""
 from itertools import compress
 from typing import Any
 
@@ -16,7 +17,7 @@ from hyped.data.processors.base import (
 
 
 class FilterSequenceConfig(BaseDataProcessorConfig):
-    """Filter Sequence Data Processor Config
+    """Filter Sequence Data Processor Config.
 
     Discard all items of a sequence that are not present
     in a specified set of valid values. The processor also
@@ -40,7 +41,7 @@ class FilterSequenceConfig(BaseDataProcessorConfig):
 
 
 class FilterSequence(BaseDataProcessor[FilterSequenceConfig]):
-    """Filter Sequence Data Processor Config
+    """Filter Sequence Data Processor Config.
 
     Discard all items of a sequence that are not present
     in a specified set of valid values. The processor also
@@ -50,9 +51,18 @@ class FilterSequence(BaseDataProcessor[FilterSequenceConfig]):
 
     @property
     def filtered_sequence_feature(self) -> ClassLabel:
+        """Filtered Sequence Feature."""
         return self.raw_features["filtered_sequence"].feature
 
     def map_features(self, features: Features) -> Features:
+        """Map dataset features.
+
+        Arguments:
+            features (Features): input dataset features
+
+        Returns:
+            out (Features): output dataset features
+        """
         # check feature
         sequence = self.config.sequence.index_features(features)
         raise_feature_is_sequence(self.config.sequence, sequence)
@@ -69,6 +79,16 @@ class FilterSequence(BaseDataProcessor[FilterSequenceConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
+        """Process example.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (dict[str, Any]): processed example
+        """
         # get the sequence from the example dict
         seq = self.config.sequence.index_example(example)
         # compute the mask and

@@ -1,5 +1,6 @@
+"""Chunk Sequence Data Processor."""
 from math import ceil
-from typing import Any
+from typing import Any, Generator
 
 from datasets import Features
 from pydantic import model_validator
@@ -16,6 +17,21 @@ from hyped.data.processors.base import (
 
 
 class ChunkSequenceConfig(BaseDataProcessorConfig):
+    """Chunk Sequence(s) Data Processor Config.
+
+    Chunks the specified set of sequences of an example into
+    multiple examples according to the `chunk_size` and `chunk_stride`
+    attributed.
+
+    Attributed:
+        sequence (FeatureKey | list[FeatureKey]):
+            sequence(s) to chunk
+        chunk_size (int):
+            chunk size
+        chunk_stride (int):
+            chunk stride
+    """
+
     sequence: FeatureKey | list[FeatureKey]
     chunk_size: int
     chunk_stride: int = None
@@ -23,19 +39,39 @@ class ChunkSequenceConfig(BaseDataProcessorConfig):
 
     @model_validator(mode="after")
     def _set_default_chunk_stride(cls, config):
+        """Validator to set default value for chunk stride."""
         if config.chunk_stride is None:
             # set default value of chunk stride
             config.chunk_stride = config.chunk_size
 
 
 class ChunkSequence(BaseDataProcessor[ChunkSequenceConfig]):
+    """Chunk Sequence(s) Data Processor Config.
+
+    Chunks the specified set of sequences of an example into
+    multiple examples according to the `chunk_size` and `chunk_stride`
+    attributed.
+    """
+
     @property
     def in_feature_sequence_length(self) -> int:
+        """Input feature sequence length."""
         return get_sequence_length(
             self.config.sequence[0].index_features(self.in_features)
         )
 
     def map_features(self, features: Features) -> Features:
+        """Map Features.
+
+        Checks that the input sequences are all of the same length in order
+        to parallel chunk them.
+
+        Arguments:
+            features (Features): input features
+
+        Returns:
+            chunk_features (Features): chunked sequence features
+        """
         chunk_features = {}
         # collect the sequence features to chunk
         for k in self.config.sequence:
@@ -86,7 +122,21 @@ class ChunkSequence(BaseDataProcessor[ChunkSequenceConfig]):
 
     def process(
         self, example: dict[str, Any], index: int, rank: int
-    ) -> dict[str, Any]:
+    ) -> Generator[dict[str, Any], None, None]:
+        """Chunk example.
+
+        Chunks a given example into multiple items containing the
+        respective sub-sequences.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (Generator[dict[str, Any], None, None]):
+                generator over the example chunks
+        """
         # collect all sequences to chunk over
         sequences = {k: k.index_example(example) for k in self.config.sequence}
 

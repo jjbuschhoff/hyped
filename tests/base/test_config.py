@@ -16,7 +16,7 @@ T = TypeVar("T")
 
 
 class Configurable(BaseConfigurable[T]):
-    """Non-abstract configurable type for easier testing"""
+    """Non-abstract configurable type for easier testing."""
 
     def __init__(self, config):
         self.c = config

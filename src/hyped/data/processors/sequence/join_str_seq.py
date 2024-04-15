@@ -1,3 +1,4 @@
+"""Join String Sequence Data Processor."""
 from typing import Any
 
 from datasets import Features, Value
@@ -11,7 +12,7 @@ from hyped.data.processors.base import (
 
 
 class JoinStringSequenceConfig(BaseDataProcessorConfig):
-    """Join String Sequence Data Processor Config
+    """Join String Sequence Data Processor Config.
 
     Concatenate a sequence of strings creating a new string
     formed by adding a specified delimiter in between every
@@ -33,7 +34,7 @@ class JoinStringSequenceConfig(BaseDataProcessorConfig):
 
 
 class JoinStringSequence(BaseDataProcessor[JoinStringSequenceConfig]):
-    """Join String Sequence Data Processor Config
+    """Join String Sequence Data Processor Config.
 
     Concatenate a sequence of strings creating a new string
     formed by adding a specified delimiter in between every
@@ -41,6 +42,14 @@ class JoinStringSequence(BaseDataProcessor[JoinStringSequenceConfig]):
     """
 
     def map_features(self, features: Features) -> Features:
+        """Map dataset features.
+
+        Arguments:
+            features (Features): input dataset features
+
+        Returns:
+            out (Features): output dataset features
+        """
         # make sure the feature exists and is a sequence
         # of strings
         raise_feature_is_sequence(
@@ -54,6 +63,16 @@ class JoinStringSequence(BaseDataProcessor[JoinStringSequenceConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
+        """Process example.
+
+        Arguments:
+            example (dict[str, Any]): example to process
+            index (int): dataset index of the example
+            rank (int): execution process rank
+
+        Returns:
+            out (dict[str, Any]): processed example
+        """
         # get the string sequence and join
         return {
             self.config.output: self.config.delimiter.join(

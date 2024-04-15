@@ -1,3 +1,4 @@
+"""Resolve Span Overlaps Data Processor."""
 from itertools import compress
 from typing import Any
 
@@ -25,7 +26,7 @@ from .common import (
 
 
 class ResolveSpanOverlapsConfig(BaseDataProcessorConfig):
-    """Resolve Span Overlaps Data Processor Config
+    """Resolve Span Overlaps Data Processor Config.
 
     Resolve overlaps between spans of a span sequence.
 
@@ -53,15 +54,17 @@ class ResolveSpanOverlapsConfig(BaseDataProcessorConfig):
 
 
 class ResolveSpanOverlaps(BaseDataProcessor[ResolveSpanOverlapsConfig]):
-    """Resolve Span Overlaps Data Processor
+    """Resolve Span Overlaps Data Processor.
 
     Resolve overlaps between spans of a span sequence.
     """
 
     def map_features(self, features: Features) -> Features:
-        """Check input features and overwrite the given
-        span sequence. Also returns a mask over the initial span
-        sequence indicating which spans of the sequence where kept.
+        """Map dataset features.
+
+        Check input features and return the span sequence feature.
+        Also returns a mask over the initial span sequence indicating
+        which spans of the sequence where kept.
 
         Arguments:
             features (Features): input dataset features
@@ -104,7 +107,7 @@ class ResolveSpanOverlaps(BaseDataProcessor[ResolveSpanOverlapsConfig]):
     def process(
         self, example: dict[str, Any], index: int, rank: int
     ) -> dict[str, Any]:
-        """Apply processor to an example
+        """Apply processor to an example.
 
         Arguments:
             example (dict[str, Any]): example to process
@@ -114,7 +117,6 @@ class ResolveSpanOverlaps(BaseDataProcessor[ResolveSpanOverlapsConfig]):
         Returns:
             out (dict[str, Any]): spans without overlaps
         """
-
         spans = list(
             zip(
                 self.config.spans_begin.index_example(example),

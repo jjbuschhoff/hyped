@@ -1,3 +1,4 @@
+"""Base Configuration Functionality."""
 from __future__ import annotations
 
 import json
@@ -13,22 +14,26 @@ from .registry import RegisterTypes, Registrable, register_meta_mixin
 
 
 class _register_model_meta(register_meta_mixin, ModelMetaclass):
+    """metaclass for registrable pydantic model."""
+
     pass
 
 
 class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
+    """Base Configuration Pydantic Model."""
+
     # validate default argument
     model_config = ConfigDict(validate_default=True)
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert configuration object to dictionary"""
+        """Convert configuration object to dictionary."""
         return self.model_dump() | {
             "type_id": type(self).type_id,
             "__type_hash__": type(self).type_hash,
         }
 
     def to_json(self, **kwargs) -> str:
-        """Serialize config object into json format
+        """Serialize config object into json format.
 
         Arguments:
             **kwargs: arguments forwarded to `json.dumps`
@@ -40,7 +45,7 @@ class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
 
     @classmethod
     def from_dict(cls, dct: dict[str, Any]) -> BaseConfig:
-        """Convert dict to configuration instance
+        """Convert dict to configuration instance.
 
         Arguments:
             dct (dict[str, Any]): dictionary to be converted
@@ -48,7 +53,6 @@ class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
         Returns:
             config (BaseConfig): the constructed configuration object
         """
-
         dct = dct.copy()
         # pop type hash and type identifier as they are meta
         # information and not actual fields needing to be set
@@ -71,7 +75,7 @@ class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
 
     @classmethod
     def from_json(cls, serialized: str) -> BaseConfig:
-        """Deserialize a json string into a config
+        """Deserialize a json string into a config.
 
         Arguments:
             serialized (str): the serialized string in json format
@@ -83,9 +87,11 @@ class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
 
 
 class AutoConfig(BaseAutoClass[BaseConfig]):
+    """Auto Configuration."""
+
     @classmethod
     def from_dict(cls, dct: dict[str, Any]) -> BaseConfig:
-        """Convert dict to configuration object of appropriate type
+        """Convert dict to configuration object of appropriate type.
 
         The type is inferred by the following prioritization:
 
@@ -119,8 +125,10 @@ class AutoConfig(BaseAutoClass[BaseConfig]):
 
     @classmethod
     def from_json(cls, serialized: str) -> BaseConfig:
-        """Deserialize a json string into a configuration object of
-        appropriate type
+        """Load configuration from json.
+
+        Deserialize a json string into a configuration object of
+        appropriate type.
 
         The type is inferred by the following prioritization:
 
@@ -141,7 +149,7 @@ U = TypeVar("U", bound=BaseConfig)
 
 
 class BaseConfigurable(Generic[U], RegisterTypes, ABC):
-    """Base class for configurable types
+    """Base class for configurable types.
 
     Configurable types define a `from_config` classmethod.
     Sub-types must implement this function.
@@ -152,8 +160,10 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
     @classmethod
     @property
     def generic_config_type(cls) -> type[BaseConfig]:
-        """Get the generic configuration type of the configurable specified
-        by the type variable `U`
+        """Config Type specified by generic type var `U`.
+
+        Get the generic configuration type of the configurable specified
+        by the type variable `U`.
         """
         # get config class
         t = solve_typevar(cls, U)
@@ -168,7 +178,7 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
     @classmethod
     @property
     def config_type(cls) -> type[BaseConfig]:
-        """Get the (final) configuration type of the configurable
+        """Get the (final) configuration type of the configurable.
 
         The final configuration type is specified by the `CONFIG_TYPE`
         class attribute. Falls back to the generic config type if the
@@ -193,7 +203,9 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
     @classmethod
     @property
     def type_id(cls) -> str:
-        """Type identifier used in type registry. Identifier is build
+        """Type Identifier.
+
+        Type identifier used in type registry. Identifier is build
         from configuration type identifier by appending `.impl`.
         """
         # TODO: what should the relation between the type ids of a
@@ -204,7 +216,7 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
     @classmethod
     @abstractmethod
     def from_config(self, config: U) -> BaseConfigurable:
-        """Abstract construction method, must be implemented by sub-types
+        """Abstract construction method, must be implemented by sub-types.
 
         Arguments:
             config (T): configuration to construct the instance from
@@ -219,10 +231,18 @@ V = TypeVar("V", bound=BaseConfigurable)
 
 
 class BaseAutoConfigurable(BaseAutoClass[V]):
-    """Base Auto Class for configurable types"""
+    """Base Auto Class for configurable types."""
 
     @classmethod
     def from_config(cls, config: BaseConfig) -> V:
+        """Create instance from given config.
+
+        Arguments:
+            config (BaseConfig): configuration
+
+        Returns:
+            inst (V): instance created from config
+        """
         # build type identifier of configurable corresponding
         # to the config
         t = "%s.impl" % config.type_id
@@ -231,15 +251,24 @@ class BaseAutoConfigurable(BaseAutoClass[V]):
         return T.from_config(config)
 
 
+V = TypeVar("V", bound=BaseConfigurable)
+
+
 # TODO: write tests for factory class
 class Factory(BaseAutoConfigurable[V]):
-    """(Parameterized) Factory for configurables"""
+    """(Parameterized) Factory for configurables."""
 
     def __init__(self, config: BaseConfig | None = None) -> None:
+        """Initialize new factory.
+
+        Arguments:
+            config (BaseConfig): configuration to create new instances from
+        """
         self._config = config
 
     @property
     def config(self) -> BaseConfig | None:
+        """Configuration used to initialize new instances."""
         return self._config
 
     @config.setter
@@ -253,6 +282,11 @@ class Factory(BaseAutoConfigurable[V]):
         self._config = other
 
     def create(self) -> V:
+        """Factor function.
+
+        Returns:
+            inst (V): new instance
+        """
         if self.config is None:
             return None
         return type(self).from_config(self.config)
