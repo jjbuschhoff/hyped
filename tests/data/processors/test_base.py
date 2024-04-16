@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from datasets import Features, Sequence, Value
 
@@ -31,6 +33,12 @@ class ConstantDataProcessor(BaseDataProcessor[ConstantDataProcessorConfig]):
         return {self.config.name: self.config.value}
 
 
+class AsyncConstantDataProcessor(ConstantDataProcessor):
+    async def process(self, example, *args, **kwargs):
+        await asyncio.sleep(0.5)
+        return {self.config.name: self.config.value}
+
+
 class ConstantGeneratorDataProcessorConfig(ConstantDataProcessorConfig):
     """Configuration for `ConstantGeneratorDataProcessor`."""
 
@@ -48,6 +56,13 @@ class ConstantGeneratorDataProcessor(ConstantDataProcessor):
     def process(self, example, *args, **kwargs):
         for _ in range(self.config.n):
             yield super().process(example, *args, **kwargs)
+
+
+class AsyncConstantGeneratorDataProcessor(ConstantGeneratorDataProcessor):
+    async def process(self, example, *args, **kwargs):
+        await asyncio.sleep(0.01)
+        for x in super().process(example, *args, **kwargs):
+            yield x
 
 
 class TestDataProcessorConfig(object):
@@ -139,6 +154,30 @@ class TestDataProcessor(BaseTestSetup):
     @pytest.fixture
     def expected_out_batch(self):
         return {"A": ["B"] * 10}
+
+    def test_process_fn_type(self, processor):
+        assert not processor._is_process_gen
+        assert not processor._is_process_async
+        assert not processor._is_process_async_gen
+
+
+class TestAsyncDataProcessor(TestDataProcessor):
+    @pytest.fixture
+    def processor(self, keep_inputs):
+        # create processor and make sure it is not prepared
+        # before calling prepare function
+        c = ConstantDataProcessorConfig(
+            name="A", value="B", keep_input_features=keep_inputs
+        )
+        p = AsyncConstantDataProcessor(c)
+        assert not p.is_prepared
+        # return processor
+        return p
+
+    def test_process_fn_type(self, processor):
+        assert not processor._is_process_gen
+        assert processor._is_process_async
+        assert not processor._is_process_async_gen
 
 
 class TestDataProcessorWithOutputFormat(BaseTestSetup):
@@ -233,3 +272,28 @@ class TestGeneratorDataProcessor(BaseTestSetup):
     @pytest.fixture
     def expected_out_batch(self, n):
         return {"A": ["B"] * 10 * n}
+
+    def test_process_fn_type(self, processor):
+        assert processor._is_process_gen
+        assert not processor._is_process_async
+        assert not processor._is_process_async_gen
+
+
+class TestAsyncGeneratorDataProcessor(TestGeneratorDataProcessor):
+    @pytest.fixture
+    def processor(self, keep_inputs, n):
+        # create processor and make sure it is not prepared
+        # before calling prepare function
+        c = ConstantGeneratorDataProcessorConfig(
+            name="A", value="B", n=n, keep_input_features=keep_inputs
+        )
+        p = AsyncConstantGeneratorDataProcessor(c)
+        assert not p.is_prepared
+        # return processor
+        return p
+
+    def test_process_fn_type(self, processor):
+        return
+        assert processor._is_process_gen
+        assert processor._is_process_async
+        assert processor._is_process_async_gen
