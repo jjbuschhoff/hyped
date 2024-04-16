@@ -456,7 +456,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
     def internal_batch_process(
         self, examples: dict[str, list[Any]], index: list[int], rank: int
     ) -> tuple[dict[str, list[Any]], list[int]]:
-        """Internal batch process.
+        r"""Internal batch process.
 
         By default, routes the batch of examples to the internal batch
         process function appropriate to the specific implementation of
@@ -464,10 +464,24 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
 
         Specifically the routing is as follows:
 
-            def process(x): return y        => sync_batch_process
-            def process(x): yield y         => sync_gen_batch_process
-            async def process(x): return y  => async_batch_process
-            async def process(x): yield y   => async_gen_batch_process
+        .. math::
+            :nowrap:
+
+            \begin{align}
+
+            &\text{def process(x): return y}
+            &&\mapsto &&&\text{sync_batch_process} \\
+            
+            &\text{def process(x): yield y}
+            &&\mapsto &&&\text{sync_gen_batch_process} \\
+            
+            &\text{async def process(x): return y}
+            &&\mapsto &&&\text{async_batch_process} \\
+            
+            &\text{async def process(x): yield y}
+            &&\mapsto &&&\text{async_gen_batch_process} \\
+
+            \end{align}
 
         Each of these functions by default pass every example of the batch
         to the `process` function one-by-one and gather the ouputs into a
