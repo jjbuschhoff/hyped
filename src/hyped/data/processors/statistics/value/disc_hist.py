@@ -18,8 +18,6 @@ from hyped.data.processors.statistics.base import (
 )
 from hyped.data.processors.statistics.report import StatisticsReportStorage
 
-# TODO: write tests for discrete sequence value histogram
-
 
 class DiscreteHistogramConfig(BaseDataStatisticConfig):
     """Discrete Histogram Data Statistic Config.
@@ -49,6 +47,7 @@ class DiscreteHistogram(
     """
 
     def _map_values(self, vals: list[Any]) -> list[Any]:
+        """Map values from indices to names in case of class label feature."""
         # get feature
         feature = self.config.feature_key.index_features(self.in_features)
         # check if feature is a class label
@@ -59,6 +58,7 @@ class DiscreteHistogram(
         return vals
 
     def _compute_histogram(self, x: list[Any]) -> dict[Any, int]:
+        """Compute histogram from list of values."""
         return dict(Counter(self._map_values(x)))
 
     def initial_value(
@@ -110,7 +110,7 @@ class DiscreteHistogram(
         Returns:
             hist (dict[Any, str]): histogram of given batch of examples
         """
-        x = self.config.feature_key.index_features(examples)
+        x = self.config.feature_key.index_batch(examples)
         return self._compute_histogram(x)
 
     def compute(

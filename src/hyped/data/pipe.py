@@ -202,7 +202,6 @@ class DataPipe(list):
         Returns:
             out (datasets.Dataset|datasets.DatasetDict): processed dataset(s)
         """
-        # TODO: test this preparation logic
         # get the dataset features
         if isinstance(data, (datasets.Dataset, datasets.IterableDataset)):
             features = data.features
@@ -228,13 +227,12 @@ class DataPipe(list):
                 "features."
             )
 
-        # TODO: test this behavior
         # check if the data pipe contains and statistics that are expected
         # to be computed while running the data pipeline
         if (
             isinstance(data, (datasets.Dataset, datasets.DatasetDict))
             and any(isinstance(p, BaseDataStatistic) for p in self)
-            and not statistics_report_manager.is_empty
+            and not statistics_report_manager.is_empty()
         ):
             # load from cache file defaults to false
             kwargs["load_from_cache_file"] = kwargs.get(
@@ -244,7 +242,7 @@ class DataPipe(list):
             if kwargs["load_from_cache_file"]:
                 warnings.warn(
                     "Loading map result from cache file will not compute "
-                    "statistics, set `load_from_cache_file` to False to avoid "
+                    "statistics, set `load_from_cache_file=False` to avoid "
                     "this behavior.",
                     UserWarning,
                 )

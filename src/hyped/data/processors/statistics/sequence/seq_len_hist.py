@@ -16,8 +16,6 @@ from hyped.data.processors.statistics.value.hist import (
     HistogramConfig,
 )
 
-# TODO: write tests for sequence length histogram
-
 
 class SequenceLengthHistogramConfig(HistogramConfig):
     """Sequence Length Histogram Data Statistic Config.
@@ -46,11 +44,11 @@ class SequenceLengthHistogramConfig(HistogramConfig):
         """Initialize configuration."""
         # set values
         self.low = 0
-        self.high = self.num_bins = self.max_length
+        self.high = self.max_length
+        # +1 to accound for length zero
+        self.num_bins = self.max_length + 1
 
-        super(SequenceLengthHistogramConfig, self).__model_post_init__(
-            __context
-        )
+        super(SequenceLengthHistogramConfig, self).model_post_init(__context)
 
 
 class SequenceLengthHistogram(Histogram):

@@ -147,4 +147,4 @@ src/hyped/__version__.py
 
 # explicitly unignore data directory
 !src/hyped/data
-!tests/data
+!tests/hyped/data

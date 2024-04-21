@@ -12,8 +12,6 @@ from hyped.data.processors.statistics.value.hist import (
     HistogramConfig,
 )
 
-# TODO: write tests for sequence value histogram
-
 
 class SequenceValueHistogramConfig(HistogramConfig):
     """Sequence Value Histogram Data Statistic Config.

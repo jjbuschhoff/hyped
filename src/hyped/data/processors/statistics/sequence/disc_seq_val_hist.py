@@ -15,8 +15,6 @@ from hyped.data.processors.statistics.value.disc_hist import (
     DiscreteHistogramConfig,
 )
 
-# TODO: write tests for sequence value histogram
-
 
 class DiscreteSequenceValueHistogramConfig(DiscreteHistogramConfig):
     """Discrete Sequence Value Histogram Data Statistic Config.
