@@ -48,6 +48,7 @@ docstring-style = "google"
 [tool.isort]
 profile = "black"
 line_length = 79
+skip = ["docs/source/conf.py"]
 
 [tool.ruff]
 line-length = 79
