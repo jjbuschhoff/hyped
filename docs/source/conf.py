@@ -9,6 +9,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../../src/hyped"))
 
+
 # import all modules
 import hyped
 import hyped.__version__
