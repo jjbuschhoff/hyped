@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Sphinx Documentation
         run: |
-          sphinx-apidoc -o docs/source/api src/
+          sphinx-apidoc -e -o docs/source/api src/hyped --tocfile hyped
           make -C docs html
 
       - name: Deploy to Github Pages
