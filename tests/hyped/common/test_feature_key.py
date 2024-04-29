@@ -4,7 +4,7 @@ import pytest
 from datasets import Features, Sequence, Value
 
 from hyped.common.feature_checks import check_feature_equals
-from hyped.common.feature_key import FeatureKey, FeatureKeyCollection
+from hyped.common.feature_key import FeatureDict, FeatureKey
 
 
 class TestFeatureKey(object):
@@ -371,9 +371,9 @@ class TestFeatureKey(object):
         assert all(key in keys for key in expected_keys)
 
 
-class TestFeatureKeyCollection(object):
+class TestFeatureDict(object):
     def test_basics(self):
-        col = FeatureKeyCollection(
+        col = FeatureDict(
             {
                 "a": FeatureKey("a"),
                 "b": "b",
@@ -381,7 +381,7 @@ class TestFeatureKeyCollection(object):
                 "d": [FeatureKey("a"), "b"],
                 "e": {"x": "x", "y": FeatureKey("y")},
             }
-        )
+        ).to_dict()
 
         assert isinstance(col["a"], FeatureKey)
         assert isinstance(col["b"], FeatureKey)
@@ -389,29 +389,17 @@ class TestFeatureKeyCollection(object):
         assert all(isinstance(k, FeatureKey) for k in col["d"])
         assert all(isinstance(k, FeatureKey) for k in col["e"].values())
 
-        col["x"] = "x"
-        col["y"] = ("x", "y")
-        col["z"] = ["x", "y"]
-        col["k"] = {"x": "x", "y": FeatureKey("y")}
-
-        assert isinstance(col["x"], FeatureKey)
-        assert isinstance(col["y"], FeatureKey)
-        assert all(isinstance(k, FeatureKey) for k in col["z"])
-        assert all(isinstance(k, FeatureKey) for k in col["k"].values())
-
     @pytest.mark.parametrize(
         "keys,expected_collection",
         [
-            ([FeatureKey("a")], FeatureKeyCollection({"a": FeatureKey("a")})),
+            ([FeatureKey("a")], FeatureDict({"a": FeatureKey("a")})),
             (
                 [FeatureKey("a"), FeatureKey("b")],
-                FeatureKeyCollection(
-                    {"a": FeatureKey("a"), "b": FeatureKey("b")}
-                ),
+                FeatureDict({"a": FeatureKey("a"), "b": FeatureKey("b")}),
             ),
             (
                 [FeatureKey("a", "b", "c"), FeatureKey("a", "x")],
-                FeatureKeyCollection(
+                FeatureDict(
                     {
                         "a": {
                             "b": {"c": FeatureKey("a", "b", "c")},
@@ -423,22 +411,18 @@ class TestFeatureKeyCollection(object):
         ],
     )
     def test_from_features(self, keys, expected_collection):
-        assert (
-            FeatureKeyCollection.from_feature_keys(keys) == expected_collection
-        )
+        assert FeatureDict.from_feature_keys(keys) == expected_collection
 
     @pytest.mark.parametrize(
         "collection,expected_keys",
         [
-            (FeatureKeyCollection({"a": FeatureKey("a")}), [FeatureKey("a")]),
+            (FeatureDict({"a": FeatureKey("a")}), [FeatureKey("a")]),
             (
-                FeatureKeyCollection(
-                    {"a": FeatureKey("a"), "b": FeatureKey("b")}
-                ),
+                FeatureDict({"a": FeatureKey("a"), "b": FeatureKey("b")}),
                 [FeatureKey("a"), FeatureKey("b")],
             ),
             (
-                FeatureKeyCollection(
+                FeatureDict(
                     {
                         "a": FeatureKey("a"),
                         "b": {str(i): FeatureKey("b", i) for i in range(5)},
@@ -447,7 +431,7 @@ class TestFeatureKeyCollection(object):
                 [FeatureKey("a")] + [FeatureKey("b", i) for i in range(5)],
             ),
             (
-                FeatureKeyCollection(
+                FeatureDict(
                     {
                         "a": FeatureKey("a"),
                         "b": [FeatureKey("b", i) for i in range(5)],
@@ -458,7 +442,6 @@ class TestFeatureKeyCollection(object):
         ],
     )
     def test_feature_keys(self, collection, expected_keys):
-        print(collection)
         keys = list(collection.feature_keys)
         assert len(keys) == len(expected_keys)
         assert all(key in keys for key in expected_keys)
@@ -467,19 +450,17 @@ class TestFeatureKeyCollection(object):
         "collection,features,expected_features",
         [
             (
-                FeatureKeyCollection({"a": FeatureKey("x")}),
+                FeatureDict({"a": FeatureKey("x")}),
                 Features({"x": Value("int32")}),
                 Features({"a": Value("int32")}),
             ),
             (
-                FeatureKeyCollection({"a": {"b": FeatureKey("x")}}),
+                FeatureDict({"a": {"b": FeatureKey("x")}}),
                 Features({"x": Value("int32")}),
                 Features({"a": {"b": Value("int32")}}),
             ),
             (
-                FeatureKeyCollection(
-                    {"a": [FeatureKey("x"), FeatureKey("y")]}
-                ),
+                FeatureDict({"a": [FeatureKey("x"), FeatureKey("y")]}),
                 Features({"x": Value("int32"), "y": Value("int32")}),
                 Features({"a": Sequence(Value("int32"), length=2)}),
             ),
@@ -487,44 +468,42 @@ class TestFeatureKeyCollection(object):
     )
     def test_collect_features(self, collection, features, expected_features):
         assert check_feature_equals(
-            collection.collect_features(features), expected_features
+            collection.index_features(features), expected_features
         )
 
     @pytest.mark.parametrize(
         "collection,example,expected_values",
         [
-            (FeatureKeyCollection({"a": FeatureKey("x")}), {"x": 5}, {"a": 5}),
+            (FeatureDict({"a": FeatureKey("x")}), {"x": 5}, {"a": 5}),
             (
-                FeatureKeyCollection({"a": {"b": FeatureKey("x")}}),
+                FeatureDict({"a": {"b": FeatureKey("x")}}),
                 {"x": 5},
                 {"a": {"b": 5}},
             ),
             (
-                FeatureKeyCollection(
-                    {"a": [FeatureKey("x"), FeatureKey("y")]}
-                ),
+                FeatureDict({"a": [FeatureKey("x"), FeatureKey("y")]}),
                 {"x": 5, "y": 6},
                 {"a": [5, 6]},
             ),
         ],
     )
     def test_collect_values(self, collection, example, expected_values):
-        assert collection.collect_values(example) == expected_values
+        assert collection.index_example(example) == expected_values
 
     @pytest.mark.parametrize(
         "collection,batch,expected_values",
         [
             (
-                FeatureKeyCollection({"a": FeatureKey("x")}),
+                FeatureDict({"a": FeatureKey("x")}),
                 {"x": list(range(10))},
                 {"a": list(range(10))},
             ),
             (
-                FeatureKeyCollection({"a": {"b": FeatureKey("x")}}),
+                FeatureDict({"a": {"b": FeatureKey("x")}}),
                 {"x": list(range(10))},
                 {"a": [{"b": i} for i in range(10)]},
             ),
         ],
     )
     def test_collect_batch(self, collection, batch, expected_values):
-        assert collection.collect_batch(batch) == expected_values
+        assert collection.index_batch(batch) == expected_values

@@ -4,7 +4,7 @@ from typing import Any, ClassVar
 
 from datasets import Features
 
-from hyped.common.feature_key import FeatureKeyCollection
+from hyped.common.feature_key import FeatureDict
 from hyped.data.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
@@ -28,7 +28,7 @@ class FormatFeaturesConfig(BaseDataProcessorConfig):
     # include output format when parsing for required feature keys
     _IGNORE_KEYS_FROM_FIELDS: ClassVar[list[str]] = []
 
-    output_format: FeatureKeyCollection
+    output_format: FeatureDict
 
 
 class FormatFeatures(BaseDataProcessor[FormatFeaturesConfig]):

@@ -3,8 +3,8 @@ from datasets import Features
 from pydantic import Field
 
 from hyped.common.feature_key import (
+    FeatureDict,
     FeatureKey,
-    FeatureKeyCollection,
     _iter_keys_in_features,
 )
 from hyped.data.processors.features.format import (
@@ -43,9 +43,7 @@ class FlattenFeaturesConfig(FormatFeaturesConfig):
     depth: int = -1
     max_seq_length_to_unpack: int = 8
 
-    output_format: None | FeatureKeyCollection = Field(
-        default=None, init_var=False
-    )
+    output_format: None | FeatureDict = Field(default=None, init_var=False)
 
 
 class FlattenFeatures(FormatFeatures):
@@ -85,14 +83,13 @@ class FlattenFeatures(FormatFeatures):
             else list(map(FeatureKey, features.keys()))
         )
 
-        collection = FeatureKeyCollection.from_feature_keys(to_flatten)
+        collection = FeatureDict.from_feature_keys(to_flatten).to_dict()
 
         for key in to_flatten:
             # get the feature to flatten
             feature = key.index_features(features)
 
-            # the key collection
-            # to add the flattened features into
+            # the key collection to add the flattened features into
             sub_collection = key[:-1].index_example(collection)
             assert key[-1] in sub_collection
             # flatten features
@@ -114,5 +111,5 @@ class FlattenFeatures(FormatFeatures):
             sub_collection.pop(key[-1])
             sub_collection.update(flat_collection)
 
-        self.config.output_format = collection
+        self.config.output_format = FeatureDict(collection)
         return super(FlattenFeatures, self).map_features(features)

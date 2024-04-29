@@ -5,9 +5,10 @@ from enum import Enum
 from itertools import chain
 from typing import Any, Iterable
 
+from datasets import Dataset
 from datasets.features.features import Features, FeatureType, Sequence
-from datasets.iterable_dataset import _batch_to_examples
-from pydantic import GetCoreSchemaHandler
+from datasets.iterable_dataset import _batch_to_examples, _examples_to_batch
+from pydantic import BaseModel, GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 
 from .feature_checks import (
@@ -488,80 +489,235 @@ class FeatureKey(tuple[str | int | slice]):
         )
 
 
-_FeatureKeyCollectionValue = (
-    FeatureKey
-    | list["_FeatureKeyCollectionValue"]
-    | dict[str, "_FeatureKeyCollectionValue"]
-)
+class Const(BaseModel):
+    """Constant Value Wrapper.
 
+    This wrapper is used to specify constant values in feature descriptions.
 
-def _convert_to_feature_keys(
-    col: _FeatureKeyCollectionValue | str | tuple[str | int | slice],
-) -> _FeatureKeyCollectionValue:
-    """Internal helper function."""
-    if isinstance(col, dict):
-        return {k: _convert_to_feature_keys(v) for k, v in col.items()}
-    if isinstance(col, list):
-        return list(map(_convert_to_feature_keys, col))
-    if isinstance(col, tuple):
-        return FeatureKey.from_tuple(col)
-    if not isinstance(col, FeatureKey):
-        return FeatureKey(col)
+    Consider the following example:
 
-    raise ValueError()
+    .. code-block: python
 
-
-def _collect_from_example(
-    col: _FeatureKeyCollectionValue, example: dict[str, Any]
-) -> Any:
-    """Internal helper function."""
-    if isinstance(col, FeatureKey):
-        return col.index_example(example)
-    if isinstance(col, dict):
-        return {
-            key: _collect_from_example(val, example)
-            for key, val in col.items()
-        }
-    if isinstance(col, list):
-        return [_collect_from_example(x, example) for x in col]
-
-    raise ValueError()
-
-
-class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
-    """Feature Key Collection.
-
-    Represents a (nested) collection of feature keys in the form of
-    a dictionary on the top-level but can include lists in nested
-    structures.
-    """
-
-    def __init__(
-        self, collection: dict[str, _FeatureKeyCollectionValue] = {}
-    ) -> None:
-        """Instantiate new feature key collection.
-
-        Arguments:
-            collection (dict[str, _FeatureKeyCollectionValue]):
-                feature key collection
-        """
-        dict.__init__(self, _convert_to_feature_keys(collection))
-
-    def __setitem__(self, idx: str, val: _FeatureKeyCollectionValue) -> None:
-        """Set value in collection.
-
-        Arguments:
-            idx (str): string index key
-            val (_FeatureKeyCollectionValue): new value
-        """
-        super(FeatureKeyCollection, self).__setitem__(
-            idx, _convert_to_feature_keys(val)
+        feature = Feature(
+            {
+                "const": Const("This is a constant value"),
+                "lookup": "feature"
+            }
         )
 
+    Arguments:
+        value (str | int | float):
+            value
+    """
+
+    value: str | int | float
+
+    def __init__(self, value: str | int | float) -> None:
+        """Constructor."""
+        super(Const, self).__init__(value=value)
+
+    def __str__(self) -> str:
+        """String representation of the constant feature value."""
+        return "Const(%s)" % repr(self.value)
+
+    def __repr__(self) -> str:
+        """String representation of the constant feature value."""
+        return str(self)
+
+    @property
+    def ftype(self) -> Value:
+        """HuggingFace Datasets Feature Type of the constant value."""
+        return Dataset.from_dict({"feature": [self.value]}).features["feature"]
+
+
+class FeatureCollection(BaseModel):
+    """Feature Collection.
+
+    A Feature Collection is a more complex variant of a `FeatureKey`. Where a
+    feature key is only used to index a single feature, a `FeatureCollection`
+    can be used to build a complex collection of features on the fly.
+
+    Consider the following example:
+
+    .. code-block: python
+
+        seq_feature = FeatureCollection(
+            [
+                FeatureKey("a"),
+                FeatureKey("b"),
+                FeatureKey("c")
+            ]
+        )
+
+        seq = seq_feature.index_example(...)
+
+    Arguments:
+        scheme (FeatureKey | list[FeatureCollection] | dict[str, FeatureCollection] | Const):
+            recipe of the feature, i.e. a specification on how to construct the feature
+    """
+
+    scheme: FeatureKey | list[FeatureCollection] | dict[
+        str, FeatureCollection
+    ] | Const
+
+    def __init__(self, scheme: Any = None, **kwargs) -> None:
+        """Constructor."""
+        if len(kwargs) > 0:
+            scheme = kwargs
+
+        scheme = type(self)._parse_scheme(scheme)
+        super(FeatureCollection, self).__init__(scheme=scheme)
+
     @classmethod
-    def from_feature_keys(
-        self, feature_keys: Iterable[FeatureKey]
-    ) -> FeatureKeyCollection:
+    def _parse_scheme(cls, scheme: Any) -> FeatureCollection:
+        """Helper function used to parse a schema."""
+        if isinstance(scheme, dict):
+            return {key: FeatureCollection(val) for key, val in scheme.items()}
+        if isinstance(scheme, list):
+            return list(map(FeatureCollection, scheme))
+        if isinstance(scheme, (str, tuple)):
+            return FeatureKey(scheme)
+
+        return scheme
+
+    @property
+    def feature_keys(self) -> Iterable[FeatureKey]:
+        """Iterator over all feature keys listed in the collection."""
+        if isinstance(self.scheme, dict):
+            yield from chain.from_iterable(
+                val.feature_keys for val in self.scheme.values()
+            )
+        if isinstance(self.scheme, list):
+            yield from chain.from_iterable(
+                item.feature_keys for item in self.scheme
+            )
+        if isinstance(self.scheme, FeatureKey):
+            yield self.scheme
+
+    def index_features(self, features: Features) -> FeatureType:
+        """Index features.
+
+        Builds the features according to the specified scheme.
+
+        Arguments:
+            features (Features):
+                source feature mapping from which to build the features
+
+        Returns:
+            build_features (Features):
+                build dataset features matching the scheme
+        """
+        if isinstance(self.scheme, dict):
+            return Features(
+                {
+                    key: val.index_features(features)
+                    for key, val in self.scheme.items()
+                }
+            )
+        if isinstance(self.scheme, list):
+            assert len(self.scheme) > 0
+            # collect all features in specified in the list
+            collected_features = (
+                item.index_features(features) for item in self.scheme
+            )
+            f = next(collected_features)
+            # make sure the feature types match
+            for ff in collected_features:
+                if not check_feature_equals(f, ff):
+                    raise TypeError(
+                        "Expected all items of a sequence to be of the "
+                        "same feature type, got %s != %s" % (str(f), str(ff))
+                    )
+            return Sequence(f, length=len(self.scheme))
+        if isinstance(self.scheme, FeatureKey):
+            return self.scheme.index_features(features)
+        if isinstance(self.scheme, Const):
+            return self.scheme.ftype
+
+        raise TypeError
+
+    def index_example(self, example: dict[str, Any]) -> Any:
+        """Index example.
+
+        Builds the feature sample from a given example according to the specified scheme.
+
+        Arguments:
+            example (dict[str, Any]):
+                example from which to build the feature
+
+        Returns:
+            build_sample (Any):
+                the sample build from the given example according to the scheme
+        """
+        if isinstance(self.scheme, dict):
+            return {
+                key: val.index_example(example)
+                for key, val in self.scheme.items()
+            }
+        if isinstance(self.scheme, list):
+            return [item.index_example(example) for item in self.scheme]
+        if isinstance(self.scheme, FeatureKey):
+            return self.scheme.index_example(example)
+        if isinstance(self.scheme, Const):
+            return self.scheme.value
+
+        raise TypeError
+
+    def index_batch(self, batch: dist[str, list[Any]]) -> list[Any]:
+        """Index Batch.
+
+        Builds the batch of feature samples from a given batch according
+        to the specified scheme.
+
+        Arguments:
+            batch (dict[str, list[Any]]):
+                batch from which to build the samples
+
+        Returns:
+            build_batch (list[Any]):
+                the batch build from the given batch according to the scheme
+        """
+        return list(map(self.index_example, _batch_to_examples(batch)))
+
+    def unpack(self) -> Any:
+        """Unpack the feature to a simple python object.
+
+        Returns:
+            scheme (Any):
+                the unpacked feature scheme in the form of simple nested
+                python objects, i.e. dictionaries and lists
+        """
+        if isinstance(self.scheme, dict):
+            return {key: val.unpack() for key, val in self.scheme.items()}
+        if isinstance(self.scheme, list):
+            return [item.unpack() for item in self.scheme]
+
+        return self.scheme
+
+    def __str__(self) -> str:
+        """String representation of the feature."""
+        return str(self.scheme)
+
+    def __repr__(self) -> str:
+        """String representation of the feature."""
+        return str(self)
+
+
+class FeatureDict(FeatureCollection):
+    """Feature Dictionary.
+
+    A special Feature Collection type guaranteed to be a dictionary on top-level
+    but can still contain nested sub-features.
+
+    Arguments:
+        scheme (dict[str, Feature]):
+            recipe of the feature, i.e. a specification on how to construct the feature
+    """
+
+    scheme: dict[str, FeatureCollection]
+
+    @staticmethod
+    def from_feature_keys(feature_keys: Iterable[FeatureKey]) -> FeatureDict:
         """Build a feature collection from a list of feature keys.
 
         The resulting feature collection matches the format of the
@@ -584,10 +740,9 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
             collection (FeatureCollection):
                 resulting feature collection
         """
-        collection = FeatureKeyCollection()
-
+        feature = {}
         for key in feature_keys:
-            c = collection
+            c = feature
             # add all sub-entries
             for key_entry in key[:-1]:
                 if not isinstance(key_entry, str):
@@ -598,114 +753,31 @@ class FeatureKeyCollection(dict[str, _FeatureKeyCollectionValue]):
             # set key
             c[key[-1]] = key
 
-        return collection
+        return FeatureDict(feature)
 
-    def __str__(self) -> str:
-        """String representation of the feature key collection."""
-        return "FeatureKeyCollection(%s)" % str(dict(self))
+    def index_batch(self, batch: dist[str, list[Any]]) -> dict[str, list[Any]]:
+        """Index Batch.
 
-    def __repr__(self) -> str:
-        """String representation of the feature key collection."""
-        return str(self)
-
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        """Integrate feature key with pydantic."""
-        return core_schema.no_info_after_validator_function(cls, handler(dict))
-
-    @property
-    def feature_keys(self) -> Iterable[FeatureKey]:
-        """Iterator over all feature keys listed in the collection."""
-
-        def _iter_feature_keys(col: _FeatureKeyCollectionValue):
-            if isinstance(col, FeatureKey):
-                yield col
-            elif isinstance(col, dict):
-                yield from chain.from_iterable(
-                    map(_iter_feature_keys, col.values())
-                )
-            elif isinstance(col, list):
-                yield from chain.from_iterable(map(_iter_feature_keys, col))
-
-        yield from _iter_feature_keys(self)
-
-    def collect_features(self, features: Features) -> Features:
-        """Collect features.
-
-        Collect all features requested in the feature collection
-        and maintain the format of the collection.
-
-        Arguments:
-            features (Features):
-                source feature mapping from which to collect the requested
-                features
-
-        Returns:
-            collected_features (Features):
-                collected features in the format of the feature key collection
-        """
-
-        def _collect(v):
-            if isinstance(v, FeatureKey):
-                return v.index_features(features)
-            if isinstance(v, dict):
-                return FeatureKeyCollection.collect_features(v, features)
-            if isinstance(v, list):
-                assert len(v) > 0
-                # collect all features in specified in the list
-                collected_features = map(_collect, v)
-                f = next(collected_features)
-                # make sure the feature types match
-                for ff in collected_features:
-                    if not check_feature_equals(f, ff):
-                        raise TypeError(
-                            "Expected all items of a sequence to be of the "
-                            "same feature type, got %s != %s"
-                            % (str(f), str(ff))
-                        )
-                return Sequence(f, length=len(v))
-
-        return Features({key: _collect(val) for key, val in self.items()})
-
-    def collect_values(self, example: dict[str, Any]) -> dict[str, Any]:
-        """Collect Values.
-
-        Collect all values requested by the feature collection
-        and maintain the format of the collection.
-
-        Arguments:
-            example (dict[str, Any]):
-                example from which to collect the requested values
-
-        Returns:
-            collected_values (dict[str, Any]):
-                collected values in the format of the feature key collection
-        """
-        return _collect_from_example(self, example)
-
-    def collect_batch(
-        self, batch: dict[str, list[Any]]
-    ) -> dict[str, list[Any]]:
-        """Collect Batch.
-
-        Collect all values from a batch of examples requested by the
-        feature collection and maintain the format of the collection.
+        Builds the batch of feature samples from a given batch according
+        to the specified scheme.
 
         Arguments:
             batch (dict[str, list[Any]]):
-                example from which to collect the requested values
+                batch from which to build the samples
 
         Returns:
-            collected_values (dict[str, list[Any]]):
-                collected values in the format of the feature key collection
+            build_batch (dict[str, list[Any]]):
+                the batch build from the given batch according to the scheme
         """
-        collected_batch = {key: [] for key in self.keys()}
-        for example in _batch_to_examples(batch):
-            for key, col in self.items():
-                collected_batch[key].append(
-                    _collect_from_example(col, example)
-                )
+        return _examples_to_batch(super(FeatureDict, self).index_batch(batch))
 
-        return collected_batch
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to a python dictionary.
+
+        similar to `Feature.unpack` but is guaranteed to return a dictionary.
+
+        Returns:
+            dict (dict[str, Any]):
+                feature scheme dictionary
+        """
+        return self.unpack()
