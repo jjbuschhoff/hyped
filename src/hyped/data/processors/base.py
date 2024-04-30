@@ -85,7 +85,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         config (BaseDataProcessorConfig): data processor configuration
     """
 
-    def __init__(self, config: BaseDataProcessorConfig) -> None:
+    def __init__(self, config: T) -> None:
         """Initialize Data Processor.
 
         Arguments:
@@ -101,7 +101,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         self._is_process_async_gen = inspect.isasyncgenfunction(self.process)
 
     @classmethod
-    def from_config(cls, config: BaseDataProcessorConfig) -> BaseDataProcessor:
+    def from_config(cls, config: T) -> BaseDataProcessor:
         """Instantiate data processor from the given config.
 
         Arguments:
@@ -110,7 +110,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         return cls(config)
 
     @property
-    def config(self) -> BaseDataProcessorConfig:
+    def config(self) -> T:
         """Get the processor configuration.
 
         Returns:

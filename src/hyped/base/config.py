@@ -155,11 +155,11 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
     Sub-types must implement this function.
     """
 
-    CONFIG_TYPE: None | type[BaseConfig] = None
+    CONFIG_TYPE: None | type[U] = None
 
     @classmethod
     @property
-    def generic_config_type(cls) -> type[BaseConfig]:
+    def generic_config_type(cls) -> type[U]:
         """Config Type specified by generic type var `U`.
 
         Get the generic configuration type of the configurable specified
@@ -177,7 +177,7 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
 
     @classmethod
     @property
-    def config_type(cls) -> type[BaseConfig]:
+    def config_type(cls) -> type[U]:
         """Get the (final) configuration type of the configurable.
 
         The final configuration type is specified by the `CONFIG_TYPE`
