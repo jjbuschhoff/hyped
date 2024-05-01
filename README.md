@@ -131,7 +131,7 @@ JsonDatasetWriter("dump/", num_proc=4).consume(ds)
 
 ## Running Tests
 
-Hyped Serve includes a suite of tests to ensure its functionality. You can run these tests using pytest:
+Hyped includes a suite of tests to ensure its functionality. You can run these tests using pytest:
 
 ```bash
 pytest tests
