@@ -27,5 +27,5 @@ Available Add-Ons
 
 Here is a list of available add-ons. Please note that add-ons are developed by the community as well, more may be added in the future:
 
-- `Hyped Serve <https://github.com/open-hyped/hyped-serve>`_: Add real-time serving capabilities to your Hyped pipelines. Serve your model predictions or data processing results via REST API endpoints with ease.
+- `Hyped Serve <https://github.com/open-hyped/hyped.serve>`_: Add real-time serving capabilities to your Hyped pipelines. Serve your model predictions or data processing results via REST API endpoints with ease.
 
