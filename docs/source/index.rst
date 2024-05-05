@@ -27,8 +27,9 @@ Below is a list of key sections in this documentation, guiding you through insta
 
    getting_started
    feature_access
+   data_pipe
+   data_processors
    statistic_processors
-   costum_data_processors
    add_ons
 
 .. toctree::
