@@ -148,6 +148,14 @@ class Jinja2(BaseDataProcessor[Jinja2Config]):
                 config of the data processor
         """
         super(Jinja2, self).__init__(config)
+        # feature keys mentioned in template are
+        # collected when preparing
+        self.feature_keys: None | set[FeatureKey] = None
+        # setup the jinja environment
+        self._setup_jinja_env()
+
+    def _setup_jinja_env(self) -> None:
+        """Helper function setting up the jinja environment."""
         # set up the jinja environment
         self.env = Environment()
         self.env.filters = {
@@ -156,8 +164,18 @@ class Jinja2(BaseDataProcessor[Jinja2Config]):
         }
         # create template
         self.template = self.env.from_string(self.config.template)
-        # collect feature keys mentioned in template
-        self.feature_keys: None | set[FeatureKey] = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """Pickle getstate."""
+        state = self.__dict__.copy()
+        state.pop("env")
+        state.pop("template")
+        return state
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """Pickle setstate."""
+        self.__dict__.update(state)
+        self._setup_jinja_env()
 
     def _collect_required_feature_keys(self, features: Features) -> None:
         """Collect all feature keys referenced in the template.
