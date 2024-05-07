@@ -23,6 +23,10 @@ class LazyInstance(Generic[T]):
         self.factory = factory
         self.instance: None | T = None
 
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """Pickle set state."""
+        self.__dict__.update(state)
+
     def __getattr__(self, name: str) -> Any:
         """Forward all requests to the instance."""
         if self.instance is None:
