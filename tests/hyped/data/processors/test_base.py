@@ -160,6 +160,32 @@ class TestDataProcessor(BaseTestSetup):
         assert not processor._is_process_async
         assert not processor._is_process_async_gen
 
+    def test_case_nested_async(
+        self,
+        processor,
+        in_features,
+        in_batch,
+        expected_err_on_prepare,
+        expected_err_on_process,
+        kwargs_for_post_prepare_checks,
+        kwargs_for_post_process_checks,
+    ):
+        # async wrapper of the test case
+        async def run():
+            return self.test_case(
+                processor,
+                in_features,
+                in_batch,
+                expected_err_on_prepare,
+                expected_err_on_process,
+                kwargs_for_post_prepare_checks,
+                kwargs_for_post_process_checks,
+            )
+
+        # run in new event loop
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(run())
+
 
 class TestAsyncDataProcessor(TestDataProcessor):
     @pytest.fixture

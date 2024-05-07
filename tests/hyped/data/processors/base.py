@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager, nullcontext
 from copy import deepcopy
@@ -198,7 +199,7 @@ class BaseTestDataProcessor(ABC):
         # process might lead to deadlock in child
         out_batch = (
             DataPipe([processor])
-            .apply(ds, batch_size=map_batch_size, num_proc=1)
+            .apply(ds, batch_size=map_batch_size, num_proc=2)
             .to_dict()
         )
 
