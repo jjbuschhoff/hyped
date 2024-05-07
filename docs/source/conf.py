@@ -41,6 +41,7 @@ import hyped.data.processors.statistics.value.hist
 import hyped.data.processors.statistics.value.mean_and_std
 import hyped.data.processors.taggers.bio
 import hyped.data.processors.taggers.relex
+import hyped.data.processors.templates.jinja2
 import hyped.data.processors.tokenizers.hf
 
 # -- Project information -----------------------------------------------------
