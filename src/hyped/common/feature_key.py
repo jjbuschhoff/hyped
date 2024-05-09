@@ -556,9 +556,9 @@ class FeatureCollection(BaseModel):
             recipe of the feature, i.e. a specification on how to construct the feature
     """
 
-    scheme: FeatureKey | list[FeatureCollection] | dict[
+    scheme: list[FeatureCollection] | dict[
         str, FeatureCollection
-    ] | Const
+    ] | FeatureKey | Const
 
     def __init__(self, scheme: Any = None, **kwargs) -> None:
         """Constructor."""
@@ -571,6 +571,11 @@ class FeatureCollection(BaseModel):
     @classmethod
     def _parse_scheme(cls, scheme: Any) -> FeatureCollection:
         """Helper function used to parse a schema."""
+        # unpack feature collection in case the scheme is
+        # already of the type
+        while isinstance(scheme, FeatureCollection):
+            scheme = scheme.scheme
+        # parse nested structure scheme
         if isinstance(scheme, dict):
             return {key: FeatureCollection(val) for key, val in scheme.items()}
         if isinstance(scheme, list):

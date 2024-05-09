@@ -4,7 +4,7 @@ import pytest
 from datasets import Features, Sequence, Value
 
 from hyped.common.feature_checks import check_feature_equals
-from hyped.common.feature_key import FeatureDict, FeatureKey
+from hyped.common.feature_key import FeatureCollection, FeatureDict, FeatureKey
 
 
 class TestFeatureKey(object):
@@ -464,6 +464,22 @@ class TestFeatureDict(object):
                 Features({"x": Value("int32"), "y": Value("int32")}),
                 Features({"a": Sequence(Value("int32"), length=2)}),
             ),
+            (
+                FeatureDict({"a": FeatureDict({"b": FeatureKey("x")})}),
+                Features({"x": Value("int32")}),
+                Features({"a": {"b": Value("int32")}}),
+            ),
+            (
+                FeatureDict(
+                    {
+                        "a": FeatureCollection(
+                            [FeatureKey("x"), FeatureKey("y")]
+                        )
+                    }
+                ),
+                Features({"x": Value("int32"), "y": Value("int32")}),
+                Features({"a": Sequence(Value("int32"), length=2)}),
+            ),
         ],
     )
     def test_collect_features(self, collection, features, expected_features):
@@ -482,6 +498,22 @@ class TestFeatureDict(object):
             ),
             (
                 FeatureDict({"a": [FeatureKey("x"), FeatureKey("y")]}),
+                {"x": 5, "y": 6},
+                {"a": [5, 6]},
+            ),
+            (
+                FeatureDict({"a": FeatureDict({"b": FeatureKey("x")})}),
+                {"x": 5},
+                {"a": {"b": 5}},
+            ),
+            (
+                FeatureDict(
+                    {
+                        "a": FeatureCollection(
+                            [FeatureKey("x"), FeatureKey("y")]
+                        )
+                    }
+                ),
                 {"x": 5, "y": 6},
                 {"a": [5, 6]},
             ),
