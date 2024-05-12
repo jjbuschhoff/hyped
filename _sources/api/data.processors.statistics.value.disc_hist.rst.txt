@@ -1,0 +1,7 @@
+data.processors.statistics.value.disc\_hist module
+==================================================
+
+.. automodule:: data.processors.statistics.value.disc_hist
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+data.processors.api.openai\_chat module
+=======================================
+
+.. automodule:: data.processors.api.openai_chat
+   :members:
+   :undoc-members:
+   :show-inheritance:

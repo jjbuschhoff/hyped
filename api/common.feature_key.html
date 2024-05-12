@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>common.feature_key module &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="common.lazy module" href="common.lazy.html" />
+    <link rel="prev" title="common.feature_checks module" href="common.feature_checks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="common.html">common package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="common.html">common package</a></li>
+      <li class="breadcrumb-item active">common.feature_key module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/common.feature_key.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-common.feature_key">
+<span id="common-feature-key-module"></span><h1>common.feature_key module<a class="headerlink" href="#module-common.feature_key" title="Link to this heading"></a></h1>
+<p>Feature Key Module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="common.feature_key.Const">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">common.feature_key.</span></span><span class="sig-name descname"><span class="pre">Const</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#common.feature_key.Const" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Constant Value Wrapper.</p>
+<p>This wrapper is used to specify constant values in feature descriptions.</p>
+<p>Consider the following example:</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>value (str | int | float):</dt><dd><p>value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="common.feature_key.Const.ftype">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ftype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Value</span></em><a class="headerlink" href="#common.feature_key.Const.ftype" title="Link to this definition"></a></dt>
+<dd><p>HuggingFace Datasets Feature Type of the constant value.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.Const.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.Const.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.Const.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.Const.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.Const.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'value':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">int,</span> <span class="pre">float],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#common.feature_key.Const.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.Const.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#common.feature_key.Const.value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">common.feature_key.</span></span><span class="sig-name descname"><span class="pre">FeatureCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#common.feature_key.FeatureCollection" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Feature Collection.</p>
+<p>A Feature Collection is a more complex variant of a <cite>FeatureKey</cite>. Where a
+feature key is only used to index a single feature, a <cite>FeatureCollection</cite>
+can be used to build a complex collection of features on the fly.</p>
+<p>Consider the following example:</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>scheme (FeatureKey | list[FeatureCollection] | dict[str, FeatureCollection] | Const):</dt><dd><p>recipe of the feature, i.e. a specification on how to construct the feature</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.feature_keys">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">feature_keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#common.feature_key.FeatureCollection.feature_keys" title="Link to this definition"></a></dt>
+<dd><p>Iterator over all feature keys listed in the collection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.index_batch">
+<span class="sig-name descname"><span class="pre">index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dist</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureCollection.index_batch" title="Link to this definition"></a></dt>
+<dd><p>Index Batch.</p>
+<p>Builds the batch of feature samples from a given batch according
+to the specified scheme.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>batch (dict[str, list[Any]]):</dt><dd><p>batch from which to build the samples</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>build_batch (list[Any]):</dt><dd><p>the batch build from the given batch according to the scheme</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.index_example">
+<span class="sig-name descname"><span class="pre">index_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#common.feature_key.FeatureCollection.index_example" title="Link to this definition"></a></dt>
+<dd><p>Index example.</p>
+<p>Builds the feature sample from a given example according to the specified scheme.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>example (dict[str, Any]):</dt><dd><p>example from which to build the feature</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>build_sample (Any):</dt><dd><p>the sample build from the given example according to the scheme</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.index_features">
+<span class="sig-name descname"><span class="pre">index_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Value</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ClassLabel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Translation</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">TranslationVariableLanguages</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array2D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array3D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array4D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array5D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Audio</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Image</span></span></span><a class="headerlink" href="#common.feature_key.FeatureCollection.index_features" title="Link to this definition"></a></dt>
+<dd><p>Index features.</p>
+<p>Builds the features according to the specified scheme.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>features (Features):</dt><dd><p>source feature mapping from which to build the features</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>build_features (Features):</dt><dd><p>build dataset features matching the scheme</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.FeatureCollection.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.FeatureCollection.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'scheme':</span> <span class="pre">FieldInfo(annotation=Union[FeatureKey,</span> <span class="pre">list[FeatureCollection],</span> <span class="pre">dict[str,</span> <span class="pre">FeatureCollection],</span> <span class="pre">Const],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#common.feature_key.FeatureCollection.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.scheme">
+<span class="sig-name descname"><span class="pre">scheme</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#common.feature_key.FeatureCollection" title="common.feature_key.FeatureCollection"><span class="pre">FeatureCollection</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#common.feature_key.FeatureCollection" title="common.feature_key.FeatureCollection"><span class="pre">FeatureCollection</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#common.feature_key.Const" title="common.feature_key.Const"><span class="pre">Const</span></a></em><a class="headerlink" href="#common.feature_key.FeatureCollection.scheme" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureCollection.unpack">
+<span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#common.feature_key.FeatureCollection.unpack" title="Link to this definition"></a></dt>
+<dd><p>Unpack the feature to a simple python object.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>scheme (Any):</dt><dd><p>the unpacked feature scheme in the form of simple nested
+python objects, i.e. dictionaries and lists</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">common.feature_key.</span></span><span class="sig-name descname"><span class="pre">FeatureDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#common.feature_key.FeatureDict" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#common.feature_key.FeatureCollection" title="common.feature_key.FeatureCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureCollection</span></code></a></p>
+<p>Feature Dictionary.</p>
+<p>A special Feature Collection type guaranteed to be a dictionary on top-level
+but can still contain nested sub-features.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>scheme (dict[str, Feature]):</dt><dd><p>recipe of the feature, i.e. a specification on how to construct the feature</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.from_feature_keys">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_feature_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#common.feature_key.FeatureDict" title="common.feature_key.FeatureDict"><span class="pre">FeatureDict</span></a></span></span><a class="headerlink" href="#common.feature_key.FeatureDict.from_feature_keys" title="Link to this definition"></a></dt>
+<dd><p>Build a feature collection from a list of feature keys.</p>
+<p>The resulting feature collection matches the format of the
+feature keys, i.e. the feature keys apply to the collection.</p>
+<p>Take for example to following feature keys:</p>
+<blockquote>
+<div><p>FeatureKey(“A”, “X”)
+FeatureKey(“A”, “Y”)</p>
+</div></blockquote>
+<p>Then the resulting feature collection would be:</p>
+<blockquote>
+<div><p>FeatureKeyCollection({“A”: {“X”: (“A”, “X”), “Y”: (“A”, “Y”)}})</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>feature_keys (Iterable[FeatureKey]):</dt><dd><p>iterable of feature keys to build a collection from</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>collection (FeatureCollection):</dt><dd><p>resulting feature collection</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.index_batch">
+<span class="sig-name descname"><span class="pre">index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dist</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureDict.index_batch" title="Link to this definition"></a></dt>
+<dd><p>Index Batch.</p>
+<p>Builds the batch of feature samples from a given batch according
+to the specified scheme.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>batch (dict[str, list[Any]]):</dt><dd><p>batch from which to build the samples</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>build_batch (dict[str, list[Any]]):</dt><dd><p>the batch build from the given batch according to the scheme</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.FeatureDict.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#common.feature_key.FeatureDict.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'scheme':</span> <span class="pre">FieldInfo(annotation=dict[str,</span> <span class="pre">FeatureCollection],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#common.feature_key.FeatureDict.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.scheme">
+<span class="sig-name descname"><span class="pre">scheme</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#common.feature_key.FeatureCollection" title="common.feature_key.FeatureCollection"><span class="pre">FeatureCollection</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#common.feature_key.FeatureDict.scheme" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureDict.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureDict.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert to a python dictionary.</p>
+<p>similar to <cite>Feature.unpack</cite> but is guaranteed to return a dictionary.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict (dict[str, Any]):</dt><dd><p>feature scheme dictionary</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">common.feature_key.</span></span><span class="sig-name descname"><span class="pre">FeatureKey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">slice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#common.feature_key.FeatureKey" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">slice</span></code>]</p>
+<p>Feature Key used to index features and examples.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>key (str | int | slice): key entries</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.cutoff_at_slice">
+<span class="sig-name descname"><span class="pre">cutoff_at_slice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.cutoff_at_slice" title="Link to this definition"></a></dt>
+<dd><p>Cutoff given key at first occurance of a slice.</p>
+<p>Consider the following example:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>FeatureKey(“A”, “B”, 0, “C”, slice(-1), “D”)</dt><dd><p>=&gt; FeatureKey(“A”, “B”, 0, “C”)</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>cut_key (FeatureKey):</dt><dd><p>truncated key guaranteed to not contain a slice</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.from_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.from_tuple" title="Link to this definition"></a></dt>
+<dd><p>Generate a feature key from a tuple.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (tuple[str|int|slice]): key entries</p>
+</dd>
+<dt>Returns:</dt><dd><p>key (FeatureKey): feature key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.index_batch">
+<span class="sig-name descname"><span class="pre">index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.index_batch" title="Link to this definition"></a></dt>
+<dd><p>Index batch.</p>
+<p>Index a batch of examples with the given key and retrieve
+the batch of values.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>batch (dict[str, list[Any]]): Batch of example to index.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>values (list[Any]):</dt><dd><p>the batch of values of the example at the given key.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.index_example">
+<span class="sig-name descname"><span class="pre">index_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.index_example" title="Link to this definition"></a></dt>
+<dd><p>Index the example with the key and retrieve the value.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>example (dict[str, Any]): The example to index.</p>
+</dd>
+<dt>Returns:</dt><dd><p>value (Any): the value of the example at the given key.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.index_features">
+<span class="sig-name descname"><span class="pre">index_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Value</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ClassLabel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Translation</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">TranslationVariableLanguages</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array2D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array3D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array4D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array5D</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Audio</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Image</span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.index_features" title="Link to this definition"></a></dt>
+<dd><p>Get the feature type of the feature indexed by the key.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>features (Features):</dt><dd><p>The feature mapping to index with the given key.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>feature (FeatureType):</dt><dd><p>the extracted feature type at the given key.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.is_simple">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_simple</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#common.feature_key.FeatureKey.is_simple" title="Link to this definition"></a></dt>
+<dd><p>Check whether the feature key is simple.</p>
+<p>A feature key is considered simple if it only consists of
+strings or full slices.</p>
+<p>The concept behind a simple key is that is only
+indexes dictionaries or sequences but not just a slice of it.</p>
+<p>It does not require fancy sequence slicing. Also modifying
+the value at the key modifies the full feature and not just
+a part of it.</p>
+<p>As a counter example consider the following complex keys</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>(“A”, 0, “B”)</p></li>
+<li><p>(“A”, slice(4, 10), “B”)</p></li>
+</ul>
+</div></blockquote>
+<p>Both incorporate indexing a sequence feature and modifying it
+would only modify a specific value or sub-area of the sequence.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>is_simple (bool): boolean indicating whether the key is simple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.iter_keys_in_features">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iter_keys_in_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_seq_len_to_unpack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.iter_keys_in_features" title="Link to this definition"></a></dt>
+<dd><p>Iterate over all keys present in the given features.</p>
+<p>Take for example the following feature mapping</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{</dt><dd><p>“A”: {“B”: Value(“string”)},
+“X”: Sequence(Value(“int32”), length=2)</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>Then the iterator would yield the following keys</p>
+<blockquote>
+<div><p>(“A”, “B”), (“X”, 0), (“X”, 1)</p>
+</div></blockquote>
+<dl>
+<dt>Arguments:</dt><dd><p>features (FeatureType): features to build the keys for
+max_depth (int):</p>
+<blockquote>
+<div><p>when set to a positive integer, the nested structure
+of the feature mapping will only be traversed to the
+specified depth. The maximum length of each key is
+restricted by that value. Defaults to -1.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>max_seq_len_to_unpack (int):</dt><dd><p>upper threshold of length to flatten sequences. If the
+sequence length exceeds that threshold, the sequence
+will not be flattened</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>keys (Iterable[FeatureKey]): iterator over keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.raise_is_simple">
+<span class="sig-name descname"><span class="pre">raise_is_simple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.raise_is_simple" title="Link to this definition"></a></dt>
+<dd><p>Check whether a given feature key is simple.</p>
+<p>A feature key is considered simple if it only consists of
+strings.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>exc (TypeError): when the given key is complex</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.remove_from_batch">
+<span class="sig-name descname"><span class="pre">remove_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.remove_from_batch" title="Link to this definition"></a></dt>
+<dd><p>Remove a feature from a given batch.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>batch (dict[str, list[Any]]): batch</p>
+</dd>
+<dt>Returns:</dt><dd><p>remaining_batch (dict[str, list[Any]]): remaining batch</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.remove_from_example">
+<span class="sig-name descname"><span class="pre">remove_from_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.remove_from_example" title="Link to this definition"></a></dt>
+<dd><p>Remove a feature from a given example.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>example (dict[str, Any]): example</p>
+</dd>
+<dt>Returns:</dt><dd><p>remaining_example (dict[str, Any]): remaining example</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.remove_from_features">
+<span class="sig-name descname"><span class="pre">remove_from_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Features</span></span></span><a class="headerlink" href="#common.feature_key.FeatureKey.remove_from_features" title="Link to this definition"></a></dt>
+<dd><p>Remove a feature from a feature mapping.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>features (Features): features to remove the feature from</p>
+</dd>
+<dt>Returns:</dt><dd><p>remaining_features (Features): the remaining features</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="common.feature_key.FeatureKey.simple_subkey">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">simple_subkey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#common.feature_key.FeatureKey" title="common.feature_key.FeatureKey"><span class="pre">FeatureKey</span></a></em><a class="headerlink" href="#common.feature_key.FeatureKey.simple_subkey" title="Link to this definition"></a></dt>
+<dd><p>Get simple subkey of the feature key.</p>
+<p>Consider the following example:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>FeatureKey(“A”, “B”, 0, “C”, slice(-1), “D”)</dt><dd><p>=&gt; FeatureKey(“A”, “B”)</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>simple_subkey (FeatureKey):</dt><dd><p>truncated key guaranteed to be simple</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="common.feature_checks.html" class="btn btn-neutral float-left" title="common.feature_checks module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="common.lazy.html" class="btn btn-neutral float-right" title="common.lazy module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

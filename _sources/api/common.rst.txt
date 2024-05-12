@@ -1,0 +1,23 @@
+common package
+==============
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   common.arrow
+   common.consumer
+   common.feature_checks
+   common.feature_key
+   common.lazy
+   common.pydantic
+
+Module contents
+---------------
+
+.. automodule:: common
+   :members:
+   :undoc-members:
+   :show-inheritance:

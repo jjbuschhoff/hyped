@@ -1,0 +1,20 @@
+data.processors.features package
+================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.features.filter
+   data.processors.features.flatten
+   data.processors.features.format
+
+Module contents
+---------------
+
+.. automodule:: data.processors.features
+   :members:
+   :undoc-members:
+   :show-inheritance:

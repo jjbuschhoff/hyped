@@ -1,0 +1,7 @@
+common.consumer module
+======================
+
+.. automodule:: common.consumer
+   :members:
+   :undoc-members:
+   :show-inheritance:

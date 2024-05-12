@@ -1,0 +1,24 @@
+data.processors.spans package
+=============================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.spans.apply_idx_spans
+   data.processors.spans.common
+   data.processors.spans.from_bio
+   data.processors.spans.from_word_ids
+   data.processors.spans.idx_spans
+   data.processors.spans.loc_to_glob
+   data.processors.spans.overlaps
+
+Module contents
+---------------
+
+.. automodule:: data.processors.spans
+   :members:
+   :undoc-members:
+   :show-inheritance:

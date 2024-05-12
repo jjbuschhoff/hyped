@@ -1,0 +1,28 @@
+data.processors.statistics package
+==================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.statistics.sequence
+   data.processors.statistics.value
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.statistics.base
+   data.processors.statistics.report
+
+Module contents
+---------------
+
+.. automodule:: data.processors.statistics
+   :members:
+   :undoc-members:
+   :show-inheritance:

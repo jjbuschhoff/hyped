@@ -1,0 +1,7 @@
+data.io.datasets.typed\_json module
+===================================
+
+.. automodule:: data.io.datasets.typed_json
+   :members:
+   :undoc-members:
+   :show-inheritance:

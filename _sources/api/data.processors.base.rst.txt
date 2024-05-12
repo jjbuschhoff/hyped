@@ -1,0 +1,7 @@
+data.processors.base module
+===========================
+
+.. automodule:: data.processors.base
+   :members:
+   :undoc-members:
+   :show-inheritance:

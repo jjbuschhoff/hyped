@@ -1,0 +1,20 @@
+data.processors.statistics.sequence package
+===========================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.statistics.sequence.disc_seq_val_hist
+   data.processors.statistics.sequence.seq_len_hist
+   data.processors.statistics.sequence.seq_val_hist
+
+Module contents
+---------------
+
+.. automodule:: data.processors.statistics.sequence
+   :members:
+   :undoc-members:
+   :show-inheritance:

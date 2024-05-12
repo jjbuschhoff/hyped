@@ -1,0 +1,7 @@
+data.processors.spans.apply\_idx\_spans module
+==============================================
+
+.. automodule:: data.processors.spans.apply_idx_spans
+   :members:
+   :undoc-members:
+   :show-inheritance:

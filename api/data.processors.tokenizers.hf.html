@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data.processors.tokenizers.hf module &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="data.processors.base module" href="data.processors.base.html" />
+    <link rel="prev" title="data.processors.tokenizers package" href="data.processors.tokenizers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="data.html">data package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="data.html">data package</a></li>
+          <li class="breadcrumb-item"><a href="data.processors.html">data.processors package</a></li>
+          <li class="breadcrumb-item"><a href="data.processors.tokenizers.html">data.processors.tokenizers package</a></li>
+      <li class="breadcrumb-item active">data.processors.tokenizers.hf module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/data.processors.tokenizers.hf.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-data.processors.tokenizers.hf">
+<span id="data-processors-tokenizers-hf-module"></span><h1>data.processors.tokenizers.hf module<a class="headerlink" href="#module-data.processors.tokenizers.hf" title="Link to this heading"></a></h1>
+<p>Huggingface Transformers Tokenizer Data Processor.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.tokenizers.hf.</span></span><span class="sig-name descname"><span class="pre">HuggingFaceTokenizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig" title="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig"><span class="pre">HuggingFaceTokenizerConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDataProcessor</span></code>[<a class="reference internal" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig" title="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">HuggingFaceTokenizerConfig</span></code></a>]</p>
+<p>HuggingFace (Transformers) Tokenizer.</p>
+<p>Data Processor applying a pre-trained huggingface tokenizer.
+For more information please refer to the documentation of
+the hugginface transformers <cite>PreTrainedTokenizer</cite> class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizer.KWARGS_FROM_CONFIG">
+<span class="sig-name descname"><span class="pre">KWARGS_FROM_CONFIG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['add_special_tokens',</span> <span class="pre">'padding',</span> <span class="pre">'truncation',</span> <span class="pre">'max_length',</span> <span class="pre">'stride',</span> <span class="pre">'is_split_into_words',</span> <span class="pre">'pad_to_multiple_of',</span> <span class="pre">'return_token_type_ids',</span> <span class="pre">'return_attention_mask',</span> <span class="pre">'return_special_tokens_mask',</span> <span class="pre">'return_offsets_mapping',</span> <span class="pre">'return_length']</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizer.KWARGS_FROM_CONFIG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizer.KWARGS_FROM_EXAMPLE">
+<span class="sig-name descname"><span class="pre">KWARGS_FROM_EXAMPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['text',</span> <span class="pre">'text_pair',</span> <span class="pre">'text_target',</span> <span class="pre">'text_pair_target',</span> <span class="pre">'boxes']</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizer.KWARGS_FROM_EXAMPLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizer.internal_batch_process">
+<span class="sig-name descname"><span class="pre">internal_batch_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizer.internal_batch_process" title="Link to this definition"></a></dt>
+<dd><p>Tokenize a batch of examples.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>examples (dict[str, list[Any]]): batch of examples to process
+index (list[int]): dataset indices of the examples
+rank (int): execution process rank</p>
+</dd>
+<dt>Returns:</dt><dd><p>out_batch (dict[str, list[Any]]): tokenized examples
+index (list[int]): pass through of the input indices</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizer.map_features">
+<span class="sig-name descname"><span class="pre">map_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Features</span></span></span><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizer.map_features" title="Link to this definition"></a></dt>
+<dd><p>Check tokenizer input and return output features.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>features (Features): the input dataset features</p>
+</dd>
+<dt>Returns:</dt><dd><p>new_features (Features): features generated by the tokenizer</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.tokenizers.hf.</span></span><span class="sig-name descname"><span class="pre">HuggingFaceTokenizerConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_input_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureDict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PreTrainedTokenizer</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'bert-base-uncased'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'text'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_pair</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_pair_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_special_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PaddingStrategy</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truncation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">TruncationStrategy</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_split_into_words</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_to_multiple_of</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_token_type_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_attention_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_special_tokens_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_offsets_mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_word_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDataProcessorConfig</span></code></p>
+<p>HuggingFace (Transformers) Tokenizer Config.</p>
+<p>Data Processor applying a pre-trained huggingface tokenizer.
+For more information please refer to the documentation of
+the hugginface transformers <cite>PreTrainedTokenizer</cite> class.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><dl class="simple">
+<dt>tokenizer (str | PreTrainedTokenizer):</dt><dd><p>the pre-trained tokenizer to apply. Either the uri or local
+path to load the tokenizer from using <cite>AutoTokenizer</cite>, or
+the pre-trained tokenizer object.</p>
+</dd>
+<dt>text (None | FeatureKey):</dt><dd><p>feature to pass as <cite>text</cite> keyword argument
+to the tokenizer. Defaults to <cite>text</cite>.</p>
+</dd>
+<dt>text_pair (None | FeatureKey):</dt><dd><p>feature to pass as <cite>text_pair</cite> keyword argument
+to the tokenizer</p>
+</dd>
+<dt>text_target (None | FeatureKey):</dt><dd><p>feature to pass as <cite>text_target</cite> keyword argument
+to the tokenizer</p>
+</dd>
+<dt>text_pair_target (None | FeatureKey):</dt><dd><p>feature to pass as <cite>text_pair_target</cite> keyword argument
+to the tokenizer</p>
+</dd>
+<dt>boxes (None | FeatureKey):</dt><dd><p>feature to pass as <cite>boxes</cite> to the tokenizer.
+Required for <cite>LayoutXLMTokenizer</cite>.</p>
+</dd>
+<dt>add_special_tokens (None | bool):</dt><dd><p>whether to add special tokens to the tokenized sequence.
+Defaults to true.</p>
+</dd>
+<dt>padding (bool | str | PaddingStrategy):</dt><dd><p>Activate and control padding of the tokenized sequence.
+Defaults to False. See <cite>PreTrainedTokenizer.call</cite> for more
+information.</p>
+</dd>
+<dt>truncation (bool | str | TruncationSrategy):</dt><dd><p>Activate and control truncation of the tokenized sequence.
+Defaults to False. See <cite>PreTrainedTokenizer.call</cite> for more
+information.</p>
+</dd>
+<dt>max_length (None | str):</dt><dd><p>the maximum length to be used by the truncation and padding
+strategy.</p>
+</dd>
+<dt>stride (int):</dt><dd><p>overflowing tokens will have overlap of this value with the
+truncated sequence. Defaults to zero, effectively deactivating
+striding.</p>
+</dd>
+<dt>is_split_into_words (bool):</dt><dd><p>whether the text inputs are already pre-tokenized into words.
+Defaults to false.</p>
+</dd>
+<dt>pad_to_multiple_of (None | int):</dt><dd><p>when set, the sequence will be padded to a multiple of
+the specified value</p>
+</dd>
+<dt>return_tokens (bool):</dt><dd><p>whether to return the token sequence</p>
+</dd>
+<dt>return_token_type_ids (bool):</dt><dd><p>whether to return the token type ids</p>
+</dd>
+<dt>return_attention_mask (bool):</dt><dd><p>whether to return the attention mask</p>
+</dd>
+<dt>return_special_tokens_mask (bool):</dt><dd><p>whether to return the special tokens mask</p>
+</dd>
+<dt>return_offsets_mapping (bool):</dt><dd><p>whether to return the character offset mapping. Only availabel
+for fast tokenizers.</p>
+</dd>
+<dt>return_length (bool):</dt><dd><p>whether to return the sequence length</p>
+</dd>
+<dt>return_word_ids (bool):</dt><dd><p>whether to return the word ids for each token. Only available
+for fast tokenizers. Defaults to false.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.add_special_tokens">
+<span class="sig-name descname"><span class="pre">add_special_tokens</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.add_special_tokens" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.boxes">
+<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.boxes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.is_split_into_words">
+<span class="sig-name descname"><span class="pre">is_split_into_words</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.is_split_into_words" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.max_length">
+<span class="sig-name descname"><span class="pre">max_length</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.max_length" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'validate_default':</span> <span class="pre">True}</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'add_special_tokens':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=True),</span> <span class="pre">'boxes':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureKey],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'is_split_into_words':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'keep_input_features':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=True),</span> <span class="pre">'max_length':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">int],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'output_format':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureDict],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'pad_to_multiple_of':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">int],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'padding':</span> <span class="pre">FieldInfo(annotation=Union[bool,</span> <span class="pre">str,</span> <span class="pre">PaddingStrategy],</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_attention_mask':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_length':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_offsets_mapping':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_special_tokens_mask':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_token_type_ids':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_tokens':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'return_word_ids':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'stride':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=0),</span> <span class="pre">'text':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureKey],</span> <span class="pre">required=False,</span> <span class="pre">default='text'),</span> <span class="pre">'text_pair':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureKey],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'text_pair_target':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureKey],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'text_target':</span> <span class="pre">FieldInfo(annotation=Union[NoneType,</span> <span class="pre">FeatureKey],</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'tokenizer':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">PreTrainedTokenizer],</span> <span class="pre">required=False,</span> <span class="pre">default='bert-base-uncased',</span> <span class="pre">metadata=[&lt;class</span> <span class="pre">'pydantic.functional_validators.SkipValidation'&gt;]),</span> <span class="pre">'truncation':</span> <span class="pre">FieldInfo(annotation=Union[bool,</span> <span class="pre">str,</span> <span class="pre">TruncationStrategy],</span> <span class="pre">required=False,</span> <span class="pre">default=False)}</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.pad_to_multiple_of">
+<span class="sig-name descname"><span class="pre">pad_to_multiple_of</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.pad_to_multiple_of" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.padding">
+<span class="sig-name descname"><span class="pre">padding</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PaddingStrategy</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.padding" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_attention_mask">
+<span class="sig-name descname"><span class="pre">return_attention_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_attention_mask" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_length">
+<span class="sig-name descname"><span class="pre">return_length</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_length" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_offsets_mapping">
+<span class="sig-name descname"><span class="pre">return_offsets_mapping</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_offsets_mapping" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_special_tokens_mask">
+<span class="sig-name descname"><span class="pre">return_special_tokens_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_special_tokens_mask" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_token_type_ids">
+<span class="sig-name descname"><span class="pre">return_token_type_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_token_type_ids" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_tokens">
+<span class="sig-name descname"><span class="pre">return_tokens</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_tokens" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_word_ids">
+<span class="sig-name descname"><span class="pre">return_word_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.return_word_ids" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.stride">
+<span class="sig-name descname"><span class="pre">stride</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.stride" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text">
+<span class="sig-name descname"><span class="pre">text</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_pair">
+<span class="sig-name descname"><span class="pre">text_pair</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_pair" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_pair_target">
+<span class="sig-name descname"><span class="pre">text_pair_target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_pair_target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_target">
+<span class="sig-name descname"><span class="pre">text_target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FeatureKey</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.text_target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.tokenizer">
+<span class="sig-name descname"><span class="pre">tokenizer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PreTrainedTokenizer</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.tokenizer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.truncation">
+<span class="sig-name descname"><span class="pre">truncation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">TruncationStrategy</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerConfig.truncation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.tokenizers.hf.</span></span><span class="sig-name descname"><span class="pre">HuggingFaceTokenizerOutputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enumeration of the outputs of the HuggingFace (transformers) Tokenizer.</p>
+<p>Note that some of the output columns are optional and controlled by the
+specific type of tokenizer and the configuration. Furthermore there might
+be outputs of tokenizer that are not explicitly listed here.</p>
+<p>For more information on each output please refer to the transformers
+documentation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.ATTENTION_MASK">
+<span class="sig-name descname"><span class="pre">ATTENTION_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'attention_mask'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.ATTENTION_MASK" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the token type id sequence. Only available
+when <cite>return_attention_mask=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.INPUT_IDS">
+<span class="sig-name descname"><span class="pre">INPUT_IDS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'input_ids'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.INPUT_IDS" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the input id sequence</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.LENGTH">
+<span class="sig-name descname"><span class="pre">LENGTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'length'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.LENGTH" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the length of the tokenized sequence. Only
+available when <cite>return_length=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.OFFSETS_MAPPING">
+<span class="sig-name descname"><span class="pre">OFFSETS_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'offset_mapping'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.OFFSETS_MAPPING" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the character offsets of each token. Only
+available when <cite>return_offsets_mapping=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.OVERFLOW_TO_SAMPLE_MAPPING">
+<span class="sig-name descname"><span class="pre">OVERFLOW_TO_SAMPLE_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'overflow_to_sample_mapping'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.OVERFLOW_TO_SAMPLE_MAPPING" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the overflow to sample mapping. Only available
+when <cite>return_overflowing_tokens=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.SPECIAL_TOKENS_MASK">
+<span class="sig-name descname"><span class="pre">SPECIAL_TOKENS_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'special_tokens_mask'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.SPECIAL_TOKENS_MASK" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the special tokens mask. Only available when
+<cite>return_special_tokens_mask=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.TOKENS">
+<span class="sig-name descname"><span class="pre">TOKENS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tokens'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.TOKENS" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the token sequence</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.TOKEN_TYPE_IDS">
+<span class="sig-name descname"><span class="pre">TOKEN_TYPE_IDS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'token_type_ids'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.TOKEN_TYPE_IDS" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the token type id sequence. Only available
+when <cite>return_token_type_ids=True</cite> in the configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.WORD_IDS">
+<span class="sig-name descname"><span class="pre">WORD_IDS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'word_ids'</span></em><a class="headerlink" href="#data.processors.tokenizers.hf.HuggingFaceTokenizerOutputs.WORD_IDS" title="Link to this definition"></a></dt>
+<dd><p>Output column containing the word-id sequence mapping each token to
+the index word it is a part of. Only available when <cite>return_word_ids=True</cite>
+in the configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.processors.tokenizers.html" class="btn btn-neutral float-left" title="data.processors.tokenizers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.processors.base.html" class="btn btn-neutral float-right" title="data.processors.base module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

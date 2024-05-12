@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feature Access &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Pipe" href="data_pipe.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/hyped.html">hyped</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/data.html">data package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Feature Access</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/feature_access.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="feature-access">
+<h1>Feature Access<a class="headerlink" href="#feature-access" title="Link to this heading"></a></h1>
+<p>Feature keys play a pivotal role in defining and processing data within Hyped. They serve as identifiers for individual features or data fields, allowing for precise control and manipulation of the data flow throughout the processing pipeline. Hyped utilizes specialized classes, such as <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code>, <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code>, and <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code>, in the configuration of processors to model the data flow. In this sub-section, we delve deeper into the concept of feature keys and explore these classes, which provide a structured approach to managing and configuring input features for data processing tasks. Understanding these classes is essential for effectively harnessing the power of Hyped’s data processing capabilities.</p>
+<section id="featurekey">
+<h2>FeatureKey<a class="headerlink" href="#featurekey" title="Link to this heading"></a></h2>
+<p>The <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> class is a fundamental component of Hyped’s data processing framework, designed to facilitate the indexing of (nested) features within data examples. This class represents a tuple of <code class="code docutils literal notranslate"><span class="pre">str</span></code>, <code class="code docutils literal notranslate"><span class="pre">int</span></code>, and <code class="code docutils literal notranslate"><span class="pre">slice</span></code> instances, serving as a path specifier to navigate to a specific feature within an example. By leveraging <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code>, users can precisely identify and access individual data fields, enabling targeted processing and manipulation of data. Let’s explore how <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> operates through an illustrative example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define an example of nested features</span>
+<span class="n">example</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}]}</span>
+
+<span class="c1"># Refers to the value 0 in the example</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;seq&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">)</span>
+<span class="c1"># Refers to the sequence [1, 2] extracted from the example</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;seq&quot;</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;A&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> instance <code class="code docutils literal notranslate"><span class="pre">key</span></code> specifies the path to access the value 0 within the <code class="code docutils literal notranslate"><span class="pre">example</span></code> dictionary. Understanding how to construct and utilize <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> instances is crucial for effectively navigating and processing data within Hyped’s data processing pipelines. Let’s delve deeper into the functionality and usage of the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> class.</p>
+<p><strong>Main Functionalities</strong></p>
+<p>In this section, we outline the main functionalities of the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> class, which provide essential methods for extracting specific features from datasets, single examples, and batches of examples.</p>
+<ol class="arabic">
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_features(features:</span> <span class="pre">datasets.Features)</span> <span class="pre">-&gt;</span> <span class="pre">datasets.features.features.FeatureType</span></code>:</p>
+<p>This method extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> instance from a dataset’s features dictionary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># some sample dataset features dictionary</span>
+<span class="n">features</span> <span class="o">=</span> <span class="n">Features</span><span class="p">({</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">Value</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)})</span>
+
+<span class="c1"># get the feature type of the text feature, in this case Value(&quot;string&quot;)</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">index_features</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_example(example:</span> <span class="pre">dict[str,</span> <span class="pre">Any])</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code>:</p>
+<p>This method extracts the value of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> instance from a single example.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define an example of nested features</span>
+<span class="n">example</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}]}</span>
+
+<span class="c1"># get the feature value of the nested feature, in this case 0</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;seq&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">index_example</span><span class="p">(</span><span class="n">example</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_batch(batch:</span> <span class="pre">dict[str,</span> <span class="pre">list[Any]])</span> <span class="pre">-&gt;</span> <span class="pre">list[Any]</span></code>:</p>
+<p>This method extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> instance from a batch of examples.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define a batch of three examples</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}]}</span>
+
+<span class="c1"># get the feature values of example in the batch, in this case [0, 1, 2]</span>
+<span class="n">values</span> <span class="o">=</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">index_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="featurecollection">
+<h2>FeatureCollection<a class="headerlink" href="#featurecollection" title="Link to this heading"></a></h2>
+<p>The <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> class builds on top of the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> class but is designed to facilitate the dynamic construction of features from sub-features. This class allows users to define complex features by combining existing features and constant values in the form of nested <code class="code docutils literal notranslate"><span class="pre">dict</span></code> or <code class="code docutils literal notranslate"><span class="pre">list</span></code> types on the fly. Let’s explore how <code class="code docutils literal notranslate"><span class="pre">FeatureCollection`</span></code> operates through an illustrative example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">feature_collection</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;const&quot;</span><span class="p">:</span> <span class="n">Const</span><span class="p">(</span><span class="s2">&quot;This is a constant value feature&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">),</span>
+            <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, the <code class="code docutils literal notranslate"><span class="pre">feature_collection</span></code> instance <code class="code docutils literal notranslate"><span class="pre">feature_collection</span></code> is created with two sub-features: a constant value feature defined by the <code class="code docutils literal notranslate"><span class="pre">Const</span></code> class and reference features obtained from the example using the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code> class.</p>
+<p><strong>Main Functionalities</strong></p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> class provides the exact same main functionalities as the <code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code>:</p>
+<ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_features(features:</span> <span class="pre">datasets.Features)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code>:</p>
+<blockquote>
+<div><p>Extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> instance from a dataset’s features dictionary.</p>
+</div></blockquote>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_example(example:</span> <span class="pre">dict[str,</span> <span class="pre">Any])</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code>:</p>
+<blockquote>
+<div><p>Extracts the value of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> instance from a single example.</p>
+</div></blockquote>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_batch(batch:</span> <span class="pre">dict[str,</span> <span class="pre">list[Any]])</span> <span class="pre">-&gt;</span> <span class="pre">list[Any]</span></code>:</p>
+<blockquote>
+<div><p>Extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> instance from a batch of examples.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="featuredict">
+<h2>FeatureDict<a class="headerlink" href="#featuredict" title="Link to this heading"></a></h2>
+<p>The <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> class is a specialized variant of the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> class within Hyped’s data processing framework. While both classes serve the purpose of dynamically constructing features from sub-features, the <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> class guarantees that the top-level structure of the feature is a <code class="code docutils literal notranslate"><span class="pre">dictionary</span></code>. This ensures that the feature being constructed is inherently structured as a dictionary. Let’s explore how <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> operates through an illustrative example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># valid feature dict</span>
+<span class="n">feature_dict</span> <span class="o">=</span> <span class="n">FeatureDict</span><span class="p">({</span><span class="s2">&quot;const&quot;</span><span class="p">:</span> <span class="n">Const</span><span class="p">(</span><span class="s2">&quot;This is a constant value feature&quot;</span><span class="p">),</span> <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)})</span>
+
+<span class="c1"># invalid feature dict</span>
+<span class="n">feature_dict</span> <span class="o">=</span> <span class="n">FeatureDict</span><span class="p">([</span><span class="n">Const</span><span class="p">(</span><span class="s2">&quot;This is a constant value feature&quot;</span><span class="p">),</span> <span class="n">FeatureKey</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>In the first example, feature_dict is a valid <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> instance constructed with a dictionary structure, where each key corresponds to a sub-feature. However, in the second example, <code class="code docutils literal notranslate"><span class="pre">feature_dict</span></code> is an invalid <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> instance because the input is not a dictionary.</p>
+<p><strong>Main Functionalities</strong></p>
+<p>The main functionalities of the <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> class are identical to those of the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> class, with the only difference being the return type of the <code class="code docutils literal notranslate"><span class="pre">index_batch`</span></code> function.</p>
+<ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_features(features:</span> <span class="pre">datasets.Features)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code>:</p>
+<blockquote>
+<div><p>Extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> instance from a dataset’s features dictionary.</p>
+</div></blockquote>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_example(example:</span> <span class="pre">dict[str,</span> <span class="pre">Any])</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code>:</p>
+<blockquote>
+<div><p>Extracts the value of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code> instance from a single example.</p>
+</div></blockquote>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">index_batch(batch:</span> <span class="pre">dict[str,</span> <span class="pre">list[Any]])</span> <span class="pre">-&gt;</span> <span class="pre">dict[str,</span> <span class="pre">list[Any]]</span></code>:</p>
+<blockquote>
+<div><p>Extracts the values of the specified feature represented by the <code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code> instance from a batch of examples. The return type is a dictionary where each key corresponds to a feature name, and the values are lists containing the extracted feature values for each example in the batch.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data_pipe.html" class="btn btn-neutral float-right" title="Data Pipe" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

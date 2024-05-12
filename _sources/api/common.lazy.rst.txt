@@ -1,0 +1,7 @@
+common.lazy module
+==================
+
+.. automodule:: common.lazy
+   :members:
+   :undoc-members:
+   :show-inheritance:

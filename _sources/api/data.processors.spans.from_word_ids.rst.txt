@@ -1,0 +1,7 @@
+data.processors.spans.from\_word\_ids module
+============================================
+
+.. automodule:: data.processors.spans.from_word_ids
+   :members:
+   :undoc-members:
+   :show-inheritance:

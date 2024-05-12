@@ -1,0 +1,7 @@
+data.processors.taggers.relex module
+====================================
+
+.. automodule:: data.processors.taggers.relex
+   :members:
+   :undoc-members:
+   :show-inheritance:

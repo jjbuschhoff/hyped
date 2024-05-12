@@ -1,0 +1,20 @@
+data.io.writers package
+=======================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.io.writers.base
+   data.io.writers.csv
+   data.io.writers.json
+
+Module contents
+---------------
+
+.. automodule:: data.io.writers
+   :members:
+   :undoc-members:
+   :show-inheritance:

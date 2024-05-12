@@ -1,0 +1,19 @@
+data.io package
+===============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.io.datasets
+   data.io.writers
+
+Module contents
+---------------
+
+.. automodule:: data.io
+   :members:
+   :undoc-members:
+   :show-inheritance:

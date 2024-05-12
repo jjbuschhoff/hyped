@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data.graph module &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="data.pipe module" href="data.pipe.html" />
+    <link rel="prev" title="data.processors.base module" href="data.processors.base.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="data.html">data package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="data.html">data package</a></li>
+      <li class="breadcrumb-item active">data.graph module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/data.graph.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-data.graph">
+<span id="data-graph-module"></span><h1>data.graph module<a class="headerlink" href="#module-data.graph" title="Link to this heading"></a></h1>
+<p>Process Graph.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="data.graph.EdgeAttribute">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.graph.</span></span><span class="sig-name descname"><span class="pre">EdgeAttribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.graph.EdgeAttribute" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enumeration of edge attributes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.EdgeAttribute.FEATURES">
+<span class="sig-name descname"><span class="pre">FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'edge_features'</span></em><a class="headerlink" href="#data.graph.EdgeAttribute.FEATURES" title="Link to this definition"></a></dt>
+<dd><p>A list of feature keys refering to the features that are passed from
+the source node of the edge to the target node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.graph.NodeAttribute">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.graph.</span></span><span class="sig-name descname"><span class="pre">NodeAttribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.graph.NodeAttribute" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enumeration of node attributes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeAttribute.EXECUTION_INDEX">
+<span class="sig-name descname"><span class="pre">EXECUTION_INDEX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'node_execution_index'</span></em><a class="headerlink" href="#data.graph.NodeAttribute.EXECUTION_INDEX" title="Link to this definition"></a></dt>
+<dd><p>The execution index of the node, for processors this refers to the
+order in which processors are executed in the pipeline. For feature
+nodes, the execution index is undefined (set to -1).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeAttribute.LABEL">
+<span class="sig-name descname"><span class="pre">LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'node_label'</span></em><a class="headerlink" href="#data.graph.NodeAttribute.LABEL" title="Link to this definition"></a></dt>
+<dd><p>The label of the node, for features this refers to the feature name,
+for processors it is the processor class name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeAttribute.LAYER">
+<span class="sig-name descname"><span class="pre">LAYER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'node_layer'</span></em><a class="headerlink" href="#data.graph.NodeAttribute.LAYER" title="Link to this definition"></a></dt>
+<dd><p>The layer of the node, indicating the path length from the input
+features at layer 0 to the given node</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeAttribute.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'node_type'</span></em><a class="headerlink" href="#data.graph.NodeAttribute.TYPE" title="Link to this definition"></a></dt>
+<dd><p>The type of the node. Values to this attribute are defined by the
+<cite>NodeType</cite> enumeration.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.graph.NodeType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.graph.</span></span><span class="sig-name descname"><span class="pre">NodeType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.graph.NodeType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enumeration of node types of a <cite>ProcessGraph</cite>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeType.DATA_PROCESSOR">
+<span class="sig-name descname"><span class="pre">DATA_PROCESSOR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data_processor'</span></em><a class="headerlink" href="#data.graph.NodeType.DATA_PROCESSOR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeType.DATA_STATISTIC">
+<span class="sig-name descname"><span class="pre">DATA_STATISTIC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data_statistic'</span></em><a class="headerlink" href="#data.graph.NodeType.DATA_STATISTIC" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeType.INPUT_FEATURE">
+<span class="sig-name descname"><span class="pre">INPUT_FEATURE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'input_feature'</span></em><a class="headerlink" href="#data.graph.NodeType.INPUT_FEATURE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="data.graph.NodeType.OUTPUT_FEATURE">
+<span class="sig-name descname"><span class="pre">OUTPUT_FEATURE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'output_feature'</span></em><a class="headerlink" href="#data.graph.NodeType.OUTPUT_FEATURE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.graph.ProcessGraph">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.graph.</span></span><span class="sig-name descname"><span class="pre">ProcessGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataPipe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.graph.ProcessGraph" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">DiGraph</span></code></p>
+<p>Process Graph.</p>
+<p>Graph representation of a <cite>DataPipe</cite> object. It consists of all input and
+output features as well as the processors that process the input to the
+output features. Edges show the information flow between processors.</p>
+<p>Nodes and edges have a set of attributes. See <cite>NodeAttributes</cite> and
+<cite>EdgeAttributes</cite> for more details.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="data.graph.ProcessGraph.build_process_graph">
+<span class="sig-name descname"><span class="pre">build_process_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataPipe</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.graph.ProcessGraph.build_process_graph" title="Link to this definition"></a></dt>
+<dd><p>Build the graph given the input features and data pipe.</p>
+<dl>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>features (Features):</dt><dd><p>input features to be processed by the data pipe</p>
+</dd>
+</dl>
+<p>pipe (DataPipe): data pipe to represent as a directed graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="data.graph.ProcessGraph.max_width">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_width</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#data.graph.ProcessGraph.max_width" title="Link to this definition"></a></dt>
+<dd><p>The maximum number of nodes contained in a single layer.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="data.graph.ProcessGraph.num_layers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#data.graph.ProcessGraph.num_layers" title="Link to this definition"></a></dt>
+<dd><p>The total number of layers in the graph.</p>
+<p>It is computed by finding the maximum value of the
+<cite>NodeAttribute.LAYER</cite> attributes of the nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.graph.ProcessGraph.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#data.graph.NodeType" title="data.graph.NodeType"><span class="pre">NodeType</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_edge_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrowsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Axes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Axes</span></span></span><a class="headerlink" href="#data.graph.ProcessGraph.plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the graph.</p>
+<dl>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>pos (None | dict[str, list[float]]):</dt><dd><p>positions of the nodes, when set to None (default) the node
+positions are computed using <cite>networkx.multipartite_layout</cite>
+based on the <cite>NodeAttribute.LAYER</cite> attribute of the nodes.</p>
+</dd>
+<dt>color_map (dict[NodeType, str]):</dt><dd><p>indicate custom color scheme based on node type</p>
+</dd>
+</dl>
+<p>with_labels (bool): plot node labels
+with_edge_labels (bool): plot edge labels
+font_size (int): font size used for labels
+node_size (int): size of nodes
+arrowsize (int): size of arrows
+ax (None | plt.Axes): axes to plot in
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: arguments forwarded to networkx.draw</p>
+</dd>
+<dt>Returns:</dt><dd><p>ax (plt.Axes): axes containing plot of the graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.processors.base.html" class="btn btn-neutral float-left" title="data.processors.base module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.pipe.html" class="btn btn-neutral float-right" title="data.pipe module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

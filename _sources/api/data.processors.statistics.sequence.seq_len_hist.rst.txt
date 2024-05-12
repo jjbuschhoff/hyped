@@ -1,0 +1,7 @@
+data.processors.statistics.sequence.seq\_len\_hist module
+=========================================================
+
+.. automodule:: data.processors.statistics.sequence.seq_len_hist
+   :members:
+   :undoc-members:
+   :show-inheritance:

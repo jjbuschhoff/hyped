@@ -1,0 +1,7 @@
+data.processors.features.flatten module
+=======================================
+
+.. automodule:: data.processors.features.flatten
+   :members:
+   :undoc-members:
+   :show-inheritance:

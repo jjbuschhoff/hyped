@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Pipe &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Processors" href="data_processors.html" />
+    <link rel="prev" title="Feature Access" href="feature_access.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/hyped.html">hyped</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/data.html">data package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Pipe</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_pipe.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-pipe">
+<h1>Data Pipe<a class="headerlink" href="#data-pipe" title="Link to this heading"></a></h1>
+<p>Built on top of the <a class="reference external" href="https://huggingface.co/docs/datasets/en/index">HuggingFace datasets</a> library, the <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> class offers seamless integration with its extensive functionality for efficient dataset management. A <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> is defined as a sequence of data processors, transforming input data through customizable processing stages. It provides comprehensive functionality for feature management, ensuring compatibility and consistency throughout the pipeline. Additionally, the <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> class includes advanced features such as multiprocessing support, enhancing performance in computationally intensive tasks, and data streaming capabilities for handling large datasets efficiently.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Customizability</strong>: Chain together a series of data processors to create a customizable data processing pipeline. This allows for flexible and modular data transformation workflows tailored to specific use cases.</p></li>
+<li><p><strong>Feature Handling</strong>: Manage input and output dataset features with ease, ensuring compatibility and consistency throughout the processing pipeline.</p></li>
+<li><p><strong>Batch Processing</strong>: Easily process batches of examples through the pipeline using convenient methods provided by the <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> class. Batch processing ensures efficient handling of large datasets and enables parallelized execution for improved performance.</p></li>
+<li><p><strong>Multiprocessing Support</strong>: Harness the power of multiprocessing to accelerate data processing tasks, improving efficiency and scalability. The <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> class includes built-in support for multiprocessing, allowing for parallel execution of data processing steps across multiple CPU cores.</p></li>
+<li><p><strong>Data Streaming</strong>: Efficiently handle large datasets by streaming data through the pipeline, reducing memory usage and enabling processing of datasets that exceed available memory constraints.</p></li>
+<li><p><strong>Integration with Hugging Face datasets library</strong>: Heavily relies on the Hugging Face datasets library for efficient data processing tasks, leveraging its extensive functionality and dataset management capabilities. This seamless integration enables users to leverage the rich ecosystem of datasets available in the Hugging Face library within the <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> framework.</p></li>
+</ul>
+</section>
+<section id="main-functionalities">
+<h2>Main Functionalities<a class="headerlink" href="#main-functionalities" title="Link to this heading"></a></h2>
+<p>The <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> class provides essential functionality for preparing, processing batches of examples, and applying the data pipeline to datasets.</p>
+<section id="init">
+<h3>init<a class="headerlink" href="#init" title="Link to this heading"></a></h3>
+<p>The <code class="code docutils literal notranslate"><span class="pre">__init__</span></code> function initializes a <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> object with a sequence of data processors. It allows users to specify an initial pipeline of processors to be applied to the data. If no processors are provided, the data pipe is initialized with an empty list of processors.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize a DataPipe object with a sequence of data processors</span>
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">DataPipe</span><span class="p">(</span><span class="n">processors</span><span class="o">=</span><span class="p">[</span><span class="n">processor1</span><span class="p">,</span> <span class="n">processor2</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+
+<span class="c1"># If no processors are provided, initialize the DataPipe with an empty list</span>
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">DataPipe</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Please refer to the <a class="reference internal" href="data_processors.html"><span class="doc">Data Processors Documentation</span></a> for more information about customizing data processors.</p>
+</section>
+<section id="prepare">
+<h3>prepare<a class="headerlink" href="#prepare" title="Link to this heading"></a></h3>
+<p>The <code class="code docutils literal notranslate"><span class="pre">prepare()</span></code> function prepares all data processors within the data pipeline for a specific input dataset. It ensures that each processor is ready to execute by passing the input dataset features through the pipeline and collecting the output features. This step enables seamless data processing by establishing compatibility and consistency throughout the pipeline.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Features</span><span class="p">(</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;featureA&quot;</span><span class="p">:</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;featureB&quot;</span><span class="p">:</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+<span class="p">)</span>
+<span class="c1"># prepare the data pipe for the input-features</span>
+<span class="n">out_features</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After preparing the data pipeline, the following attributes are set</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the input features</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">in_features</span>
+<span class="c1"># the new features computed by the data pipe that are not part</span>
+<span class="c1"># of the input features</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">new_features</span>
+<span class="c1"># the output features of the data pipe, can also include input</span>
+<span class="c1"># features when they are not filtered out</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">out_features</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-process">
+<h3>batch_process<a class="headerlink" href="#batch-process" title="Link to this heading"></a></h3>
+<p>The <code class="code docutils literal notranslate"><span class="pre">batch_process()</span></code> function takes in a batch of examples and passes it through each data processor of the data pipe. This sequential processing enables the application of various transformations, such as feature extraction, normalization, and filtering, to the input data. The function iterates over the data processors, applying each processor’s transformation to the batch of examples and yielding the output of the last data processor.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a sample batch in the huggingface datasets format,</span>
+<span class="c1"># i.e. dict of lists</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;featureA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="s2">&quot;featureB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="c1"># apply the data pipe to the batch of examples</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">batch_process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="apply">
+<h3>apply<a class="headerlink" href="#apply" title="Link to this heading"></a></h3>
+<p>The <code class="code docutils literal notranslate"><span class="pre">apply()</span></code> function automates the application of the data pipeline to a HuggingFace dataset, returning the transformed dataset. It seamlessly integrates with the HuggingFace datasets library, allowing users to leverage its extensive functionality and dataset management capabilities.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a dataset using the Hugging Face datasets library</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># Apply the data pipeline to the dataset</span>
+<span class="n">out_ds</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="code docutils literal notranslate"><span class="pre">apply()</span></code> function offers additional functionalities:</p>
+<p><strong>Multiprocessing</strong></p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">apply()</span></code> function supports multiprocessing to accelerate data processing tasks. Users can specify the number of processes to utilize for parallel execution.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply the data pipeline to the dataset using multiprocessing</span>
+<span class="n">out_ds</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">num_proc</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Data Streaming</strong></p>
+<p>When applied to a dataset in streaming mode, the <code class="code docutils literal notranslate"><span class="pre">apply()</span></code> function operates in a lazy manner, allowing for data streaming. The data pipe is applied as items are accessed, minimizing memory usage and enabling processing of datasets larger than available memory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the dataset in stream mode</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Apply the data pipeline to the dataset</span>
+<span class="n">out_ds</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+<span class="c1"># Iterate over the transformed dataset</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">out_ds</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c1"># Write the transformed dataset to disk</span>
+<span class="c1"># Note: Multiprocessing settings need to be defined in the writer</span>
+<span class="n">JsonDatasetWriter</span><span class="p">(</span><span class="s2">&quot;dump/&quot;</span><span class="p">,</span> <span class="n">num_proc</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">out_ds</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="feature_access.html" class="btn btn-neutral float-left" title="Feature Access" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data_processors.html" class="btn btn-neutral float-right" title="Data Processors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+data.processors.statistics.value.mean\_and\_std module
+======================================================
+
+.. automodule:: data.processors.statistics.value.mean_and_std
+   :members:
+   :undoc-members:
+   :show-inheritance:

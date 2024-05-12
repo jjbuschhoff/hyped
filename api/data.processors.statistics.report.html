@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data.processors.statistics.report module &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="data.processors.taggers package" href="data.processors.taggers.html" />
+    <link rel="prev" title="data.processors.statistics.base module" href="data.processors.statistics.base.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="data.html">data package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="data.html">data package</a></li>
+          <li class="breadcrumb-item"><a href="data.processors.html">data.processors package</a></li>
+          <li class="breadcrumb-item"><a href="data.processors.statistics.html">data.processors.statistics package</a></li>
+      <li class="breadcrumb-item active">data.processors.statistics.report module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/data.processors.statistics.report.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-data.processors.statistics.report">
+<span id="data-processors-statistics-report-module"></span><h1>data.processors.statistics.report module<a class="headerlink" href="#module-data.processors.statistics.report" title="Link to this heading"></a></h1>
+<p>Module implementing the statistics report object.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.statistics.report.</span></span><span class="sig-name descname"><span class="pre">StatisticsReport</span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReport" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Statistics Report.</p>
+<p>Tracks statistics computed in data statistics processors. Activate the
+report to start tracking statistics.</p>
+<p>Can be used as a context manager.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReport.activate">
+<span class="sig-name descname"><span class="pre">activate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReport.activate" title="Link to this definition"></a></dt>
+<dd><p>Activate the report.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReport.deactivate">
+<span class="sig-name descname"><span class="pre">deactivate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReport.deactivate" title="Link to this definition"></a></dt>
+<dd><p>Deactivate the report.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReport.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReport.get" title="Link to this definition"></a></dt>
+<dd><p>Get the statistic value to a given key.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (str): statistic key</p>
+</dd>
+<dt>Returns:</dt><dd><p>val (Any): value of the statistic</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReport.registered_keys">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">registered_keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#data.processors.statistics.report.StatisticsReport.registered_keys" title="Link to this definition"></a></dt>
+<dd><p>Set of registered statistic keys.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.statistics.report.</span></span><span class="sig-name descname"><span class="pre">StatisticsReportManager</span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Statistics Report Manager.</p>
+<p>Internal class managing statistic report storages and the multiprocessing
+manager underlying the storages. It keeps track of the active reports,
+i.e. reports to which statistics should be written.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.activate">
+<span class="sig-name descname"><span class="pre">activate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#data.processors.statistics.report.StatisticsReportStorage" title="data.processors.statistics.report.StatisticsReportStorage"><span class="pre">StatisticsReportStorage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.activate" title="Link to this definition"></a></dt>
+<dd><p>Activate a statisics report storage.</p>
+<p>Activate a given statistics report storage in order for it to track
+computed statistics.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>report (StatisticsReportStorage): storage to activate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.deactivate">
+<span class="sig-name descname"><span class="pre">deactivate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#data.processors.statistics.report.StatisticsReportStorage" title="data.processors.statistics.report.StatisticsReportStorage"><span class="pre">StatisticsReportStorage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.deactivate" title="Link to this definition"></a></dt>
+<dd><p>Deactivate a given statistics report storage.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>report (StatisticsReportStorage): storage to deactivate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.is_active">
+<span class="sig-name descname"><span class="pre">is_active</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#data.processors.statistics.report.StatisticsReportStorage" title="data.processors.statistics.report.StatisticsReportStorage"><span class="pre">StatisticsReportStorage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.is_active" title="Link to this definition"></a></dt>
+<dd><p>Check if a given statistic report storage is active.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>report (StatisticsReportStorage): storage instance to check for</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>is_active (bool):</dt><dd><p>boolean indicating whether the storage is active or not</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.is_empty" title="Link to this definition"></a></dt>
+<dd><p>Boolean indicating whether there are any reports active.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.manager">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#data.processors.statistics.report.SyncManager" title="data.processors.statistics.report.SyncManager"><span class="pre">SyncManager</span></a></em><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.manager" title="Link to this definition"></a></dt>
+<dd><p>Multiprocessing manager instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.new_statistics_report_storage">
+<span class="sig-name descname"><span class="pre">new_statistics_report_storage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#data.processors.statistics.report.StatisticsReportStorage" title="data.processors.statistics.report.StatisticsReportStorage"><span class="pre">StatisticsReportStorage</span></a></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.new_statistics_report_storage" title="Link to this definition"></a></dt>
+<dd><p>Create a new statistic report storage.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>storage (StatisticReportStorage): new storage instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportManager.reports">
+<span class="sig-name descname"><span class="pre">reports</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#data.processors.statistics.report.StatisticsReportStorage" title="data.processors.statistics.report.StatisticsReportStorage"><span class="pre">StatisticsReportStorage</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportManager.reports" title="Link to this definition"></a></dt>
+<dd><p>Iterator over active report storages.</p>
+<p>Warns when no reports are activated</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>reports_iter (Iterable[StatisticsReportStorage]):</dt><dd><p>iterator over active report storages</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.statistics.report.</span></span><span class="sig-name descname"><span class="pre">StatisticsReportStorage</span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Statistics Report Storage.</p>
+<p>Internal class implementing a thread-safe storage for statistics
+reports. It manages the values and locks for statistics.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>manager (mp.Manager):</dt><dd><p>multiprocessing manager responsible for sharing statistic
+values and locks between processes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage.get" title="Link to this definition"></a></dt>
+<dd><p>Get the value of a given statistic.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (str): statistic key</p>
+</dd>
+<dt>Returns:</dt><dd><p>val (Any): statistic value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage.get_lock_for">
+<span class="sig-name descname"><span class="pre">get_lock_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RLock</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage.get_lock_for" title="Link to this definition"></a></dt>
+<dd><p>Get the lock dedicated to a given statistic.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (str): statistic key</p>
+</dd>
+<dt>Returns.</dt><dd><p>lock (mp.RLock): multiprocessing lock dedicated to the statistic</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage.manager">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#data.processors.statistics.report.SyncManager" title="data.processors.statistics.report.SyncManager"><span class="pre">SyncManager</span></a></em><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage.manager" title="Link to this definition"></a></dt>
+<dd><p>Multiprocessing manager instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage.register" title="Link to this definition"></a></dt>
+<dd><p>Register a statistic key to the storage.</p>
+<p>Adds the initial value to the value storage and creates a lock
+dedicated to the statistic.</p>
+<p>Note that only the main process (i.e. the process that created the
+instance of the storage) can register new statistics to the storage.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (str): statistic key under which to store the statistic
+init_val (Any): initial value of the statistic</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.StatisticsReportStorage.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#data.processors.statistics.report.StatisticsReportStorage.set" title="Link to this definition"></a></dt>
+<dd><p>Set the value of a given statistic.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>key (str): statistic key
+val (Any): value to store in the statistic</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="data.processors.statistics.report.SyncManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data.processors.statistics.report.</span></span><span class="sig-name descname"><span class="pre">SyncManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serializer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pickle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.statistics.report.SyncManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SyncManager</span></code></p>
+<p>Custom Sync Manager with special registered types.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.SyncManager.StatisticsReportManager">
+<span class="sig-name descname"><span class="pre">StatisticsReportManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.statistics.report.SyncManager.StatisticsReportManager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data.processors.statistics.report.SyncManager.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data.processors.statistics.report.SyncManager.set" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.processors.statistics.base.html" class="btn btn-neutral float-left" title="data.processors.statistics.base module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.processors.taggers.html" class="btn btn-neutral float-right" title="data.processors.taggers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

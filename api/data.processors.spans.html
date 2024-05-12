@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data.processors.spans package &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="data.processors.spans.apply_idx_spans module" href="data.processors.spans.apply_idx_spans.html" />
+    <link rel="prev" title="data.processors.sequence.join_str_seq module" href="data.processors.sequence.join_str_seq.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="data.html">data package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="data.html">data package</a></li>
+          <li class="breadcrumb-item"><a href="data.processors.html">data.processors package</a></li>
+      <li class="breadcrumb-item active">data.processors.spans package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/data.processors.spans.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-processors-spans-package">
+<h1>data.processors.spans package<a class="headerlink" href="#data-processors-spans-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html">data.processors.spans.apply_idx_spans module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpans"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpans</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpans.map_features"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpans.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpans.process"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpans.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.idx_spans_begin"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.idx_spans_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.idx_spans_end"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.idx_spans_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.is_idx_spans_inclusive"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.is_idx_spans_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.is_spans_inclusive"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.is_spans_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.model_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.spans_begin"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.spans_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.apply_idx_spans.html#data.processors.spans.apply_idx_spans.ApplyIndexSpansConfig.spans_end"><code class="docutils literal notranslate"><span class="pre">ApplyIndexSpansConfig.spans_end</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.common.html">data.processors.spans.common module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.LabelledSpansOutputs"><code class="docutils literal notranslate"><span class="pre">LabelledSpansOutputs</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.LabelledSpansOutputs.BEGINS"><code class="docutils literal notranslate"><span class="pre">LabelledSpansOutputs.BEGINS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.LabelledSpansOutputs.ENDS"><code class="docutils literal notranslate"><span class="pre">LabelledSpansOutputs.ENDS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.LabelledSpansOutputs.LABELS"><code class="docutils literal notranslate"><span class="pre">LabelledSpansOutputs.LABELS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.APPROX"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.APPROX</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.KEEP_FIRST"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.KEEP_FIRST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.KEEP_LARGEST"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.KEEP_LARGEST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.KEEP_LAST"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.KEEP_LAST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.KEEP_SMALLEST"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.KEEP_SMALLEST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.ResolveOverlapsStrategy.RAISE"><code class="docutils literal notranslate"><span class="pre">ResolveOverlapsStrategy.RAISE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.SpansOutputs"><code class="docutils literal notranslate"><span class="pre">SpansOutputs</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.SpansOutputs.BEGINS"><code class="docutils literal notranslate"><span class="pre">SpansOutputs.BEGINS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.SpansOutputs.ENDS"><code class="docutils literal notranslate"><span class="pre">SpansOutputs.ENDS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.compute_spans_overlap_matrix"><code class="docutils literal notranslate"><span class="pre">compute_spans_overlap_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.make_spans_exclusive"><code class="docutils literal notranslate"><span class="pre">make_spans_exclusive()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.common.html#data.processors.spans.common.resolve_overlaps"><code class="docutils literal notranslate"><span class="pre">resolve_overlaps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.from_bio.html">data.processors.spans.from_bio module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTags"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTags</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTags.label_feature"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTags.label_feature</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTags.map_features"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTags.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTags.process"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTags.process()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTags.tag_feature"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTags.tag_feature</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.begin_tag_prefix"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.begin_tag_prefix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.bio_tags"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.bio_tags</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.in_tag_prefix"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.in_tag_prefix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.model_config"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.model_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_bio.html#data.processors.spans.from_bio.TokenSpansFromBioTagsConfig.out_tag"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromBioTagsConfig.out_tag</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.from_word_ids.html">data.processors.spans.from_word_ids module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIds"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIds</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIds.map_features"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIds.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIds.process"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIds.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig.mask"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig.mask</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig.model_config"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig.model_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.from_word_ids.html#data.processors.spans.from_word_ids.TokenSpansFromWordIdsConfig.word_ids"><code class="docutils literal notranslate"><span class="pre">TokenSpansFromWordIdsConfig.word_ids</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.idx_spans.html">data.processors.spans.idx_spans module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpans"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpans</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpans.map_features"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpans.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpans.process"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpans.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.is_queries_inclusive"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.is_queries_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.is_spans_inclusive"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.is_spans_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.model_config"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.model_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.queries_begin"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.queries_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.queries_end"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.queries_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.spans_begin"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.spans_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.idx_spans.html#data.processors.spans.idx_spans.CoveredIndexSpansConfig.spans_end"><code class="docutils literal notranslate"><span class="pre">CoveredIndexSpansConfig.spans_end</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.loc_to_glob.html">data.processors.spans.loc_to_glob module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsets"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsets</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsets.map_features"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsets.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsets.process"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsets.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.global_offsets_begin"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.global_offsets_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.local_offsets_begin"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.local_offsets_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.local_offsets_end"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.local_offsets_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.local_offsets_inclusive"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.local_offsets_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.local_to_global_mapping"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.local_to_global_mapping</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.model_config"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.loc_to_glob.html#data.processors.spans.loc_to_glob.LocalToGlobalOffsetsConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">LocalToGlobalOffsetsConfig.model_fields</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.processors.spans.overlaps.html">data.processors.spans.overlaps module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlaps"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlaps</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlaps.map_features"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlaps.map_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlaps.process"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlaps.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.is_spans_inclusive"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.is_spans_inclusive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.model_computed_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.model_fields"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.model_fields</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.spans_begin"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.spans_begin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.spans_end"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.spans_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.processors.spans.overlaps.html#data.processors.spans.overlaps.ResolveSpanOverlapsConfig.strategy"><code class="docutils literal notranslate"><span class="pre">ResolveSpanOverlapsConfig.strategy</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-data.processors.spans">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-data.processors.spans" title="Link to this heading"></a></h2>
+<p>Spans Data Processors.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.processors.sequence.join_str_seq.html" class="btn btn-neutral float-left" title="data.processors.sequence.join_str_seq module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.processors.spans.apply_idx_spans.html" class="btn btn-neutral float-right" title="data.processors.spans.apply_idx_spans module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

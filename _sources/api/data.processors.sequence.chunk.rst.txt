@@ -1,0 +1,7 @@
+data.processors.sequence.chunk module
+=====================================
+
+.. automodule:: data.processors.sequence.chunk
+   :members:
+   :undoc-members:
+   :show-inheritance:

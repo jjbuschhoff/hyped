@@ -1,0 +1,7 @@
+data.processors.templates.jinja2 module
+=======================================
+
+.. automodule:: data.processors.templates.jinja2
+   :members:
+   :undoc-members:
+   :show-inheritance:

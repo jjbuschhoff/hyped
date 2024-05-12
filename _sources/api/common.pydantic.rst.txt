@@ -1,0 +1,7 @@
+common.pydantic module
+======================
+
+.. automodule:: common.pydantic
+   :members:
+   :undoc-members:
+   :show-inheritance:

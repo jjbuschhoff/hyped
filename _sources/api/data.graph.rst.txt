@@ -1,0 +1,7 @@
+data.graph module
+=================
+
+.. automodule:: data.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:

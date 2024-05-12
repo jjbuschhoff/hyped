@@ -1,0 +1,19 @@
+data.io.datasets package
+========================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.io.datasets.cas
+   data.io.datasets.typed_json
+
+Module contents
+---------------
+
+.. automodule:: data.io.datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:

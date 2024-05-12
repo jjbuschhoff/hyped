@@ -1,0 +1,7 @@
+base.generic module
+===================
+
+.. automodule:: base.generic
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+data.processors.statistics.base module
+======================================
+
+.. automodule:: data.processors.statistics.base
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,19 @@
+data.processors.taggers package
+===============================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.taggers.bio
+   data.processors.taggers.relex
+
+Module contents
+---------------
+
+.. automodule:: data.processors.taggers
+   :members:
+   :undoc-members:
+   :show-inheritance:

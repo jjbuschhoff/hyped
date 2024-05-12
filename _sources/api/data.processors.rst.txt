@@ -1,0 +1,34 @@
+data.processors package
+=======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.api
+   data.processors.features
+   data.processors.parsers
+   data.processors.sequence
+   data.processors.spans
+   data.processors.statistics
+   data.processors.taggers
+   data.processors.templates
+   data.processors.tokenizers
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.base
+
+Module contents
+---------------
+
+.. automodule:: data.processors
+   :members:
+   :undoc-members:
+   :show-inheritance:

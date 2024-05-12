@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Processors &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Statistic Processors" href="statistic_processors.html" />
+    <link rel="prev" title="Data Pipe" href="data_pipe.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/hyped.html">hyped</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/base.html">base package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/data.html">data package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Processors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_processors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-processors">
+<h1>Data Processors<a class="headerlink" href="#data-processors" title="Link to this heading"></a></h1>
+<p>A data processor within the <code class="code docutils literal notranslate"><span class="pre">DataPipe</span></code> framework implements a modular operation on dataset features, enabling various transformations such as feature extraction, filtering, or data augmentation. Each data processor is configured by a corresponding Pydantic model, defining all the necessary parameters to customize its behavior. By encapsulating specific data processing logic, data processors provide a flexible and reusable solution for manipulating input data within the data pipeline.</p>
+<p>The following example demonstrates how to create a data processor <code class="code docutils literal notranslate"><span class="pre">HuggingFaceTokenizer</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hyped.data.processors.tokenizers.hf</span> <span class="kn">import</span> <span class="n">HuggingFaceTokenizer</span><span class="p">,</span> <span class="n">HuggingFaceTokenizerConfig</span>
+
+<span class="c1"># Initialize the tokenizer configuration</span>
+<span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">HuggingFaceTokenizerConfig</span><span class="p">(</span>
+    <span class="c1"># Specify the tokenizer model and input text feature</span>
+    <span class="n">tokenizer</span><span class="o">=</span><span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">,</span>
+    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Initialize the HuggingFaceTokenizer data processor</span>
+<span class="n">processor</span> <span class="o">=</span> <span class="n">HuggingFaceTokenizer</span><span class="p">(</span><span class="n">tokenizer_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This example initializes a <code class="code docutils literal notranslate"><span class="pre">HuggingFaceTokenizer</span></code> data processor with the specified tokenizer model (<code class="code docutils literal notranslate"><span class="pre">bert-base-uncased</span></code>) and input text feature (<code class="code docutils literal notranslate"><span class="pre">text</span></code>).</p>
+<p>For an exhaustive list of existing data processors, check the <a class="reference internal" href="api/data.processors.html"><span class="doc">api references</span></a>.</p>
+<section id="data-processor-configuration">
+<h2>Data Processor Configuration<a class="headerlink" href="#data-processor-configuration" title="Link to this heading"></a></h2>
+<p>Every data processor is customized using a Pydantic model that specifies all the essential parameters defining its behavior. In addition to the processor-specific settings, each configuration includes two additional members:</p>
+<ol class="arabic">
+<li><p><strong>keep_input_features</strong>: This member indicates whether the input features should be passed through the processor or not. If set to <cite>True</cite>, the input features will be retained in the output batch. If set to <cite>False</cite>, the input features will be removed from the output batch. Typically, this setting defaults to <cite>True</cite>.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the tokenizer configuration</span>
+<span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">HuggingFaceTokenizerConfig</span><span class="p">(</span>
+    <span class="c1"># Specify the tokenizer model and input text feature</span>
+    <span class="n">tokenizer</span><span class="o">=</span><span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">,</span>
+    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="c1"># Don&#39;t pass input features through</span>
+    <span class="c1"># Output will only contain features generated by the processor</span>
+    <span class="n">keep_input_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><strong>output_format</strong>: This member specifies the output format of the processor in the form of a <a class="reference internal" href="feature_access.html"><span class="doc">FeatureDict</span></a>. It allows users to immediately specify a specific output format for the processed data. The output format can vary depending on the type of processor and the desired transformation applied to the input data.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the tokenizer configuration</span>
+<span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">HuggingFaceTokenizerConfig</span><span class="p">(</span>
+    <span class="c1"># Specify the tokenizer model and input text feature</span>
+    <span class="n">tokenizer</span><span class="o">=</span><span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">,</span>
+    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="c1"># Specify the output format of the processor</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;my_input_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;input_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;my_attention_mask&quot;</span><span class="p">:</span> <span class="s2">&quot;attention_mask&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="custom-data-processors">
+<h2>Custom Data Processors<a class="headerlink" href="#custom-data-processors" title="Link to this heading"></a></h2>
+<p>Extend the functionality of Hyped by creating custom data processors tailored to your specific requirements. Custom data processors allow you to define custom data transformations, integrate with external libraries, or apply domain-specific logic to your data pipelines.</p>
+<section id="implementing-custom-data-processors">
+<h3>Implementing Custom Data Processors<a class="headerlink" href="#implementing-custom-data-processors" title="Link to this heading"></a></h3>
+<p>To implement a custom data processor in Hyped, you’ll need to define a configuration class and a processor class. Here’s how to get started:</p>
+<ol class="arabic">
+<li><p><strong>Define the Configuration Class</strong>: Create a configuration class by subclassing <code class="code docutils literal notranslate"><span class="pre">BaseDataProcessorConfig</span></code> provided by Hyped. This class should be a Pydantic model and hold all the configurations for your processor. When defining the attributes of your configuration class, you can utilize special types to describe input features to be processed by the processor:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">FeatureKey</span></code>: Represents a single feature key or name that identifies a specific input feature to be processed.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">FeatureCollection</span></code>: Represents a collection of feature keys that belong to a group or category, allowing for the processing of multiple related features together.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">FeatureDict</span></code>: Represents a dictionary of feature keys mapped to their corresponding configurations or settings, providing a structured way to define configurations for a set of features.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+<blockquote>
+<div><p>For more information on this please refer to the <a class="reference internal" href="feature_access.html"><span class="doc">Feature Access Documentation</span></a></p>
+</div></blockquote>
+<ol class="arabic" start="2">
+<li><p><strong>Define the Processor Class</strong>: Create a processor class by subclassing <code class="code docutils literal notranslate"><span class="pre">BaseDataProcessor</span></code>. The processor class should be constructed from the configuration alone. You can overwrite the following functions in the processor class to customize its behavior:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">def</span> <span class="pre">map_features(self,</span> <span class="pre">features:</span> <span class="pre">datasets.Features)</span> <span class="pre">-&gt;</span> <span class="pre">datasets.Features</span></code></p>
+<p>Takes in Hugging Face dataset features that are input to the processor and returns the features that are generated by the processor.</p>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">(async)</span> <span class="pre">def</span> <span class="pre">process(self,</span> <span class="pre">example:</span> <span class="pre">dict[str,</span> <span class="pre">Any],</span> <span class="pre">index:</span> <span class="pre">int,</span> <span class="pre">rank:</span> <span class="pre">int)</span> <span class="pre">-&gt;</span> <span class="pre">dict[str,</span> <span class="pre">Any]</span></code></p>
+<p>This function is responsible for performing the actual processing of a single example in the data pipeline. Optionally, you may define it as an async coroutine if you need asynchronous processing.</p>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">(async)</span> <span class="pre">def</span> <span class="pre">process(self,</span> <span class="pre">examples:</span> <span class="pre">dict[str,</span> <span class="pre">Any],</span> <span class="pre">index:</span> <span class="pre">int,</span> <span class="pre">rank:</span> <span class="pre">int)</span> <span class="pre">-&gt;</span> <span class="pre">Iterator[dict[str,</span> <span class="pre">Any]]</span></code></p>
+<p>This function defines a generator that yields processed examples. It allows for data augmentation or filtering by iterating through a batch of examples and yielding the processed versions. The use of the <code class="code docutils literal notranslate"><span class="pre">yield</span></code> keyword is required within this function for it to work as intended. Optionally, you may define it as an async coroutine for asynchronous processing.</p>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">def</span> <span class="pre">internal_batch_process(self,</span> <span class="pre">examples:</span> <span class="pre">dict[str,</span> <span class="pre">list[Any]],</span> <span class="pre">index:</span> <span class="pre">list[int],</span> <span class="pre">rank:</span> <span class="pre">int)</span> <span class="pre">-&gt;</span> <span class="pre">tuple[dict[str,</span> <span class="pre">list[Any]],</span> <span class="pre">list[int]]</span></code></p>
+<p>This function is responsible for processing a batch of examples in the form of <code class="code docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">list[Any]]</span></code>. It should return the processed batch in the same form as well as a list of source indices indicating which input generated each output example.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<p>Below is an example of how to implement a custom data processor in Hyped:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datasets</span> <span class="kn">import</span> <span class="n">Features</span><span class="p">,</span> <span class="n">Value</span>
+<span class="kn">from</span> <span class="nn">hyped.common.feature_key</span> <span class="kn">import</span> <span class="n">FeatureKey</span>
+<span class="kn">from</span> <span class="nn">hyped.data.processors.base</span> <span class="kn">import</span> <span class="n">BaseDataProcessorConfig</span><span class="p">,</span> <span class="n">BaseDataProcessor</span>
+
+<span class="c1"># Define the Configuration Class</span>
+<span class="k">class</span> <span class="nc">MyCustomProcessorConfig</span><span class="p">(</span><span class="n">BaseDataProcessorConfig</span><span class="p">):</span>
+    <span class="c1"># Define configuration parameters here</span>
+    <span class="n">feature</span><span class="p">:</span> <span class="n">FeatureKey</span>
+    <span class="n">parameter1</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">parameter2</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="c1"># Define the Processor Class</span>
+<span class="k">class</span> <span class="nc">MyCustomProcessor</span><span class="p">(</span><span class="n">BaseDataProcessor</span><span class="p">[</span><span class="n">BaseDataProcessorConfig</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">MyCustomProcessorConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">map_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">Features</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Features</span><span class="p">:</span>
+        <span class="c1"># Implement feature mapping logic here</span>
+        <span class="n">feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">index_features</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;out&quot;</span><span class="p">:</span> <span class="n">feature</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">example</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="c1"># Implement custom data processing logic here</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">index_example</span><span class="p">(</span><span class="n">example</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;out&quot;</span><span class="p">:</span> <span class="n">val</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>This example demonstrates how to define a configuration class (<code class="code docutils literal notranslate"><span class="pre">MyCustomProcessorConfig</span></code>) and a processor class (<code class="code docutils literal notranslate"><span class="pre">MyCustomProcessor</span></code>). The configuration class holds all the configurations for the processor, and the processor class is constructed from the configuration alone.</p>
+<p>Explore further examples and use cases to learn how to leverage custom data processors effectively in your Hyped workflows.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_pipe.html" class="btn btn-neutral float-left" title="Data Pipe" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="statistic_processors.html" class="btn btn-neutral float-right" title="Statistic Processors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

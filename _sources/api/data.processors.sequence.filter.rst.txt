@@ -1,0 +1,7 @@
+data.processors.sequence.filter module
+======================================
+
+.. automodule:: data.processors.sequence.filter
+   :members:
+   :undoc-members:
+   :show-inheritance:

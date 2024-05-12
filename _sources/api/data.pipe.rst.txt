@@ -1,0 +1,7 @@
+data.pipe module
+================
+
+.. automodule:: data.pipe
+   :members:
+   :undoc-members:
+   :show-inheritance:

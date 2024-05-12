@@ -1,0 +1,22 @@
+data.processors.sequence package
+================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.sequence.apply_mask
+   data.processors.sequence.chunk
+   data.processors.sequence.extend
+   data.processors.sequence.filter
+   data.processors.sequence.join_str_seq
+
+Module contents
+---------------
+
+.. automodule:: data.processors.sequence
+   :members:
+   :undoc-members:
+   :show-inheritance:

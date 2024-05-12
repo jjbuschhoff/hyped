@@ -1,0 +1,7 @@
+common.feature\_checks module
+=============================
+
+.. automodule:: common.feature_checks
+   :members:
+   :undoc-members:
+   :show-inheritance:

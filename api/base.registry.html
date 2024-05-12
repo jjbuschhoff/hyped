@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>base.registry module &mdash; hyped 0.1.0a2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=7e4d6dd2"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="common package" href="common.html" />
+    <link rel="prev" title="base.generic module" href="base.generic.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #007bff" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hyped
+          </a>
+              <div class="version">
+                0.1.0a2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#processor-configuration">Processor Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#multiprocessing-and-batch-processing">Multiprocessing and Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#data-streaming">Data Streaming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_access.html">Feature Access</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurekey">FeatureKey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featurecollection">FeatureCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_access.html#featuredict">FeatureDict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_pipe.html">Data Pipe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_pipe.html#main-functionalities">Main Functionalities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#init">init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#prepare">prepare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#batch-process">batch_process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_pipe.html#apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data_processors.html">Data Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#data-processor-configuration">Data Processor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data_processors.html#custom-data-processors">Custom Data Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#implementing-custom-data-processors">Implementing Custom Data Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_processors.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../statistic_processors.html">Statistic Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../statistic_processors.html#example-computing-mean-and-standard-deviation">Example: Computing Mean and Standard Deviation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../add_ons.html">Add-Ons</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#installing-add-ons">Installing Add-Ons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../add_ons.html#available-add-ons">Available Add-Ons</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="hyped.html">hyped</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="base.html">base package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="base.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html#module-base">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">common package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="common.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common.html#module-common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #007bff" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hyped</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="hyped.html">hyped</a></li>
+          <li class="breadcrumb-item"><a href="base.html">base package</a></li>
+      <li class="breadcrumb-item active">base.registry module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/base.registry.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-base.registry">
+<span id="base-registry-module"></span><h1>base.registry module<a class="headerlink" href="#module-base.registry" title="Link to this heading"></a></h1>
+<p>Type Register.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.RegisterTypes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">RegisterTypes</span></span><a class="headerlink" href="#base.registry.RegisterTypes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#base.registry.Registrable" title="base.registry.Registrable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Registrable</span></code></a></p>
+<p>Register Types.</p>
+<p>Base class that automatically registers sub-types to the
+default type registry.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.Registrable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">Registrable</span></span><a class="headerlink" href="#base.registry.Registrable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Base Class for Registrable Types.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.Registrable.type_hash">
+<em class="property"><span class="pre">class</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_hash</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#base.registry.Registrable.type_hash" title="Link to this definition"></a></dt>
+<dd><p>Get type hash.</p>
+<p>The computed hash-code is based on the source code of the
+type and <em>not</em> runtime specific. This allows for type
+resolving by hash accross python runtimes.</p>
+<p>When the source code of the class is not available, the
+hash of the class module and name is computed instead.
+This is the case for pre-compiled classes or classes
+defined in jupyter notebooks.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>h (str): hash code of type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.Registrable.type_id">
+<em class="property"><span class="pre">class</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#base.registry.Registrable.type_id" title="Link to this definition"></a></dt>
+<dd><p>Type identifier.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">RootedTypeRegistryView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">registry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#base.registry.TypeRegistry" title="base.registry.TypeRegistry"><span class="pre">TypeRegistry</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#base.registry.RootedTypeRegistryView" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Rooted Type Registry View.</p>
+<p>Only has access to registered types that inherit the specified root.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.concrete_types">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">concrete_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#base.registry.RootedTypeRegistryView.concrete_types" title="Link to this definition"></a></dt>
+<dd><p>List of all concrete (i.e. non-abstract) registered types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.get_type_by_hash">
+<span class="sig-name descname"><span class="pre">get_type_by_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span></span></span><a class="headerlink" href="#base.registry.RootedTypeRegistryView.get_type_by_hash" title="Link to this definition"></a></dt>
+<dd><p>Get registered type by type hash.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>h (str): type hash</p>
+</dd>
+<dt>Returns:</dt><dd><p>T (type): registered type corresponding to <cite>h</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.get_type_by_t">
+<span class="sig-name descname"><span class="pre">get_type_by_t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span></span></span><a class="headerlink" href="#base.registry.RootedTypeRegistryView.get_type_by_t" title="Link to this definition"></a></dt>
+<dd><p>Get registered type by type id.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>t (int): type identifier</p>
+</dd>
+<dt>Returns:</dt><dd><p>T (type): type corresponding to <cite>t</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.hash_register">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hash_register</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#base.registry.RootedTypeRegistryView.hash_register" title="Link to this definition"></a></dt>
+<dd><p>Hash Register.</p>
+<p>Immutable hash register mapping type id to the
+corresponding type hash.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.type_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#base.registry.RootedTypeRegistryView.type_ids" title="Link to this definition"></a></dt>
+<dd><p>List of all registered type identifiers.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.type_register">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_register</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#base.registry.RootedTypeRegistryView.type_register" title="Link to this definition"></a></dt>
+<dd><p>Type Register.</p>
+<p>Immutable type register mapping type hash to the
+corresponding type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.RootedTypeRegistryView.types">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#base.registry.RootedTypeRegistryView.types" title="Link to this definition"></a></dt>
+<dd><p>List of all registered types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.TypeRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">TypeRegistry</span></span><a class="headerlink" href="#base.registry.TypeRegistry" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Type Registry.</p>
+<p>Stores registrable types and holds functionality to get all
+registered sub-types of a given root type.</p>
+<p>Registrable types must inherit from the <cite>Registrable</cite> type.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.TypeRegistry.get_hash_register">
+<span class="sig-name descname"><span class="pre">get_hash_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#base.registry.TypeRegistry.get_hash_register" title="Link to this definition"></a></dt>
+<dd><p>Get the hash register for sub-types of a given root type.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>root (type): root type</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>hash_register (dict[str, str]):</dt><dd><p>the hash register mapping type identifiers to type hashes for
+types that inherit the root type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.TypeRegistry.get_type_register">
+<span class="sig-name descname"><span class="pre">get_type_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#base.registry.TypeRegistry.get_type_register" title="Link to this definition"></a></dt>
+<dd><p>Get the type register for sub-types of a given root type.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>root (type): root type</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>type_register (dict[str, type]):</dt><dd><p>the type register mapping type hashes to types for
+types that inherit the root type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.TypeRegistry.hash_tree_bfs">
+<span class="sig-name descname"><span class="pre">hash_tree_bfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#base.registry.TypeRegistry.hash_tree_bfs" title="Link to this definition"></a></dt>
+<dd><p>Breadth-Frist Search through inheritance tree rooted at given type.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>root (str): hash of the root type</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>node_iter (Iterator[str]):</dt><dd><p>iterator over all hashes of sub-types of the given root type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="base.registry.TypeRegistry.register_type">
+<span class="sig-name descname"><span class="pre">register_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#base.registry.TypeRegistry.register_type" title="Link to this definition"></a></dt>
+<dd><p>Register a type.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>T (type): the type to register, must be a subclass of <cite>Registrable</cite>
+bases (tuple[type]): the base types of the type <cite>T</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="base.registry.default_registry">
+<span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">default_registry</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;base.registry.TypeRegistry</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#base.registry.default_registry" title="Link to this definition"></a></dt>
+<dd><p>Default type registry tracking all registrable types</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.register_meta_mixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">register_meta_mixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#base.registry.register_meta_mixin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>register type metaclass mixin.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="base.registry.register_meta_mixin.type_registry">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_registry</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#base.registry.RootedTypeRegistryView" title="base.registry.RootedTypeRegistryView"><span class="pre">RootedTypeRegistryView</span></a></em><a class="headerlink" href="#base.registry.register_meta_mixin.type_registry" title="Link to this definition"></a></dt>
+<dd><p>Type Registry rooted at the current type.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="base.registry.register_type_meta">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">base.registry.</span></span><span class="sig-name descname"><span class="pre">register_type_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#base.registry.register_type_meta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#base.registry.register_meta_mixin" title="base.registry.register_meta_mixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">register_meta_mixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABCMeta</span></code></p>
+<p>Register type meta.</p>
+<p>meta-class to automatically register sub-types of a specific
+type in a type registry.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="base.generic.html" class="btn btn-neutral float-left" title="base.generic module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="common.html" class="btn btn-neutral float-right" title="common package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, open-hyped.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

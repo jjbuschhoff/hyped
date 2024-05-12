@@ -1,0 +1,7 @@
+base.registry module
+====================
+
+.. automodule:: base.registry
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,20 @@
+data.processors.statistics.value package
+========================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.statistics.value.disc_hist
+   data.processors.statistics.value.hist
+   data.processors.statistics.value.mean_and_std
+
+Module contents
+---------------
+
+.. automodule:: data.processors.statistics.value
+   :members:
+   :undoc-members:
+   :show-inheritance:

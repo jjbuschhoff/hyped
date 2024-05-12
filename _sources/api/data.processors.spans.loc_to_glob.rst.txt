@@ -1,0 +1,7 @@
+data.processors.spans.loc\_to\_glob module
+==========================================
+
+.. automodule:: data.processors.spans.loc_to_glob
+   :members:
+   :undoc-members:
+   :show-inheritance:

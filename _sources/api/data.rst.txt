@@ -1,0 +1,28 @@
+data package
+============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.io
+   data.processors
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.graph
+   data.pipe
+
+Module contents
+---------------
+
+.. automodule:: data
+   :members:
+   :undoc-members:
+   :show-inheritance:

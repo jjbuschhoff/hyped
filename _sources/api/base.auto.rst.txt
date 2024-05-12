@@ -1,0 +1,7 @@
+base.auto module
+================
+
+.. automodule:: base.auto
+   :members:
+   :undoc-members:
+   :show-inheritance:

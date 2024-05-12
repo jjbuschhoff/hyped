@@ -1,0 +1,7 @@
+data.processors.sequence.extend module
+======================================
+
+.. automodule:: data.processors.sequence.extend
+   :members:
+   :undoc-members:
+   :show-inheritance:

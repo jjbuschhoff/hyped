@@ -1,0 +1,18 @@
+data.processors.tokenizers package
+==================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   data.processors.tokenizers.hf
+
+Module contents
+---------------
+
+.. automodule:: data.processors.tokenizers
+   :members:
+   :undoc-members:
+   :show-inheritance:

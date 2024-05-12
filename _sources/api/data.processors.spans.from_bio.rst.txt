@@ -1,0 +1,7 @@
+data.processors.spans.from\_bio module
+======================================
+
+.. automodule:: data.processors.spans.from_bio
+   :members:
+   :undoc-members:
+   :show-inheritance:

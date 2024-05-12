@@ -1,0 +1,7 @@
+data.processors.statistics.report module
+========================================
+
+.. automodule:: data.processors.statistics.report
+   :members:
+   :undoc-members:
+   :show-inheritance:

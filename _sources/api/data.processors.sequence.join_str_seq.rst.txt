@@ -1,0 +1,7 @@
+data.processors.sequence.join\_str\_seq module
+==============================================
+
+.. automodule:: data.processors.sequence.join_str_seq
+   :members:
+   :undoc-members:
+   :show-inheritance:

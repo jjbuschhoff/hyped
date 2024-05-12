@@ -1,0 +1,21 @@
+base package
+============
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   base.auto
+   base.config
+   base.generic
+   base.registry
+
+Module contents
+---------------
+
+.. automodule:: base
+   :members:
+   :undoc-members:
+   :show-inheritance:
