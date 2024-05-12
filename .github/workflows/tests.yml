@@ -36,7 +36,7 @@ jobs:
           python -m pip install -e .[tests,cas,llm]
 
       - name: Run tests
-        run: python -m pytest --cov=src tests
+        run: python -m pytest --cov=src tests -v
 
       - name: Upload coverage report
         run: |

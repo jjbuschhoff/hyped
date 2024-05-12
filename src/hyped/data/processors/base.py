@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from itertools import chain, repeat
 from types import GeneratorType
 from typing import Any, ClassVar, Generator, Iterable, TypeVar
@@ -110,7 +111,12 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         """Instantiate data processor from the given config.
 
         Arguments:
-            config (BaseDataProcessorConfig): data processor configuration
+            config (BaseDataProcessorConfig):
+                data processor configuration
+
+        Returns:
+            processor (BaseDataProcessor):
+                data processor
         """
         return cls(config)
 
@@ -146,10 +152,10 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
                 dataset features of the output of the processor
         """
         # save input features
-        self._in_features = features
+        self._in_features = deepcopy(features)
         # map input features to output features
         # copy as preparation might disturb features inplace
-        self._raw_features = Features(self.map_features(features.copy()))
+        self._raw_features = Features(self.map_features(deepcopy(features)))
         # apply output scheme to new features
         if self.config.output_format is not None:
             self._new_features = self.config.output_format.index_features(
@@ -160,7 +166,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         return self.out_features
 
     @property
-    def required_feature_keys(self) -> list[FeatureKey]:
+    def required_feature_keys(self) -> set[FeatureKey]:
         """Input dataset feature keys required for execution of the processor.
 
         These must be contained in the `in_features`.
@@ -168,8 +174,7 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         Returns:
             feature_keys (list[FeatureKey]): list of required feature keys
         """
-        # TODO: make list unique
-        return list(self.config.required_feature_keys)
+        return set(list(self.config.required_feature_keys))
 
     @property
     def in_features(self) -> Features:
@@ -257,14 +262,18 @@ class BaseDataProcessor(BaseConfigurable[T], ABC):
         """Process a batch of examples.
 
         Arguments:
-            examples (dict[str, list[Any]]): batch of examples to process
-            index (list[int]): dataset indices of the examples
-            rank (int): execution process rank
+            examples (dict[str, list[Any]]):
+                batch of examples to process
+            index (list[int]):
+                dataset indices of the examples
+            rank (int):
+                execution process rank
             return_index (bool):
                 whether to return the source index for each output example
 
         Returns:
-            out_batch (dict[str, list[Any]]): processed examples
+            out_batch (dict[str, list[Any]]):
+                processed examples
             index (list[int]):
                 the source indices to each example. Only returned when
                 `return_index` is set to true.

@@ -1,7 +1,12 @@
 import datasets
 import pytest
 
+from hyped.common.feature_key import FeatureKey
 from hyped.data.pipe import DataPipe
+from hyped.data.processors.features.format import (
+    FormatFeatures,
+    FormatFeaturesConfig,
+)
 from hyped.data.processors.statistics.report import StatisticsReport
 from tests.hyped.data.processors.statistics.test_base import (
     ConstantStatistic,
@@ -13,21 +18,90 @@ from tests.hyped.data.processors.test_base import (
 )
 
 
-@pytest.fixture
-def sample_data_pipe():
-    # create data processor configs
-    c1 = ConstantDataProcessorConfig(name="A", value="1")
-    c2 = ConstantDataProcessorConfig(name="B", value="2")
-    c3 = ConstantDataProcessorConfig(name="C", value="3")
-    # create data processors
-    p1 = ConstantDataProcessor(c1)
-    p2 = ConstantDataProcessor(c2)
-    p3 = ConstantDataProcessor(c3)
-    # create data pipe
-    return DataPipe([p1, p2, p3])
+@pytest.mark.parametrize(
+    "pipe,required_keys",
+    [
+        (
+            DataPipe(
+                [
+                    FormatFeatures(
+                        FormatFeaturesConfig(
+                            output_format={
+                                "X": "x",
+                                "Y": "y",
+                            }
+                        )
+                    )
+                ]
+            ),
+            [FeatureKey("x"), FeatureKey("y")],
+        ),
+        (
+            DataPipe(
+                [
+                    FormatFeatures(
+                        FormatFeaturesConfig(
+                            output_format={
+                                "X": "x",
+                                "Y": "y",
+                            }
+                        )
+                    ),
+                    FormatFeatures(
+                        FormatFeaturesConfig(
+                            output_format={
+                                "Z": "Y",
+                            }
+                        ),
+                    ),
+                ]
+            ),
+            [FeatureKey("x"), FeatureKey("y")],
+        ),
+    ],
+)
+def test_required_feature_keys(pipe, required_keys):
+    pipe.prepare(
+        datasets.Features(
+            {
+                "x": datasets.Value("int32"),
+                "y": datasets.Value("int32"),
+                "a": datasets.Value("int32"),
+                "b": datasets.Value("int32"),
+            }
+        )
+    )
+
+    pipe_required_keys = list(pipe.required_feature_keys)
+    # check
+    assert len(pipe_required_keys) == len(required_keys)
+    assert all(k in required_keys for k in pipe_required_keys)
 
 
 class TestDataPipe:
+    @pytest.fixture(params=["flat", "nested_1", "nested_2"])
+    def sample_data_pipe(self, request):
+        # create data processor configs
+        c1 = ConstantDataProcessorConfig(name="A", value="1")
+        c2 = ConstantDataProcessorConfig(name="B", value="2")
+        c3 = ConstantDataProcessorConfig(name="C", value="3")
+        # create data processors
+        p1 = ConstantDataProcessor(c1)
+        p2 = ConstantDataProcessor(c2)
+        p3 = ConstantDataProcessor(c3)
+
+        # create data pipe
+        if request.param == "flat":
+            return DataPipe([p1, p2, p3])
+        if request.param == "nested_1":
+            return DataPipe([DataPipe([p1]), DataPipe([p2, p3])])
+        if request.param == "nested_2":
+            return DataPipe(
+                [DataPipe([DataPipe([p1])]), DataPipe([p2, DataPipe([p3])])]
+            )
+
+        raise ValueError(request.param)
+
     def test_preparation_logic(self, sample_data_pipe):
         assert not sample_data_pipe.is_prepared
 

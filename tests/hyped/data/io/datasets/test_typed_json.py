@@ -12,7 +12,7 @@ import hyped.data.io.datasets  # noqa: F401
 
 
 class TestTypedJsonDataset(object):
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def features(self) -> Features:
         return Features(
             {
@@ -27,7 +27,7 @@ class TestTypedJsonDataset(object):
             }
         )
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def data(self) -> list[dict[str, Any]]:
         return [
             {
@@ -41,8 +41,9 @@ class TestTypedJsonDataset(object):
             for n in range(10)
         ]
 
-    @pytest.fixture
-    def data_file(self, data, tmp_path) -> str:
+    @pytest.fixture(scope="class")
+    def data_file(self, data, tmpdir_factory) -> str:
+        tmp_path = tmpdir_factory.mktemp("data")
         data_file = os.path.join(tmp_path, "file.jsonl")
         # create sample data that matches the features
         with open(data_file, "wb+") as f:
@@ -50,16 +51,18 @@ class TestTypedJsonDataset(object):
 
         return data_file
 
-    def test_loading(self, features, data_file):
+    def test_loading(self, features, data_file, tmpdir):
         # load data using typed json dataset
         datasets.load_dataset(
             "hyped.data.io.datasets.typed_json",
             data_files=[data_file],
             features=features,
+            cache_dir=os.path.join(tmpdir, "cache"),
         )
 
-    def test_type_error(self, features, data_file):
+    def test_type_error(self, features, data_file, tmpdir):
         # break feature type
+        features = features.copy()
         features["string"] = Value("int32")
         # string feature type shouldn't match
         with pytest.raises(datasets.exceptions.DatasetGenerationError):
@@ -67,9 +70,10 @@ class TestTypedJsonDataset(object):
                 "hyped.data.io.datasets.typed_json",
                 data_files=[data_file],
                 features=features,
+                cache_dir=os.path.join(tmpdir, "cache"),
             )
 
-    def test_fill_with_defaults(self, features, data_file):
+    def test_fill_with_defaults(self, features, data_file, tmpdir):
         # add new feature
         features["new_feature"] = Value("string")
         # load data using typed json dataset
@@ -77,41 +81,38 @@ class TestTypedJsonDataset(object):
             "hyped.data.io.datasets.typed_json",
             data_files=[data_file],
             features=features,
+            cache_dir=os.path.join(tmpdir, "cache"),
         )["train"]
 
         for item in ds:
             assert "new_feature" in item
             assert item["new_feature"] is None
 
-    def test_partial_fill_with_defaults(self, features, data_file):
-        partial_data = [{"int": n} for n in range(10)]
-
-        with open(data_file, "ab") as f:
+    @pytest.mark.parametrize(
+        "partial_data",
+        [
+            [{"int": n} for n in range(10)],
+            [{"int": n, "mapping": {"b": n}} for n in range(10)],
+        ],
+    )
+    def test_partial_fill_with_defaults(
+        self, partial_data, features, data_file, tmpdir
+    ):
+        aug_data_file = os.path.join(tmpdir, "aug_data.json")
+        with open(aug_data_file, "wb+") as f, open(data_file, "rb") as f_in:
+            f.write(f_in.read())
             f.write(b"\n")
             f.write(b"\n".join(map(orjson.dumps, partial_data)))
 
         # load data using typed json dataset
         datasets.load_dataset(
             "hyped.data.io.datasets.typed_json",
-            data_files=[data_file],
+            data_files=[aug_data_file],
             features=features,
+            cache_dir=os.path.join(tmpdir, "cache"),
         )["train"]
 
-    def test_partial_fill_with_defaults_in_nested(self, features, data_file):
-        partial_data = [{"int": n, "mapping": {"b": n}} for n in range(10)]
-
-        with open(data_file, "ab") as f:
-            f.write(b"\n")
-            f.write(b"\n".join(map(orjson.dumps, partial_data)))
-
-        # load data using typed json dataset
-        datasets.load_dataset(
-            "hyped.data.io.datasets.typed_json",
-            data_files=[data_file],
-            features=features,
-        )["train"]
-
-    def test_invalid_class_label(self, features, data_file):
+    def test_invalid_class_label(self, features, data_file, tmpdir):
         # remove class name from label space
         features["class"] = ClassLabel(names=list("AB"))
         # string feature type shouldn't match
@@ -120,4 +121,5 @@ class TestTypedJsonDataset(object):
                 "hyped.data.io.datasets.typed_json",
                 data_files=[data_file],
                 features=features,
+                cache_dir=os.path.join(tmpdir, "cache"),
             )

@@ -61,20 +61,21 @@ def build_examples(path):
 
 
 class TestCasDataset:
-    @pytest.fixture(autouse=True)
-    def _create_resources(self, tmpdir):
+    @pytest.fixture(scope="class")
+    def data_dir(self, tmpdir_factory):
+        tmpdir = tmpdir_factory.mktemp("cas")
         # create resource files
         build_typesystem(tmpdir)
         build_examples(tmpdir)
         # run test
-        yield
+        return tmpdir
 
-    def test_load_data(self, tmpdir):
+    def test_load_data(self, data_dir, tmpdir):
         # load dataset
         ds = datasets.load_dataset(
             "hyped.data.io.datasets.cas",
-            typesystem=os.path.join(tmpdir, "typesystem.test.xml"),
-            data_files={"train": os.path.join(tmpdir, "cas.test.*")},
+            typesystem=os.path.join(data_dir, "typesystem.test.xml"),
+            data_files={"train": os.path.join(data_dir, "cas.test.*")},
             cache_dir=os.path.join(tmpdir, "cache"),
         )
 
@@ -132,12 +133,12 @@ class TestCasDataset:
                 assert example["cassis.Entity:entityType"][src] == "ORG"
                 assert example["cassis.Entity:entityType"][tgt] == "LOC"
 
-    def test_load_specific_types_only(self, tmpdir):
+    def test_load_specific_types_only(self, data_dir, tmpdir):
         # load dataset
         ds = datasets.load_dataset(
             "hyped.data.io.datasets.cas",
-            typesystem=os.path.join(tmpdir, "typesystem.test.xml"),
-            data_files={"train": os.path.join(tmpdir, "cas.test.*")},
+            typesystem=os.path.join(data_dir, "typesystem.test.xml"),
+            data_files={"train": os.path.join(data_dir, "cas.test.*")},
             annotation_types=["cassis.Label"],
             cache_dir=os.path.join(tmpdir, "cache"),
         )
@@ -155,13 +156,13 @@ class TestCasDataset:
         assert "cassis.Relation:source" not in ds["train"].features
         assert "cassis.Relation:target" not in ds["train"].features
 
-    def test_error_on_required_type(self, tmpdir):
+    def test_error_on_required_type(self, data_dir, tmpdir):
         with pytest.raises(RuntimeError):
             # load dataset
             datasets.load_dataset(
                 "hyped.data.io.datasets.cas",
-                typesystem=os.path.join(tmpdir, "typesystem.test.xml"),
-                data_files={"train": os.path.join(tmpdir, "cas.test.*")},
+                typesystem=os.path.join(data_dir, "typesystem.test.xml"),
+                data_files={"train": os.path.join(data_dir, "cas.test.*")},
                 annotation_types=[
                     "cassis.Label",
                     "cassis.Relation",  # relation require entities
