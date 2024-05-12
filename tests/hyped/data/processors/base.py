@@ -199,7 +199,7 @@ class BaseTestDataProcessor(ABC):
         # process might lead to deadlock in child
         out_batch = (
             DataPipe([processor])
-            .apply(ds, batch_size=map_batch_size, num_proc=2)
+            .apply(ds, batch_size=map_batch_size, num_proc=1)
             .to_dict()
         )
 

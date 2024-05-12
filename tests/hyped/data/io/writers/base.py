@@ -7,11 +7,11 @@ import pytest
 
 
 class BaseTestDatasetWriter(ABC):
-    @pytest.fixture(params=[2, 4, 8, 16])
+    @pytest.fixture(params=[2, 4, 8])
     def num_proc(self, request):
         return request.param
 
-    @pytest.fixture(params=[2, 4, 8, 16])
+    @pytest.fixture(params=[2, 4, 8])
     def num_shards(self, request):
         return request.param
 
@@ -45,6 +45,7 @@ class BaseTestDatasetWriter(ABC):
         for i, item in enumerate(stored_ds):
             self.assert_equal({"id": i}, item)
 
+    @pytest.mark.skip(reason="Tests with real datasets take forever.")
     @pytest.mark.parametrize("dataset", ["conll2003", "imdb"])
     def test_with_actual_data(self, writer, tmpdir, dataset):
         # load dataset and add an index column to

@@ -16,8 +16,3 @@ class TestCsvDatasetWriter(BaseTestDatasetWriter):
         return datasets.load_dataset(
             "csv", data_files="%s/*.csv" % tmpdir, features=features
         )
-
-    def test_with_actual_data(self, writer, tmpdir):
-        super(TestCsvDatasetWriter, self).test_with_actual_data(
-            writer, tmpdir, "imdb"
-        )
