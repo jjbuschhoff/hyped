@@ -237,10 +237,10 @@ class register_meta_mixin:
 
     _registry: ClassVar[TypeRegistry] = default_registry
 
-    def __new__(cls, name, bases, attrs) -> None:
+    def __new__(cls, name, bases, attrs, **kwargs) -> type:
         """Register new types to registry."""
         # create new type and register it
-        T = super().__new__(cls, name, bases, attrs)
+        T = super().__new__(cls, name, bases, attrs, **kwargs)
         cls._registry.register_type(T, bases)
         # return new type
         return T
