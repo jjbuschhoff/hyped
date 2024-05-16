@@ -193,7 +193,7 @@ class FeatureKey(tuple[str | int | slice]):
         return FeatureKey(self[0], slice(None), *self[1:]).index_example(batch)
 
 
-    def __hash__(self) -> str:
+    def __hash__(self) -> int:
         return hash(
             tuple(
                 (k.start, k.stop, k.step) if isinstance(k, slice) else k
@@ -230,17 +230,22 @@ class FeatureRef(BaseModel):
     node_id: int
 
     def __getattr__(self, key: str) -> FeatureRef:
+
+        if key.startswith("_"):
+            return object.__getitem__(self, key)
+        
         return self.__getitem__(key)
 
     def __getitem__(self, key: str | int | slice | FeatureKey) -> FeatureRef:
-        key = FeatureKey(key)
+        key = key if isinstance(key, tuple) else (key,)
+        key = tuple.__new__(FeatureKey, key)
         return FeatureRef(
             key=self.key + key,
             feature=key.index_features(self.feature),
             node_id=self.node_id
         )
 
-    def __hash__(self) -> str:
+    def __hash__(self) -> int:
         return hash((self.node_id, self.key))
 
 
@@ -250,8 +255,8 @@ class FeatureCollection(BaseModel):
     collection: Annotated[
         (
             dict[str, FeatureCollection | FeatureRef]
-            | Annotated[list[FeatureCollection], Field(min_items=1)]
-            | Annotated[list[FeatureRef], Field(min_items=1)]
+            | Annotated[list[FeatureCollection], Field(min_length=1)]
+            | Annotated[list[FeatureRef], Field(min_length=1)]
         ),
         BeforeValidator(
             lambda x: (
@@ -285,21 +290,20 @@ class FeatureCollection(BaseModel):
         **kwargs
     ) -> None:
 
-        if collection is None and len(kwargs) == 0:
-            raise TypeError()
-
         if collection is not None and len(kwargs) != 0:
-            raise TypeError()
-
+            raise TypeError(
+                "Cannot provide both 'collection' and keyword arguments. "
+                "Provide either 'collection' or keyword arguments, but not "
+                "both."
+            )
+        # initialize collection
         super(FeatureCollection, self).__init__(
             collection=collection if collection is not None else kwargs
         )
-    
-    def __post_init__(self) -> None:
         # check valid feature collection types
         self.feature
 
-    def __hash__(self) -> str:
+    def __hash__(self) -> int:
         if isinstance(self.collection, dict):
             return hash(tuple(map(tuple, self.collection.items())))
         if isinstance(self.collection, list):
@@ -330,8 +334,6 @@ class FeatureCollection(BaseModel):
                         "same feature type, got %s != %s" % (str(f), str(ff))
                     )
             return Sequence(f, length=len(self.collection))
-
-        raise TypeError()
 
     @property
     def refs(self) -> set[FeatureRef]:
