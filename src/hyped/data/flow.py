@@ -4,13 +4,15 @@ import asyncio
 import nest_asyncio
 from typing import TypeVar, Any
 from typing_extensions import TypeAlias
+from types import SimpleNamespace
 
 import datasets
 import pyarrow as pa
 import networkx as nx
 
+from .ref import FeatureRef
+from hyped.common.feature_key import FeatureKey
 from hyped.common.arrow import convert_features_to_arrow_schema
-from hyped.common.feature_ref import FeatureRef, FeatureCollection, Feature, FeatureKey
 from hyped.common.feature_checks import check_feature_equals
 from hyped.data.processors.base import BaseDataProcessor
 
@@ -22,91 +24,91 @@ D = TypeVar(
     datasets.IterableDataset,
     datasets.IterableDatasetDict
 )
-P = TypeVar("P", bound=BaseDataProcessor)
 
-SRC_FEATURES_NODE_ID = -1
+SRC_NODE_ID = 0
 
 # patch asyncio if running in an async environment, such as jupyter notebook
 # this fixes #26
 nest_asyncio.apply()
 
 
+class DataFlowGraph(nx.MultiDiGraph):
+
+    def __init__(self) -> None:
+        super(DataFlowGraph, self).__init__()
+        self.add_node(SRC_NODE_ID, processor=None)
+
+    def add_processor(self, processor: BaseDataProcessor, inputs: dict[str, FeatureRef]) -> int:
+        # get the node id and set it in the processor
+        node_id = self.number_of_nodes()
+        # add processor to graph
+        self.add_node(node_id, processor=processor)
+
+        # add dependency edges to graph
+        for name, ref in inputs.items():
+            # make sure the inputs come from this flow
+            if ref.flow_ != self:
+                raise RuntimeError()
+            # add edge to other nodes
+            x = self.add_edge(
+                ref.node_id_, node_id, key=name, feature_key=ref.key_
+            )
+
+        return node_id
+
+    def dependency_graph(self, node: int):
+
+        visited = set()
+        nodes = set([node])
+        # search through dependency graph
+        while len(nodes) > 0:
+            node = nodes.pop()
+            visited.add(node)
+            nodes.update(self.predecessors(node))
+        
+        return self.subgraph(visited)
+        
+
 class DataFlow(object):
 
     def __init__(self, features: datasets.Features) -> None:
 
-        self._graph = nx.MultiDiGraph()
+        # create graph
+        self._graph = DataFlowGraph()
+        # create source features
         self._src_features = FeatureRef(
-            key=FeatureKey(),
-            feature=features,
-            node_id=SRC_FEATURES_NODE_ID
+            key_=FeatureKey(),
+            feature_=features,
+            node_id_=SRC_NODE_ID,
+            flow_=self._graph
         )
-        self._processors: dict[int, BaseDataProcessor] = {}
-        self._out_collection: None | FeatureCollection = None
+        self._out_ref: None | FeatureRef = None
 
     @property
     def src_features(self) -> FeatureRef:
         return self._src_features
 
-    def add_node(self, processor: P) -> P:
-        # get the node id and set it in the processor
-        node_id = self._graph.number_of_nodes()
-        processor.node_id = node_id
-        # add processor node to graph
-        self._graph.add_node(node_id)
-        self._processors[node_id] = processor
-        # add dependency edges to graph
-        for ref in processor.config.inputs.refs:
-            if isinstance(ref, FeatureRef):
-                if ref.node_id != SRC_FEATURES_NODE_ID:
-                    self._graph.add_edge(ref.node_id, node_id)
-            elif isinstance(ref, FeatureCollection):
-                for r in ref.refs:
-                    if r.node_id != SRC_FEATURES_NODE_ID:
-                        self._graph.add_edge(r.node_id, node_id)
-
-        return processor
-
     def build(
-        self,
-        collect: FeatureCollection
+        self, collect: FeatureRef
     ) -> DataFlow:
 
-        if not isinstance(collect.collection, dict):
+        if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError()
 
-        def dependency_graph(graph, nodes):
-
-            visited = set()
-            nodes = set(nodes)
-            # search through dependency graph
-            while len(nodes) > 0:
-                node = nodes.pop()
-                visited.add(node)
-                nodes.update(graph.predecessors(node))
-            
-            return graph.subgraph(visited)
-
-        sub_graph = dependency_graph(
-            self._graph, [ref.node_id for ref in collect.refs]
-        )
-
+        sub_graph = self._graph.dependency_graph(collect.node_id_)
         # build sub_flow
         # TODO: restrict input features to only the
         #       ones required by the sub-graph
-        flow = DataFlow(self.src_features.feature)
-        flow._out_collection = collect
+        flow = DataFlow(self.src_features.feature_)
+        flow._out_ref = collect
         flow._graph = sub_graph
-        flow._processors = {
-            n: self._processors[n] for n in sub_graph.nodes()
-        }
 
         return flow
 
     def batch_process(self, batch: Batch, index: list[int], rank: int) -> Batch:
-        
+        assert self._out_ref is not None
         # create a data flow executor
-        executor = DataFlowExecutor(self._graph, self._processors, self._out_collection)
+        executor = DataFlowExecutor(self._graph, self._out_ref)
         future = executor.execute(batch, index, rank)
         # schedule the execution for the current batch
         loop = asyncio.new_event_loop()
@@ -121,10 +123,10 @@ class DataFlow(object):
         # convert to pyarrow table with correct schema
         return pa.table(
             data=self.batch_process(batch, index, rank),
-            schema=convert_features_to_arrow_schema(self._out_collection.feature),
+            schema=convert_features_to_arrow_schema(self._out_ref.feature_),
         )
     
-    def apply(self, ds: D, collect: None | FeatureCollection = None, **kwargs) -> D:
+    def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
 
         # get the dataset features
         if isinstance(ds, (datasets.Dataset, datasets.IterableDataset)):
@@ -142,7 +144,7 @@ class DataFlow(object):
 
         if (
             (features is not None)
-            and not check_feature_equals(features, self.src_features.feature)
+            and not check_feature_equals(features, self.src_features.feature_)
         ):
             # TODO: should only check whether the features are present
             #       i.e. they should be a subset and don't need to match exactly
@@ -151,7 +153,7 @@ class DataFlow(object):
         # build the sub data flow required to compute the requested output features
         flow = self if collect is None else self.build(collect=collect)
 
-        if flow._out_collection is None:
+        if flow._out_ref is None:
             raise ValueError()
 
         # run data flow
@@ -162,7 +164,7 @@ class DataFlow(object):
         ):
             # set output features for lazy datasets manually
             if isinstance(ds, datasets.IterableDataset):
-                ds.info.features = flow._out_collection.feature
+                ds.info.features = flow._out_ref.feature_
             elif isinstance(ds, datasets.IterableDatasetDict):
                 for split in ds.values():
                     split.info.features = flow._out_collection.feature
@@ -200,92 +202,80 @@ class DataFlow(object):
 
 class ExecutionState(object):
 
-    def __init__(self, graph: nx.MultiDiGraph, batch: Batch, index: list[int], rank: int):
+    def __init__(self, graph: DataFlowGraph, batch: Batch, index: list[int], rank: int):
        
         src_index_hash = hash(tuple(index))
 
-        self.outputs = {SRC_FEATURES_NODE_ID: batch}
-        self.index_hash = {SRC_FEATURES_NODE_ID: src_index_hash}
+        self.outputs = {SRC_NODE_ID: batch}
+        self.index_hash = {SRC_NODE_ID: src_index_hash}
         self.index_lookup = {src_index_hash: index}
 
         self.rank = rank
         self.ready = {
             node_id: asyncio.Event()
             for node_id in graph.nodes()
+            if node_id != SRC_NODE_ID
         }
+
+        self.graph = graph
 
     async def wait_for(self, node_id: int) -> None:
-        await self.ready[node_id].wait()
+        if node_id != SRC_NODE_ID:
+            await self.ready[node_id].wait()
 
-    def _collect_values(self, ref: Feature) -> tuple[list[Any], str]:
+    def collect_value(self, ref: FeatureRef) -> Batch:
+        # collect values requested by the feature reference
+        batch = ref.key_.index_batch(self.outputs[ref.node_id_])
+        # in case the feature key is empty the collected values are already
+        # in batch format, otherwise they need to be converted from a
+        # list-of-dicts to a dict-of-lists
+        if len(ref.key_) != 0:
+            batch = {
+                key: [d[key] for d in batch]
+                for key in batch[0].keys()
+            } if len(batch) > 0 else {}
 
-        if isinstance(ref, FeatureRef):
-            assert ref.node_id in self.outputs
-            # get index id and values
-            index = self.index_hash[ref.node_id]
-            values = ref.key.index_batch(self.outputs[ref.node_id])
-            return values, index
+        return batch
 
-        if isinstance(ref, FeatureCollection):
+    def collect_inputs(self, node_id: int) -> tuple[Batch, list[int]]:
 
-            if isinstance(ref.collection, dict):
-                data = {k: self._collect_values(v) for k, v in ref.collection.items()}
-                # all index ids must be equal, otherwise we cannot merge
-                index = set(i for _, i in data.values())
-                assert len(index) == 1
-                # get values only and convert from dict of lists to list of dicts
-                data = {k: v for k, (v, _) in data.items()}
-                data = [
-                    dict(zip(data.keys(), values)) for values in zip(*data.values())
+        inputs, index = dict(), set()
+        for u, v, name, data in self.graph.in_edges(node_id, keys=True, data=True):
+            # get feature key from data
+            key = data["feature_key"]
+
+            # get the values requested by the batch
+            values = key.index_batch(self.outputs[u])
+
+            # this is always a list of values, except when the key is empty
+            # in that case the values are the exact output of the source node u
+            if len(key) == 0:
+                assert isinstance(
+                    values, (dict, datasets.formatting.formatting.LazyBatch)
+                )
+                keys = values.keys()
+                values = [
+                    dict(zip(keys, vals)) for vals in zip(*values.values())
                 ]
+            assert isinstance(values, list)
 
-                return data, next(iter(index))
+            # store the values in inputs and add keep track of the index hash
+            inputs[name] = values
+            index.add(self.index_hash[u])
 
-            if isinstance(ref.collection, list):
-                data = map(self._collect_values, ref.collection)
-                # all index ids must be equal, otherwise we cannot merge
-                index = set(i for i, _ in data)
-                assert len(index) == 1
-                # get only values and transpose
-                data = (v for _, v in data)
-                data = [list(row) for row in zip(*data)]
-
-                return data, next(iter(index))
-
-            raise TypeError()
-
-    def collect_values(self, ref: Feature) -> tuple[list[Any], list[int]]:
-
-        values, index = self._collect_values(ref)
-        index = self.index_lookup[index]
-
-        return values, index
-
-    def collect_inputs(self, processor: BaseDataProcessor) -> tuple[dict[FeatureRef, list[Any]], list[int]]:
-
-        inputs = {
-            ref: self._collect_values(ref)
-            for ref in processor.config.inputs.refs
-        }
-        # all index ids must be equal, otherwise we cannot merge
-        index = set(i for _, i in inputs.values())
+        # make sure that all collected inputs have the same index
         assert len(index) == 1
-        # collect only input values
-        inputs = {k: v for k, (v, _) in inputs.items()}
-        # get the index from the index id
-        index = self.index_lookup[next(iter(index))]
-        return inputs, index
+        index = next(iter(index))
+
+        return inputs, self.index_lookup[index]
 
     def capture_output(
         self,
         node_id: int,
-        output: dict[FeatureKey, list[Any]],
+        output: Batch,
         new_index: list[int]
     ) -> None:
         assert not self.ready[node_id].is_set()
-        assert all(len(ref.key) == 1 for ref in output.keys())
-        # unpack keys and store output in state
-        output = {ref.key[0]: val for ref, val in output.items()}
         self.outputs[node_id] = output
 
         new_index_hash = hash(tuple(new_index))
@@ -300,15 +290,14 @@ class DataFlowExecutor(object):
 
     def __init__(
         self,
-        flow_graph: nx.MultiDiGraph,
-        processors: dict[int, BaseDataProcessor],
-        collect: FeatureCollection
+        graph: nx.MultiDiGraph,
+        collect: FeatureRef
     ) -> None:
 
-        assert isinstance(collect.collection, dict)
+        if not isinstance(collect.feature_, (datasets.Features, dict)):
+            raise TypeError()
 
-        self.processors = processors
-        self.graph = flow_graph
+        self.graph = graph
         self.collect = collect
 
     async def execute_node(
@@ -321,10 +310,9 @@ class DataFlowExecutor(object):
             futures = map(state.wait_for, deps)
             await asyncio.gather(*futures)
 
-        # get the processor for the current node
-        processor = self.processors[node_id]
         # collect inputs for processor execution
-        inputs, index = state.collect_inputs(processor)
+        inputs, index = state.collect_inputs(node_id)
+        processor = self.graph.nodes[node_id]["processor"]
         # run processor and capture output in execution state
         out, out_index = await processor.batch_process(inputs, index, state.rank)
         state.capture_output(node_id, out, out_index)
@@ -333,14 +321,13 @@ class DataFlowExecutor(object):
 
         # create an execution state
         state = ExecutionState(self.graph, batch, index, rank)
-
-        # execute all nodes in the flow
+        # execute all processors in the flow
         await asyncio.gather(
-            *[self.execute_node(node_id, state) for node_id in self.graph.nodes()]
+            *[
+                self.execute_node(node_id, state)
+                for node_id in self.graph.nodes()
+                if node_id != SRC_NODE_ID
+            ]
         )
-
         # collect output values
-        return {
-            key: state.collect_values(ref)[0]
-            for key, ref in self.collect.collection.items()
-        }
+        return state.collect_value(self.collect)

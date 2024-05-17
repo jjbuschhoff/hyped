@@ -4,6 +4,7 @@ from functools import partial
 
 import datasets
 import pydantic
+from pydantic._internal._model_construction import ModelMetaclass
 from typing_extensions import Annotated
 
 # map datasets value dtype to
@@ -119,3 +120,17 @@ def pydantic_model_from_features(
             arbitrary_types_allowed=True, validate_assignment=True
         ),
     )
+
+
+class validate_type_meta(ModelMetaclass):
+
+    def __new__(cls, name, bases, attrs) -> type:
+        T = super().__new__(cls, name, bases, attrs)
+        T.type_validator()
+        return T
+
+class BaseModelWithTypeValidation(pydantic.BaseModel, metaclass=validate_type_meta):
+    
+    @classmethod
+    def type_validator(cls) -> None:
+        pass
