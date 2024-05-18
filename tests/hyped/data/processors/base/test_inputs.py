@@ -4,15 +4,14 @@ import pytest
 from datasets import Sequence, Value
 from typing_extensions import Annotated
 
+# import hyped.data.processors.base
+from hyped.data.flow.ref import FeatureRef
 from hyped.data.processors.base.inputs import (
     CheckFeatureEquals,
     CheckFeatureIsSequence,
     FeatureValidator,
     InputRefs,
 )
-
-# import hyped.data.processors.base
-from hyped.data.ref import FeatureRef
 
 
 def test_feature_validator():

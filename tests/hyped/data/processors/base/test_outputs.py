@@ -4,12 +4,12 @@ import pytest
 from datasets import Features, Value
 from typing_extensions import Annotated
 
+from hyped.data.flow.ref import FeatureRef
 from hyped.data.processors.base.outputs import (
     LambdaOutputFeature,
     OutputFeature,
     OutputRefs,
 )
-from hyped.data.ref import FeatureRef
 
 
 def test_lambda_output_feature():

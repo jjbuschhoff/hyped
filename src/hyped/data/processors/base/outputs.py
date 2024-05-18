@@ -34,7 +34,7 @@ from typing import Callable, ClassVar
 from datasets.features.features import Features, FeatureType
 
 from hyped.common.pydantic import BaseModelWithTypeValidation
-from hyped.data.ref import FeatureRef
+from hyped.data.flow.ref import FeatureRef
 
 from .config import BaseDataProcessorConfig
 from .inputs import InputRefs

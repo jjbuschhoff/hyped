@@ -47,7 +47,7 @@ from hyped.common.feature_checks import (
     raise_feature_is_sequence,
 )
 from hyped.common.pydantic import BaseModelWithTypeValidation
-from hyped.data.ref import FeatureRef
+from hyped.data.flow.ref import FeatureRef
 
 
 class FeatureValidator(AfterValidator):

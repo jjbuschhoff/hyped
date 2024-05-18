@@ -5,15 +5,15 @@ import pytest
 from datasets import Features, Value
 
 from hyped.common.feature_key import FeatureKey
-from hyped.data.flow import (
+from hyped.data.flow.flow import (
     SRC_NODE_ID,
     DataFlow,
     DataFlowExecutor,
     DataFlowGraph,
     ExecutionState,
 )
+from hyped.data.flow.ref import FeatureRef
 from hyped.data.processors.ops.noop import NoOp, NoOpInputRefs
-from hyped.data.ref import FeatureRef
 
 
 # fixtures

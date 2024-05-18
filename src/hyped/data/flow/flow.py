@@ -21,7 +21,6 @@ The module also provides various utility functions and types to support data pro
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
 from typing import Any, TypeVar
 
 import datasets
@@ -33,7 +32,6 @@ from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
-from hyped.common.feature_key import FeatureKey
 from hyped.data.processors.base import BaseDataProcessor
 from hyped.data.processors.base.inputs import InputRefs
 from hyped.data.processors.base.outputs import OutputRefs
@@ -399,17 +397,21 @@ class DataFlowExecutor(object):
 class DataFlow(object):
     """High-level interface for defining and executing data processing workflows.
 
-    The DataFlow class allows users to create and manage directed acyclic graphs (DAGs) of data processors,
-    facilitating complex data transformations and processing pipelines. Users can easily define source features,
-    build sub-flows for specific outputs, and apply these workflows to batches of data or entire HuggingFace datasets.
+    The DataFlow class allows users to create and manage directed acyclic graphs
+    (DAGs) of data processors, facilitating complex data transformations and
+    processing pipelines. Users can easily define source features, build sub-flows
+    for specific outputs, and apply these workflows to batches of data or entire
+    HuggingFace datasets.
 
-    This class integrates various components such as the data flow graph and the executor to provide a seamless
-    experience for processing data. It handles the internal state management, execution scheduling, and data flow
-    dependencies to ensure efficient and accurate data processing.
+    This class integrates various components such as the data flow graph and the
+    executor to provide a seamless experience for processing data. It handles the
+    internal state management, execution scheduling, and data flow dependencies to
+    ensure efficient and accurate data processing.
 
     Properties:
         src_features: Returns the reference to the source features.
-        out_features: Returns the reference to the output features, raising an error if not set.
+        out_features: Returns the reference to the output features, raising an
+            error if not set.
 
     Methods:
         build: Constructs a sub-data flow for specified output features.

@@ -4,13 +4,13 @@ import pytest
 from datasets import Value
 from typing_extensions import Annotated
 
+from hyped.data.flow.ref import FeatureRef
 from hyped.data.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
 )
 from hyped.data.processors.base.inputs import CheckFeatureEquals, InputRefs
 from hyped.data.processors.base.outputs import OutputFeature, OutputRefs
-from hyped.data.ref import FeatureRef
 
 
 class MockOutputRefs(OutputRefs):

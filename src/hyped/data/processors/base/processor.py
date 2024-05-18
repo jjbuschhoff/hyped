@@ -56,7 +56,7 @@ from typing_extensions import TypeAlias
 
 from hyped.base.config import BaseConfigurable
 from hyped.base.generic import solve_typevar
-from hyped.data.ref import FeatureRef
+from hyped.data.flow.ref import FeatureRef
 
 from .config import BaseDataProcessorConfig
 from .inputs import InputRefs

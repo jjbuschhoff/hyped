@@ -35,7 +35,7 @@ Usage Example:
 
 from hyped.data.processors.ops.collect import CollectFeatures
 
-from .ref import FeatureRef
+from .flow.ref import FeatureRef
 
 
 def collect(collection: None | dict | list = None, **kwargs) -> FeatureRef:

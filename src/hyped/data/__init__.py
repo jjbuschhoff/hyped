@@ -23,3 +23,6 @@ Usage Example:
         processed_dataset = data_flow.apply(dataset)
 """
 from hyped.__version__ import __version__, __version_tuple__
+
+from . import ops
+from .flow.flow import DataFlow
