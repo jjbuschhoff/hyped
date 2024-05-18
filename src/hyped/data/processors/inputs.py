@@ -79,6 +79,11 @@ class InputRefs(BaseModelWithTypeValidation):
             ):
                 raise TypeError(name)
 
+    @classmethod
+    @property
+    def keys(cls) -> set[str]:
+        return set(cls.model_fields.keys())
+
     @property
     def refs(self) -> set[FeatureRef]:
         return set(self.named_refs.values())

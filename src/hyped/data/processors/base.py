@@ -4,13 +4,14 @@ import inspect
 import asyncio
 from abc import ABC
 from typing import Any, TypeVar, Generic
+from typing_extensions import TypeAlias
 
 from hyped.data.ref import FeatureRef
 from hyped.base.config import BaseConfig, BaseConfigurable
 from hyped.base.generic import solve_typevar
 
-Batch: TypeVar = dict[str, list[Any]]
-Sample: TypeVar = dict[str, Any]
+Batch: TypeAlias = dict[str, list[Any]]
+Sample: TypeAlias = dict[str, Any]
 
 
 class BaseDataProcessorConfig(BaseConfig):
@@ -44,6 +45,10 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
     def config(self) -> C:
         return self._config
 
+    @property
+    def input_keys(self) -> set[str]:
+        return self._in_refs_type.keys
+
     def call(self, inputs: None | I = None, **kwargs) -> O:
 
         if inputs is not None and len(kwargs) != 0:
@@ -58,8 +63,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             else self._in_refs_type(**kwargs)
         )
         # add new node to flow and return the output refs
-        node_id = inputs.flow.add_processor(self, inputs.named_refs)
-        return self._out_refs_type(self.config, inputs, node_id)
+        return inputs.flow.add_processor(self, inputs)
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int

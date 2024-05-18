@@ -46,6 +46,9 @@ class FeatureRef(BaseModel):
     node_id_: int
     flow_: object
 
+    def __hash__(self) -> str:
+        return hash((self.flow_, self.node_id_, self.key_))
+
     def __getattr__(self, key: str) -> FeatureRef:
 
         if key.startswith("_"):
@@ -62,6 +65,3 @@ class FeatureRef(BaseModel):
             node_id_=self.node_id_,
             flow_=self.flow_
         )
-
-    def __hash__(self) -> int:
-        return hash((self.flow_, self.node_id_, self.key_))
