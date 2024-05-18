@@ -1,3 +1,23 @@
+"""Provides classes for defining and executing data flows as DAGs.
+
+The data flow module facilitates the construction and execution of complex
+data processing pipelines using a graph-based approach. It allows users to
+define a set of data processors, where each processor takes input features
+and produces output features. Processors can be connected to form a directed
+acyclic graph, representing the flow of data through the processing pipeline.
+
+Classes:
+    - `DataFlow`: High-level interface for defining and executing data processing workflows.
+    - `DataFlowGraph`: A multi-directed graph representing a data flow of data processors.
+    - `ExecutionState`: Tracks the state during the execution of a data flow graph.
+    - `DataFlowExecutor`: Executes a data flow graph, managing the execution of each node and collecting results.
+
+The module also provides various utility functions and types to support data processing tasks, including:
+    - Feature reference management
+    - Dependency graph generation
+    - State tracking during execution
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -37,7 +57,29 @@ nest_asyncio.apply()
 
 
 class DataFlowGraph(nx.MultiDiGraph):
+    """A multi-directed graph representing a data flow of data processors.
+
+    This class is used internally to define a directed acyclic graph (DAG)
+    where nodes represent data processors of `BaseDataProcessor` type, and
+    edges define the data flow between these processors.
+    """
+
     def add_src_node(self, features: datasets.Features) -> FeatureRef:
+        """Add a the source node to the graph.
+
+        This method adds a source node to the graph, which acts as the initial
+        data provider for the data flow.
+
+        Args:
+            features (datasets.Features): The features of the source node.
+
+        Returns:
+            FeatureRef: A reference to the input features.
+
+        Raises:
+            AssertionError: If the graph already contains a source node
+        """
+        assert SRC_NODE_ID not in self, "Graph already contains a source node"
         # add src node to graph
         self.add_node(SRC_NODE_ID, processor=None, features=features)
         # return feature ref over input features
@@ -48,8 +90,32 @@ class DataFlowGraph(nx.MultiDiGraph):
     def add_processor(
         self, processor: BaseDataProcessor, inputs: InputRefs
     ) -> OutputRefs:
+        """Add a processor node to the graph.
+
+        This method adds a processor node to the graph and creates the
+        necessary edges to define the data flow from input nodes to this
+        processor.
+
+        Args:
+            processor (BaseDataProcessor): The processor to add.
+            inputs (InputRefs): The input references for the processor.
+
+        Returns:
+            OutputRefs: The output references produced by the processor.
+
+        Raises:
+            RuntimeError: If input references are not from this data flow.
+            AssertionError: If the graph does not contain a source node.
+            AssertionError: If input references are not of the expected type
+            AssertionError: If input features do not match the output features
+                of the referred node.
+        """
         # make sure the input refs match the processor
-        assert isinstance(inputs, processor._in_refs_type)
+        assert SRC_NODE_ID in self, "No source node in graph."
+        assert isinstance(inputs, processor._in_refs_type), (
+            f"Expected input references of type {processor._in_refs_type}, "
+            f"but got {type(inputs)}"
+        )
 
         # add processor to graph
         # TODO: seems unintuitive that the output refs are
@@ -62,7 +128,9 @@ class DataFlowGraph(nx.MultiDiGraph):
         for name, ref in inputs.named_refs.items():
             # make sure the inputs come from this flow
             if ref.flow_ != self:
-                raise RuntimeError()
+                raise RuntimeError(
+                    "Input reference does not belong to this data flow."
+                )
             # make sure the input is a valid output of the referred node
             assert ref.node_id_ in self
             assert (
@@ -76,7 +144,18 @@ class DataFlowGraph(nx.MultiDiGraph):
 
         return outputs
 
-    def dependency_graph(self, node: int):
+    def dependency_graph(self, node: int) -> DataFlowGraph:
+        """Generate the dependency subgraph for a given node.
+
+        This method generates a subgraph containing all nodes that the given
+        node depends on directly or indirectly.
+
+        Args:
+            node (int): The node ID for which to generate the dependency graph.
+
+        Returns:
+            DataFlowGraph: A subgraph representing the dependencies.
+        """
         visited = set()
         nodes = set([node])
         # search through dependency graph
@@ -89,9 +168,23 @@ class DataFlowGraph(nx.MultiDiGraph):
 
 
 class ExecutionState(object):
+    """Tracks the state during the execution of a data flow graph.
+
+    This class is used internally to manage the state of data processing as the
+    data flow graph is executed, keeping track of outputs, indexes, and node readiness.
+    """
+
     def __init__(
         self, graph: DataFlowGraph, batch: Batch, index: list[int], rank: int
     ):
+        """Initialize the execution state.
+
+        Args:
+            graph (DataFlowGraph): The data flow graph being executed.
+            batch (Batch): The initial batch of data.
+            index (list[int]): The index of the batch.
+            rank (int): The rank of the process in a distributed setting.
+        """
         src_index_hash = hash(tuple(index))
 
         self.outputs = {SRC_NODE_ID: batch}
@@ -108,12 +201,32 @@ class ExecutionState(object):
         self.graph = graph
 
     async def wait_for(self, node_id: int) -> None:
+        """Wait until the specified node is ready.
+
+        Args:
+            node_id (int): The ID of the node to wait for.
+        """
         if node_id != SRC_NODE_ID:
             await self.ready[node_id].wait()
 
     def collect_value(self, ref: FeatureRef) -> Batch:
-        # collect values requested by the feature reference
-        assert isinstance(ref.feature_, (datasets.Features, dict))
+        """Collect the values requested by the feature reference.
+
+        Args:
+            ref (FeatureRef): The feature reference indicating which
+                values to collect.
+
+        Returns:
+            Batch: The collected batch of data.
+
+        Raises:
+            AssertionError: If the feature reference does not contain
+                expected feature types.
+        """
+        assert isinstance(ref.feature_, (datasets.Features, dict)), (
+            f"Expected features of type datasets.Features or dict, "
+            f"but got {type(ref.feature_)}"
+        )
         batch = ref.key_.index_batch(self.outputs[ref.node_id_])
         # in case the feature key is empty the collected values are already
         # in batch format, otherwise they need to be converted from a
@@ -128,11 +241,27 @@ class ExecutionState(object):
         return batch
 
     def collect_inputs(self, node_id: int) -> tuple[Batch, list[int]]:
+        """Collect inputs for a given node.
+
+        Args:
+            node_id (int): The ID of the node for which to collect inputs.
+
+        Returns:
+            tuple[Batch, list[int]]: A tuple containing the collected inputs
+                and the corresponding index.
+
+        Raises:
+            AssertionError: If inputs are collected from a node that is not ready.
+            AssertionError: If the collected values are not of the expected type.
+            AssertionError: If the collected inputs have different indexes.
+        """
         inputs, index = dict(), set()
-        for u, v, name, data in self.graph.in_edges(
+        for u, _, name, data in self.graph.in_edges(
             node_id, keys=True, data=True
         ):
-            assert (u == SRC_NODE_ID) or self.ready[u].is_set()
+            assert (u == SRC_NODE_ID) or self.ready[
+                u
+            ].is_set(), f"Node {u} is not ready."
             # get feature key from data
             key = data["feature_key"]
             # get the values requested by the batch
@@ -142,18 +271,20 @@ class ExecutionState(object):
             if len(key) == 0:
                 assert isinstance(
                     values, (dict, datasets.formatting.formatting.LazyBatch)
-                )
+                ), f"Expected values of type dict, but got {type(values)}"
                 keys = values.keys()
                 values = [
                     dict(zip(keys, vals)) for vals in zip(*values.values())
                 ]
-            assert isinstance(values, list)
+            assert isinstance(
+                values, list
+            ), f"Expected values to be a list, but got {type(values)}"
             # store the values in inputs and add keep track of the index hash
             inputs[name] = values
             index.add(self.index_hash[u])
 
         # make sure that all collected inputs have the same index
-        assert len(index) == 1
+        assert len(index) == 1, "Collected inputs have different indexes."
         index = next(iter(index))
 
         return inputs, self.index_lookup[index]
@@ -161,8 +292,24 @@ class ExecutionState(object):
     def capture_output(
         self, node_id: int, output: Batch, new_index: list[int]
     ) -> None:
-        assert not self.ready[node_id].is_set()
-        assert all(len(vals) == len(new_index) for vals in output.values())
+        """Capture the output of a node.
+
+        Args:
+            node_id (int): The ID of the node producing the output.
+            output (Batch): The output batch of data.
+            new_index (list[int]): The new index of the output data.
+
+        Raises:
+            AssertionError: If the node is already set
+            AssertionError: If the length of output values do not match
+                the length of the new index.
+        """
+        assert not self.ready[
+            node_id
+        ].is_set(), f"Node {node_id} is already set."
+        assert all(
+            len(vals) == len(new_index) for vals in output.values()
+        ), "Output values length does not match new index length."
 
         self.outputs[node_id] = output
 
@@ -175,14 +322,38 @@ class ExecutionState(object):
 
 
 class DataFlowExecutor(object):
+    """Executes a data flow graph.
+
+    This class provides the low-level functionality for executing a data flow
+    graph, managing the execution of each node and collecting results.
+    """
+
     def __init__(self, graph: DataFlowGraph, collect: FeatureRef) -> None:
+        """Initialize the executor.
+
+        Args:
+            graph (DataFlowGraph): The data flow graph to execute.
+            collect (FeatureRef): The feature reference to collect results.
+
+        Raises:
+            TypeError: If the collect feature is not of type datasets.Features.
+        """
         if not isinstance(collect.feature_, (datasets.Features, dict)):
-            raise TypeError()
+            raise TypeError(
+                f"Expected collect feature of type datasets.Features or dict, "
+                f"but got {type(collect.feature_)}"
+            )
 
         self.graph = graph
         self.collect = collect
 
     async def execute_node(self, node_id: int, state: ExecutionState):
+        """Execute a single node in the data flow graph.
+
+        Args:
+            node_id (int): The ID of the node to execute.
+            state (ExecutionState): The current execution state.
+        """
         if self.graph.in_degree(node_id) > 0:
             # wait for all dependencies of the current node
             deps = self.graph.predecessors(node_id)
@@ -201,6 +372,16 @@ class DataFlowExecutor(object):
     async def execute(
         self, batch: Batch, index: list[int], rank: int
     ) -> Batch:
+        """Execute the entire data flow graph.
+
+        Args:
+            batch (Batch): The initial batch of data.
+            index (list[int]): The index of the batch.
+            rank (int): The rank of the process in a multiprocessing setting.
+
+        Returns:
+            Batch: The final collected batch of data.
+        """
         # create an execution state
         state = ExecutionState(self.graph, batch, index, rank)
         # execute all processors in the flow
@@ -216,7 +397,50 @@ class DataFlowExecutor(object):
 
 
 class DataFlow(object):
+    """High-level interface for defining and executing data processing workflows.
+
+    The DataFlow class allows users to create and manage directed acyclic graphs (DAGs) of data processors,
+    facilitating complex data transformations and processing pipelines. Users can easily define source features,
+    build sub-flows for specific outputs, and apply these workflows to batches of data or entire HuggingFace datasets.
+
+    This class integrates various components such as the data flow graph and the executor to provide a seamless
+    experience for processing data. It handles the internal state management, execution scheduling, and data flow
+    dependencies to ensure efficient and accurate data processing.
+
+    Properties:
+        src_features: Returns the reference to the source features.
+        out_features: Returns the reference to the output features, raising an error if not set.
+
+    Methods:
+        build: Constructs a sub-data flow for specified output features.
+        batch_process: Processes a single batch of data.
+        apply: Applies the data flow to an entire dataset.
+
+    Example:
+        Define a data flow for processing text data:
+
+        .. code-block:: python
+
+            text_features = datasets.Features({"text": datasets.Value("string")})
+            data_flow = DataFlow(features=text_features)
+
+            # Define a processing step to tokenize text
+            tokenizer = TokenizerProcessor(model_name="bert-base-uncased")
+            tokenized_features = tokenizer.output_features
+
+            # Add the tokenizer processor to the data flow
+            data_flow.add_processor(tokenizer, inputs=data_flow.src_features)
+
+            # Apply the data flow to a dataset
+            processed_dataset = data_flow.apply(dataset)
+    """
+
     def __init__(self, features: datasets.Features) -> None:
+        """Initialize the DataFlow.
+
+        Args:
+            features (datasets.Features): The features of the source node.
+        """
         # create graph
         self._graph = DataFlowGraph()
         self._src_features = self._graph.add_src_node(features=features)
@@ -224,17 +448,45 @@ class DataFlow(object):
 
     @property
     def src_features(self) -> FeatureRef:
+        """Get the source features.
+
+        Returns:
+            FeatureRef: The reference to the source features.
+        """
         return self._src_features
 
     @property
     def out_features(self) -> FeatureRef:
+        """Get the output features.
+
+        Returns:
+            FeatureRef: The reference to the output features.
+
+        Raises:
+            RuntimeError: If the output features have not been set.
+        """
         if self._out_features is None:
-            raise RuntimeError()
+            raise RuntimeError("Output features have not been set.")
         return self._out_features
 
     def build(self, collect: FeatureRef) -> DataFlow:
+        """Build a sub-data flow to compute the requested output features.
+
+        Args:
+            collect (FeatureRef): The feature reference to collect.
+
+        Returns:
+            DataFlow: The sub-data flow.
+
+        Raises:
+            TypeError: If the collect feature is not of type
+                datasets.Features or dict.
+        """
         if not isinstance(collect.feature_, (datasets.Features, dict)):
-            raise TypeError()
+            raise TypeError(
+                f"Expected collect feature of type datasets.Features or dict, "
+                f"but got {type(collect.feature_)}"
+            )
 
         sub_graph = self._graph.dependency_graph(collect.node_id_)
         # build sub_flow
@@ -249,6 +501,19 @@ class DataFlow(object):
     def batch_process(
         self, batch: Batch, index: list[int], rank: None | int = None
     ) -> Batch:
+        """Process a batch of data.
+
+        Args:
+            batch (Batch): The batch of data to process.
+            index (list[int]): The index of the batch.
+            rank (None | int): The rank of the process in a distributed setting.
+
+        Returns:
+            Batch: The processed batch of data.
+
+        Raises:
+            AssertionError: If the output features have not been set.
+        """
         assert self._out_features is not None
 
         if rank is None:
@@ -269,6 +534,17 @@ class DataFlow(object):
         index: list[int],
         rank: None | int = None,
     ) -> pa.Table:
+        """Process a batch of data and convert to a PyArrow table.
+
+        Args:
+            batch (Batch): The batch of data to process.
+            index (list[int]): The index of the batch.
+            rank (None | int): The rank of the process in a
+                multiprocessing setting.
+
+        Returns:
+            pa.Table: The processed data as a PyArrow table.
+        """
         # convert to pyarrow table with correct schema
         return pa.table(
             data=self.batch_process(batch, index, rank),
@@ -278,6 +554,24 @@ class DataFlow(object):
         )
 
     def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
+        """Apply the data flow to a dataset.
+
+        Args:
+            ds (D): The dataset to process.
+            collect (None | FeatureRef): The feature reference to collect.
+                If None, uses current output features.
+            **kwargs: Additional arguments for dataset mapping. For more
+                information please refer to the HuggingFace documentation
+                of the Datasets.map function for the respective dataset type.
+
+        Returns:
+            D: The processed dataset.
+
+        Raises:
+            ValueError: If the dataset type is not supported.
+            TypeError: If the dataset features do not match the source features.
+            ValueError: If the output features have not been set.
+        """
         # get the dataset features
         if isinstance(ds, (datasets.Dataset, datasets.IterableDataset)):
             features = ds.features
@@ -289,7 +583,7 @@ class DataFlow(object):
             raise ValueError(
                 "Expected one of `datasets.Dataset`, `datasets.DatasetDict`, "
                 "`datasets.IterableDataset` or `datasets.IterableDatasetDict`,"  # noqa: E501
-                "got %s" % type(data)
+                "got %s" % type(ds)
             )
 
         if (features is not None) and not check_feature_equals(
@@ -297,13 +591,13 @@ class DataFlow(object):
         ):
             # TODO: should only check whether the features are present
             #       i.e. they should be a subset and don't need to match exactly
-            raise TypeError()
+            raise TypeError("Dataset features do not match source features.")
 
         # build the sub data flow required to compute the requested output features
         flow = self if collect is None else self.build(collect=collect)
 
         if flow._out_features is None:
-            raise ValueError()
+            raise ValueError("Output features have not been set.")
 
         # run data flow
         ds = flow._internal_apply(ds, **kwargs)
@@ -321,6 +615,17 @@ class DataFlow(object):
         return ds
 
     def _internal_apply(self, ds: D, **kwargs) -> D:
+        """(Internal) Apply the data flow to a dataset.
+
+        Args:
+            ds (D): The dataset to process.
+            **kwargs: Additional arguments for dataset mapping. For more
+                information please refer to the HuggingFace documentation
+                of the Datasets.map function for the respective dataset type.
+
+        Returns:
+            D: The processed dataset.
+        """
         # required settings
         kwargs["batched"] = True
         kwargs["with_indices"] = True
