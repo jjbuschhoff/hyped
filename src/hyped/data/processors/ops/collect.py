@@ -99,6 +99,11 @@ class CollectFeaturesInputRefs(InputRefs):
     @classmethod
     def type_validator(cls) -> None:
         pass
+    
+    @classmethod
+    @property
+    def keys(cls) -> set[str]:
+        return set()
 
     @property
     def named_refs(self) -> dict[str, FeatureRef]:
@@ -131,6 +136,10 @@ class CollectFeatures(
         super(CollectFeatures, self).__init__(
             config=CollectFeaturesConfig()
         )
+
+    @classmethod
+    def from_config(cls, config: CollectFeaturesConfig) -> None:
+        return cls()
 
     def call(
         self,
@@ -212,13 +221,14 @@ class CollectFeatures(
         inputs: Batch,
         index: list[int],
         rank: int
-    ) -> Batch:
+    ) -> tuple[Batch, list[int]]:
 
+        # collect values
         out = {
             "collected": self.collect_values(
                 inputs=inputs,
                 col=self.collection
             )
         }
-
+        # return collected values and index
         return out, index

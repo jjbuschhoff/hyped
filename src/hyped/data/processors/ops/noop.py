@@ -1,3 +1,4 @@
+from __future__ import annotations
 from hyped.data.ref import FeatureRef
 from hyped.data.processors.base import BaseDataProcessorConfig, BaseDataProcessor, Batch
 from hyped.data.processors.base.inputs import InputRefs, FeatureValidator
@@ -27,6 +28,10 @@ class NoOp(BaseDataProcessor[NoOpConfig, NoOpInputRefs, NoOpOutputRefs]):
 
     def __init__(self) -> None:
         super(NoOp, self).__init__(config=NoOpConfig())
+
+    @classmethod
+    def from_config(cls, config: NoOpConfig) -> NoOp:
+        return cls()
 
     async def process(
         self,
