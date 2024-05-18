@@ -7,20 +7,15 @@ from typing import Any, TypeVar, Generic
 from typing_extensions import TypeAlias
 
 from hyped.data.ref import FeatureRef
-from hyped.base.config import BaseConfig, BaseConfigurable
+from hyped.base.config import BaseConfigurable
 from hyped.base.generic import solve_typevar
+
+from .config import BaseDataProcessorConfig
+from .inputs import InputRefs
+from .outputs import OutputRefs
 
 Batch: TypeAlias = dict[str, list[Any]]
 Sample: TypeAlias = dict[str, Any]
-
-
-class BaseDataProcessorConfig(BaseConfig):
-    pass
-
-
-# import after processor config to avoid circular imports
-from .inputs import InputRefs
-from .outputs import OutputRefs
 
 C = TypeVar("C", bound=BaseDataProcessorConfig)
 I = TypeVar("I", bound=InputRefs)
@@ -67,7 +62,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int
-    ) -> tuple[dict[FeatureRef, list[Any]], list[int]]:
+    ) -> tuple[Batch, list[int]]:
 
         # apply process function to each sample in the input batch
         keys = inputs.keys()
@@ -86,13 +81,9 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             for key in self._out_refs_type._feature_names
         }, index
 
-    async def process(
-        self, inputs: Sample, index: int, rank: int
-    ) -> dict[FeatureRef, Any]:
+    async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
         ...
 
-    def process(
-        self, inputs: Sample, index: int, rank: int
-    ) -> dict[FeatureRef, Any]:
-        ...
+    def process(self, inputs: Sample, index: int, rank: int) -> Sample:
+        raise NotImplementedError()
 

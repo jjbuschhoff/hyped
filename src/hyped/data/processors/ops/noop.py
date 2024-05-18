@@ -1,7 +1,7 @@
 from hyped.data.ref import FeatureRef
 from hyped.data.processors.base import BaseDataProcessorConfig, BaseDataProcessor, Batch
-from hyped.data.processors.inputs import InputRefs, FeatureValidator
-from hyped.data.processors.outputs import OutputRefs, LambdaOutputFeature
+from hyped.data.processors.base.inputs import InputRefs, FeatureValidator
+from hyped.data.processors.base.outputs import OutputRefs, LambdaOutputFeature
 from typing import Annotated, Any
 
 

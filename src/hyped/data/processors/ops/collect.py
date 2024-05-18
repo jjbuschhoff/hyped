@@ -6,8 +6,9 @@ from hyped.data.processors.base import (
     BaseDataProcessorConfig,
     BaseDataProcessor,
 )
-from hyped.data.processors.inputs import InputRefs
-from hyped.data.processors.outputs import OutputRefs, LambdaOutputFeature
+from hyped.data.processors.base.inputs import InputRefs
+from hyped.data.processors.base.outputs import OutputRefs, LambdaOutputFeature
+from hyped.common.feature_checks import check_feature_equals
 
 from pydantic import (
     Field,

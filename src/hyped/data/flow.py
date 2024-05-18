@@ -16,8 +16,8 @@ from hyped.common.feature_key import FeatureKey
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
 from hyped.data.processors.base import BaseDataProcessor
-from hyped.data.processors.inputs import InputRefs
-from hyped.data.processors.outputs import OutputRefs
+from hyped.data.processors.base.inputs import InputRefs
+from hyped.data.processors.base.outputs import OutputRefs
 
 Batch: TypeAlias = dict[str, list[Any]]
 D = TypeVar(

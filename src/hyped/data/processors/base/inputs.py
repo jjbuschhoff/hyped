@@ -6,7 +6,6 @@ from datasets.features.features import FeatureType
 
 from hyped.data.ref import FeatureRef
 from hyped.common.pydantic import BaseModelWithTypeValidation
-from hyped.common.feature_key import FeatureKey
 from hyped.common.feature_checks import (
     raise_feature_equals,
     raise_feature_is_sequence,
@@ -51,8 +50,8 @@ class CheckFeatureIsSequence(FeatureValidator):
         length: int = -1
     ) -> None:
         
-        def check(key: FeatureKey, feature: FeatureType) -> None:
-            raise_feature_is_sequence(key, feature, value_type)
+        def check(ref: FeatureRef, feature: FeatureType) -> None:
+            raise_feature_is_sequence(ref, feature, value_type)
 
             if -1 != length != get_sequence_length(feature):
                 raise TypeError(
@@ -61,7 +60,7 @@ class CheckFeatureIsSequence(FeatureValidator):
                 )
             return ref
 
-        super(CheckFeatureEquals, self).__init__(check)
+        super(CheckFeatureIsSequence, self).__init__(check)
 
 
 class InputRefs(BaseModelWithTypeValidation):

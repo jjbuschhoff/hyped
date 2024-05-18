@@ -1,12 +1,13 @@
 from typing import Callable, ClassVar
 
+from datasets.features.features import FeatureType, Features
+
 from hyped.data.ref import FeatureRef
 from hyped.common.pydantic import BaseModelWithTypeValidation
 
-from datasets.features.features import FeatureType, Features
-from .base import BaseDataProcessorConfig
-
+from .config import BaseDataProcessorConfig
 from .inputs import InputRefs
+
 
 class LambdaOutputFeature(object):
     def __init__(self, f: Callable[
