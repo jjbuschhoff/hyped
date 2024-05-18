@@ -1,21 +1,20 @@
-from typing import Callable
 from functools import partial
+from typing import Callable
 
-from pydantic import AfterValidator
 from datasets.features.features import FeatureType
+from pydantic import AfterValidator
 
-from hyped.data.ref import FeatureRef
-from hyped.common.pydantic import BaseModelWithTypeValidation
 from hyped.common.feature_checks import (
+    get_sequence_length,
     raise_feature_equals,
     raise_feature_is_sequence,
-    get_sequence_length
 )
+from hyped.common.pydantic import BaseModelWithTypeValidation
+from hyped.data.ref import FeatureRef
+
 
 class FeatureValidator(AfterValidator):
-
     def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
-        
         def check(ref: FeatureRef) -> FeatureRef:
             if not isinstance(ref, FeatureRef):
                 raise TypeError()
@@ -24,32 +23,25 @@ class FeatureValidator(AfterValidator):
                 f(ref, ref.feature_)
             except TypeError as e:
                 raise TypeError(ref) from e
-            
+
             return ref
 
         super(FeatureValidator, self).__init__(check)
 
 
 class CheckFeatureEquals(FeatureValidator):
-
     def __init__(self, feature_type: FeatureType | list[FeatureType]) -> None:
-                
         super(CheckFeatureEquals, self).__init__(
-            partial(
-                raise_feature_equals,
-                target=feature_type
-            )
+            partial(raise_feature_equals, target=feature_type)
         )
 
 
 class CheckFeatureIsSequence(FeatureValidator):
-
     def __init__(
         self,
         value_type: None | FeatureType | list[FeatureType],
-        length: int = -1
+        length: int = -1,
     ) -> None:
-        
         def check(ref: FeatureRef, feature: FeatureType) -> None:
             raise_feature_is_sequence(ref, feature, value_type)
 
@@ -64,10 +56,8 @@ class CheckFeatureIsSequence(FeatureValidator):
 
 
 class InputRefs(BaseModelWithTypeValidation):
-
     @classmethod
     def type_validator(cls) -> None:
-
         for name, field in cls.model_fields.items():
             # each field should be a feature ref with
             # an feature validator annotation
@@ -96,4 +86,3 @@ class InputRefs(BaseModelWithTypeValidation):
         # assumes that all feature refs refer to the same flow
         # this is checked later when a processor is added to the flow
         return getattr(self, next(iter(self.model_fields.keys()))).flow_
-

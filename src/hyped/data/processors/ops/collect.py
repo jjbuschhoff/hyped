@@ -1,72 +1,64 @@
 from __future__ import annotations
 
-from hyped.data.ref import FeatureRef
+from datasets.features.features import Features, FeatureType, Sequence
+from pydantic import BaseModel, BeforeValidator, Field
+from pydantic._internal._model_construction import ModelMetaclass
+from typing_extensions import Annotated
+
+from hyped.common.feature_checks import check_feature_equals
 from hyped.data.processors.base import (
-    Batch,
-    BaseDataProcessorConfig,
     BaseDataProcessor,
+    BaseDataProcessorConfig,
+    Batch,
 )
 from hyped.data.processors.base.inputs import InputRefs
-from hyped.data.processors.base.outputs import OutputRefs, LambdaOutputFeature
-from hyped.common.feature_checks import check_feature_equals
-
-from pydantic import (
-    Field,
-    BaseModel,
-    BeforeValidator,
-)
-from pydantic._internal._model_construction import ModelMetaclass
-from datasets.features.features import FeatureType, Features, Sequence
-from typing_extensions import Annotated
+from hyped.data.processors.base.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.ref import FeatureRef
 
 
 class FeatureCollection(BaseModel):
-
     collection: Annotated[
         (
             dict[str, FeatureCollection | FeatureRef]
             | Annotated[
-                list[FeatureCollection | FeatureRef],
-                Field(min_length=1)
+                list[FeatureCollection | FeatureRef], Field(min_length=1)
             ]
         ),
         BeforeValidator(
             lambda x: (
                 {
                     k: (
-                        v if isinstance(v, FeatureRef)
+                        v
+                        if isinstance(v, FeatureRef)
                         else FeatureCollection(collection=v)
                     )
                     for k, v in x.items()
-                } if isinstance(x, dict) else
-                [
+                }
+                if isinstance(x, dict)
+                else [
                     (
-                        v if isinstance(v, FeatureRef)
+                        v
+                        if isinstance(v, FeatureRef)
                         else FeatureCollection(collection=v)
                     )
                     for v in x
-                ] if isinstance(x, list) else
-                x
+                ]
+                if isinstance(x, list)
+                else x
             )
-        )
+        ),
     ]
 
     @property
     def feature(self) -> FeatureType:
-        
         if isinstance(self.collection, dict):
             return Features(
-                {
-                    k: v.feature_
-                    for k, v in self.collection.items()
-                }
+                {k: v.feature_ for k, v in self.collection.items()}
             )
 
         if isinstance(self.collection, list):
             # collect all features in specified in the list
-            collected_features = (
-                item.feature_ for item in self.collection
-            )
+            collected_features = (item.feature_ for item in self.collection)
             f = next(collected_features)
             # make sure the feature types match
             for ff in collected_features:
@@ -79,11 +71,12 @@ class FeatureCollection(BaseModel):
 
     @property
     def refs(self) -> set[FeatureRef]:
-
         feature_refs = set()
 
         for v in (
-            self.collection.values() if isinstance(self.collection, dict) else self.collection
+            self.collection.values()
+            if isinstance(self.collection, dict)
+            else self.collection
         ):
             if isinstance(v, FeatureCollection):
                 feature_refs.update(v.refs)
@@ -95,11 +88,11 @@ class FeatureCollection(BaseModel):
 
 class CollectFeaturesInputRefs(InputRefs):
     collection: FeatureCollection
- 
+
     @classmethod
     def type_validator(cls) -> None:
         pass
-    
+
     @classmethod
     @property
     def keys(cls) -> set[str]:
@@ -116,26 +109,24 @@ class CollectFeaturesInputRefs(InputRefs):
 
 class CollectFeaturesOutputRefs(OutputRefs):
     collected: Annotated[
-        FeatureRef,
-        LambdaOutputFeature(lambda _, i: i.collection.feature)
+        FeatureRef, LambdaOutputFeature(lambda _, i: i.collection.feature)
     ]
+
 
 class CollectFeaturesConfig(BaseDataProcessorConfig):
     pass
+
 
 class CollectFeatures(
     BaseDataProcessor[
         CollectFeaturesConfig,
         CollectFeaturesInputRefs,
-        CollectFeaturesOutputRefs
+        CollectFeaturesOutputRefs,
     ]
 ):
-
     def __init__(self) -> None:
         self.collection: FeatureCollection | None = None
-        super(CollectFeatures, self).__init__(
-            config=CollectFeaturesConfig()
-        )
+        super(CollectFeatures, self).__init__(config=CollectFeaturesConfig())
 
     @classmethod
     def from_config(cls, config: CollectFeaturesConfig) -> None:
@@ -145,9 +136,8 @@ class CollectFeatures(
         self,
         inputs: None | CollectFeaturesInputRefs = None,
         collection: None | FeatureCollection = None,
-        **kwargs
+        **kwargs,
     ) -> int:
-       
         if self.collection is not None:
             # feature collector is already in use
             # create a new one for this call
@@ -156,13 +146,10 @@ class CollectFeatures(
             )
 
         # check inputs
-        if sum(
-            [
-                inputs is not None,
-                collection is not None,
-                len(kwargs) > 0
-            ]
-        ) > 1:
+        if (
+            sum([inputs is not None, collection is not None, len(kwargs) > 0])
+            > 1
+        ):
             raise ValueError(
                 "Please specify either 'inputs', 'collection' or keyword "
                 "arguments, but not multiple."
@@ -171,7 +158,8 @@ class CollectFeatures(
         if collection is not None:
             # build collection from collection argument
             collection = (
-                collection if isinstance(collection, FeatureCollection)
+                collection
+                if isinstance(collection, FeatureCollection)
                 else FeatureCollection(collection=collection)
             )
         elif len(kwargs) > 0:
@@ -188,11 +176,8 @@ class CollectFeatures(
         return super(CollectFeatures, self).call(inputs=inputs)
 
     def collect_values(
-        self,
-        inputs: Batch,
-        col: FeatureCollection | FeatureRef
+        self, inputs: Batch, col: FeatureCollection | FeatureRef
     ) -> list[Any]:
-      
         if isinstance(col, FeatureRef):
             return inputs[str(hash(col))]
 
@@ -210,24 +195,16 @@ class CollectFeatures(
 
         if isinstance(col.collection, list):
             # collect values from sub-collection and transpose
-            data = (
-                self.collect_values(inputs, v)
-                for v in col.collection
-            )
+            data = (self.collect_values(inputs, v) for v in col.collection)
             return [list(row) for row in zip(*data)]
 
     async def batch_process(
-        self,
-        inputs: Batch,
-        index: list[int],
-        rank: int
+        self, inputs: Batch, index: list[int], rank: int
     ) -> tuple[Batch, list[int]]:
-
         # collect values
         out = {
             "collected": self.collect_values(
-                inputs=inputs,
-                col=self.collection
+                inputs=inputs, col=self.collection
             )
         }
         # return collected values and index

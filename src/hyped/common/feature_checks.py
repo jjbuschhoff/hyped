@@ -327,4 +327,3 @@ def raise_object_matches_feature(obj: Any, feature: FeatureType):
         raise TypeError(
             "Expected object to be of type %s, got %s" % (feature, obj)
         )
-    

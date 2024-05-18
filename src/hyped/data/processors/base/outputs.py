@@ -1,17 +1,17 @@
 from typing import Callable, ClassVar
 
-from datasets.features.features import FeatureType, Features
+from datasets.features.features import Features, FeatureType
 
-from hyped.data.ref import FeatureRef
 from hyped.common.pydantic import BaseModelWithTypeValidation
+from hyped.data.ref import FeatureRef
 
 from .config import BaseDataProcessorConfig
 from .inputs import InputRefs
 
 
 class LambdaOutputFeature(object):
-    def __init__(self, f: Callable[
-        [BaseDataProcessorConfig, InputRefs], FeatureType]
+    def __init__(
+        self, f: Callable[[BaseDataProcessorConfig, InputRefs], FeatureType]
     ) -> None:
         self.build_feature_type = f
 
@@ -22,15 +22,13 @@ class OutputFeature(LambdaOutputFeature):
 
 
 class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
-
     _feature_generators: ClassVar[dict[str, LambdaOutputFeature]]
     _feature_names: ClassVar[set[str]]
     # do not use the dynamic FeatureRef getattr function
     __getattr__ = None
-    
+
     @classmethod
     def type_validator(cls) -> None:
-
         cls._feature_generators = {}
         cls._feature_names = set()
         # ignore all fields from the feature ref base type
@@ -58,11 +56,12 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
         inputs: InputRefs,
         node_id: int,
     ) -> None:
-
-        features = Features({
-            key: gen.build_feature_type(config, inputs)
-            for key, gen in type(self)._feature_generators.items()
-        })
+        features = Features(
+            {
+                key: gen.build_feature_type(config, inputs)
+                for key, gen in type(self)._feature_generators.items()
+            }
+        )
 
         flow = inputs.flow
         super(OutputRefs, self).__init__(
@@ -72,21 +71,19 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
             flow_=flow,
             **{
                 key: FeatureRef(
-                    key_=key,
-                    feature_=feature,
-                    node_id_=node_id,
-                    flow_=flow
+                    key_=key, feature_=feature, node_id_=node_id, flow_=flow
                 )
                 for key, feature in features.items()
-            }
+            },
         )
-    
+
     @property
     def refs(self) -> set[FeatureRef]:
         ignore_fields = FeatureRef.model_fields.keys()
         return set(
             [
-                getattr(self, key) for key in self.model_fields.keys()
+                getattr(self, key)
+                for key in self.model_fields.keys()
                 if key not in ignore_fields
             ]
         )

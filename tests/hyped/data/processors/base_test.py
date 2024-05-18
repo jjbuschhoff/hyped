@@ -1,16 +1,17 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from datasets import Features, Sequence
+
 from hyped.common.feature_checks import check_object_matches_feature
 from hyped.data.processors.base.config import BaseDataProcessorConfig
-from hyped.data.processors.base.processor import BaseDataProcessor, Batch
 from hyped.data.processors.base.inputs import InputRefs
 from hyped.data.processors.base.outputs import OutputRefs
+from hyped.data.processors.base.processor import BaseDataProcessor, Batch
 from hyped.data.ref import FeatureRef
 
 
 class BaseDataProcessorTest:
-
     # processor to test
     processor_type: type[BaseDataProcessor]
     processor_config: BaseDataProcessorConfig
@@ -27,9 +28,7 @@ class BaseDataProcessorTest:
     @pytest.fixture
     def processor(self):
         cls = type(self)
-        return cls.processor_type.from_config(
-            cls.processor_config
-        )
+        return cls.processor_type.from_config(cls.processor_config)
 
     @pytest.fixture
     def input_refs(self, processor) -> InputRefs:
@@ -44,24 +43,23 @@ class BaseDataProcessorTest:
 
     @pytest.fixture
     def output_refs(self, processor, input_refs) -> OutputRefs:
-        return processor._out_refs_type(
-            processor.config, input_refs, -1
-        )
+        return processor._out_refs_type(processor.config, input_refs, -1)
 
     @pytest.mark.asyncio
     async def test_case(self, processor, input_refs, output_refs):
-
         cls = type(self)
         # check input data
         input_keys = set(cls.input_data.keys())
         assert processor.input_keys.issubset(input_keys)
         assert check_object_matches_feature(
-            cls.input_data, {k: Sequence(v) for k, v in cls.input_features.items()}
+            cls.input_data,
+            {k: Sequence(v) for k, v in cls.input_features.items()},
         )
-        
+
         # build default index if not specifically given
         input_index = (
-            cls.input_index if cls.input_index is not None
+            cls.input_index
+            if cls.input_index is not None
             else list(range(len(next(iter(cls.input_data.values())))))
         )
         assert len(input_index) == len(next(iter(cls.input_data.values())))

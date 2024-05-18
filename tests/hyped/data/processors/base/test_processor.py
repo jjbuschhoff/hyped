@@ -1,13 +1,16 @@
+from unittest.mock import MagicMock, PropertyMock, call, patch
+
 import pytest
 from datasets import Value
-
-from unittest.mock import patch, call, MagicMock, PropertyMock
 from typing_extensions import Annotated
 
+from hyped.data.processors.base import (
+    BaseDataProcessor,
+    BaseDataProcessorConfig,
+)
+from hyped.data.processors.base.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.processors.base.outputs import OutputFeature, OutputRefs
 from hyped.data.ref import FeatureRef
-from hyped.data.processors.base import BaseDataProcessorConfig, BaseDataProcessor
-from hyped.data.processors.base.inputs import InputRefs, CheckFeatureEquals
-from hyped.data.processors.base.outputs import OutputRefs, OutputFeature
 
 
 class MockOutputRefs(OutputRefs):
@@ -22,12 +25,13 @@ class MockProcessorConfig(BaseDataProcessorConfig):
     pass
 
 
-class MockProcessor(BaseDataProcessor[MockProcessorConfig, MockInputRefs, MockOutputRefs]):
+class MockProcessor(
+    BaseDataProcessor[MockProcessorConfig, MockInputRefs, MockOutputRefs]
+):
     process = MagicMock(return_value={"out": 0})
 
 
 class TestBaseDataProcessor:
-
     def test_properties(self):
         # create mock processor
         proc = MockProcessor.from_config(MockProcessorConfig())
@@ -36,7 +40,6 @@ class TestBaseDataProcessor:
         assert proc.input_keys == {"x"}
 
     def test_call(self):
-
         # create processor instance
         proc = MockProcessor.from_config(MockProcessorConfig())
         # create mock inputs
@@ -50,7 +53,9 @@ class TestBaseDataProcessor:
             # this should add the processor to the mock flow
             out = proc.call(inputs=mock_inputs)
             # check output and make sure processor was added
-            mock_inputs.flow.add_processor.assert_called_with(proc, mock_inputs)
+            mock_inputs.flow.add_processor.assert_called_with(
+                proc, mock_inputs
+            )
 
         # test error on to many inputs
         with pytest.raises(TypeError):
@@ -58,7 +63,6 @@ class TestBaseDataProcessor:
 
     @pytest.mark.asyncio
     async def test_batch_process(self):
-
         # create mock instance
         proc = MockProcessor.from_config(MockProcessorConfig())
         # create dummy inputs

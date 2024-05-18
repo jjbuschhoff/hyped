@@ -1,5 +1,3 @@
-from .config import BaseDataProcessorConfig
-from .processor import Batch, Sample, BaseDataProcessor
-
 from . import inputs, outputs
-
+from .config import BaseDataProcessorConfig
+from .processor import BaseDataProcessor, Batch, Sample

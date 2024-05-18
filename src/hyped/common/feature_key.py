@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from datasets.features.features import Features, FeatureType, Sequence
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
-from datasets.features.features import Features, FeatureType, Sequence
 
 from .feature_checks import (
+    check_feature_equals,
     get_sequence_feature,
     get_sequence_length,
-    check_feature_equals,
     raise_feature_equals,
     raise_feature_is_sequence,
 )
@@ -55,7 +55,7 @@ class FeatureKey(tuple[str | int | slice]):
                 )
 
         return tuple.__new__(cls, key)
-    
+
     def __getitem__(self, idx) -> FeatureKey | str | int | slice:
         """Get specific key entries of the feature key."""
         if isinstance(idx, slice) and (
@@ -63,7 +63,7 @@ class FeatureKey(tuple[str | int | slice]):
         ):
             return FeatureKey(*super(FeatureKey, self).__getitem__(idx))
         return super(FeatureKey, self).__getitem__(idx)
-    
+
     def __str__(self) -> str:
         """String representation of the feature key."""
         return "FeatureKey(%s)" % "->".join(map(repr, self))
@@ -80,7 +80,7 @@ class FeatureKey(tuple[str | int | slice]):
         return core_schema.no_info_after_validator_function(
             cls, handler(str | tuple)
         )
-    
+
     def index_features(self, features: Features) -> FeatureType:
         """Get the feature type of the feature indexed by the key.
 
@@ -178,7 +178,6 @@ class FeatureKey(tuple[str | int | slice]):
             return batch
 
         return FeatureKey(self[0], slice(None), *self[1:]).index_example(batch)
-
 
     def __hash__(self) -> int:
         return hash(

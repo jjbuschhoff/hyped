@@ -1,23 +1,24 @@
 from __future__ import annotations
 
 import asyncio
-import nest_asyncio
-from typing import TypeVar, Any
-from typing_extensions import TypeAlias
 from types import SimpleNamespace
+from typing import Any, TypeVar
 
 import datasets
-import pyarrow as pa
+import nest_asyncio
 import networkx as nx
+import pyarrow as pa
 from torch.utils.data import get_worker_info
+from typing_extensions import TypeAlias
 
-from .ref import FeatureRef
-from hyped.common.feature_key import FeatureKey
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
+from hyped.common.feature_key import FeatureKey
 from hyped.data.processors.base import BaseDataProcessor
 from hyped.data.processors.base.inputs import InputRefs
 from hyped.data.processors.base.outputs import OutputRefs
+
+from .ref import FeatureRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 D = TypeVar(
@@ -25,7 +26,7 @@ D = TypeVar(
     datasets.Dataset,
     datasets.DatasetDict,
     datasets.IterableDataset,
-    datasets.IterableDatasetDict
+    datasets.IterableDatasetDict,
 )
 
 SRC_NODE_ID = 0
@@ -36,26 +37,16 @@ nest_asyncio.apply()
 
 
 class DataFlowGraph(nx.MultiDiGraph):
-
     def add_src_node(self, features: datasets.Features) -> FeatureRef:
         # add src node to graph
-        self.add_node(
-            SRC_NODE_ID,
-            processor=None,
-            features=features
-        )
+        self.add_node(SRC_NODE_ID, processor=None, features=features)
         # return feature ref over input features
         return FeatureRef(
-            key_=tuple(),
-            feature_=features,
-            node_id_=SRC_NODE_ID,
-            flow_=self
+            key_=tuple(), feature_=features, node_id_=SRC_NODE_ID, flow_=self
         )
 
     def add_processor(
-        self,
-        processor: BaseDataProcessor,
-        inputs: InputRefs
+        self, processor: BaseDataProcessor, inputs: InputRefs
     ) -> OutputRefs:
         # make sure the input refs match the processor
         assert isinstance(inputs, processor._in_refs_type)
@@ -65,14 +56,8 @@ class DataFlowGraph(nx.MultiDiGraph):
         #       created here and not in the call method of
         #       the processor
         node_id = self.number_of_nodes()
-        outputs = processor._out_refs_type(
-            processor.config, inputs, node_id
-        )
-        self.add_node(
-            node_id,
-            processor=processor,
-            features=outputs.feature_
-        )
+        outputs = processor._out_refs_type(processor.config, inputs, node_id)
+        self.add_node(node_id, processor=processor, features=outputs.feature_)
         # add dependency edges to graph
         for name, ref in inputs.named_refs.items():
             # make sure the inputs come from this flow
@@ -80,9 +65,10 @@ class DataFlowGraph(nx.MultiDiGraph):
                 raise RuntimeError()
             # make sure the input is a valid output of the referred node
             assert ref.node_id_ in self
-            assert ref.key_.index_features(
-                self.nodes[ref.node_id_]["features"]
-            ) is not None
+            assert (
+                ref.key_.index_features(self.nodes[ref.node_id_]["features"])
+                is not None
+            )
             # add edge to other nodes
             x = self.add_edge(
                 ref.node_id_, node_id, key=name, feature_key=ref.key_
@@ -91,7 +77,6 @@ class DataFlowGraph(nx.MultiDiGraph):
         return outputs
 
     def dependency_graph(self, node: int):
-
         visited = set()
         nodes = set([node])
         # search through dependency graph
@@ -99,14 +84,14 @@ class DataFlowGraph(nx.MultiDiGraph):
             node = nodes.pop()
             visited.add(node)
             nodes.update(self.predecessors(node))
-        
+
         return self.subgraph(visited)
-        
+
 
 class ExecutionState(object):
-
-    def __init__(self, graph: DataFlowGraph, batch: Batch, index: list[int], rank: int):
-       
+    def __init__(
+        self, graph: DataFlowGraph, batch: Batch, index: list[int], rank: int
+    ):
         src_index_hash = hash(tuple(index))
 
         self.outputs = {SRC_NODE_ID: batch}
@@ -134,17 +119,19 @@ class ExecutionState(object):
         # in batch format, otherwise they need to be converted from a
         # list-of-dicts to a dict-of-lists
         if len(ref.key_) != 0:
-            batch = {
-                key: [d[key] for d in batch]
-                for key in batch[0].keys()
-            } if len(batch) > 0 else {}
+            batch = (
+                {key: [d[key] for d in batch] for key in batch[0].keys()}
+                if len(batch) > 0
+                else {}
+            )
 
         return batch
 
     def collect_inputs(self, node_id: int) -> tuple[Batch, list[int]]:
-
         inputs, index = dict(), set()
-        for u, v, name, data in self.graph.in_edges(node_id, keys=True, data=True):
+        for u, v, name, data in self.graph.in_edges(
+            node_id, keys=True, data=True
+        ):
             assert (u == SRC_NODE_ID) or self.ready[u].is_set()
             # get feature key from data
             key = data["feature_key"]
@@ -172,10 +159,7 @@ class ExecutionState(object):
         return inputs, self.index_lookup[index]
 
     def capture_output(
-        self,
-        node_id: int,
-        output: Batch,
-        new_index: list[int]
+        self, node_id: int, output: Batch, new_index: list[int]
     ) -> None:
         assert not self.ready[node_id].is_set()
         assert all(len(vals) == len(new_index) for vals in output.values())
@@ -186,28 +170,19 @@ class ExecutionState(object):
         self.index_hash[node_id] = new_index_hash
         if new_index_hash not in self.index_lookup:
             self.index_lookup[new_index_hash] = new_index
-        
+
         self.ready[node_id].set()
 
 
 class DataFlowExecutor(object):
-
-    def __init__(
-        self,
-        graph: DataFlowGraph,
-        collect: FeatureRef
-    ) -> None:
-
+    def __init__(self, graph: DataFlowGraph, collect: FeatureRef) -> None:
         if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError()
 
         self.graph = graph
         self.collect = collect
 
-    async def execute_node(
-        self, node_id: int, state: ExecutionState
-    ):
-
+    async def execute_node(self, node_id: int, state: ExecutionState):
         if self.graph.in_degree(node_id) > 0:
             # wait for all dependencies of the current node
             deps = self.graph.predecessors(node_id)
@@ -218,11 +193,14 @@ class DataFlowExecutor(object):
         inputs, index = state.collect_inputs(node_id)
         processor = self.graph.nodes[node_id]["processor"]
         # run processor and capture output in execution state
-        out, out_index = await processor.batch_process(inputs, index, state.rank)
+        out, out_index = await processor.batch_process(
+            inputs, index, state.rank
+        )
         state.capture_output(node_id, out, out_index)
 
-    async def execute(self, batch: Batch, index: list[int], rank: int) -> Batch:
-
+    async def execute(
+        self, batch: Batch, index: list[int], rank: int
+    ) -> Batch:
         # create an execution state
         state = ExecutionState(self.graph, batch, index, rank)
         # execute all processors in the flow
@@ -238,7 +216,6 @@ class DataFlowExecutor(object):
 
 
 class DataFlow(object):
-
     def __init__(self, features: datasets.Features) -> None:
         # create graph
         self._graph = DataFlowGraph()
@@ -255,10 +232,7 @@ class DataFlow(object):
             raise RuntimeError()
         return self._out_features
 
-    def build(
-        self, collect: FeatureRef
-    ) -> DataFlow:
-
+    def build(self, collect: FeatureRef) -> DataFlow:
         if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError()
 
@@ -272,7 +246,9 @@ class DataFlow(object):
 
         return flow
 
-    def batch_process(self, batch: Batch, index: list[int], rank: None | int = None) -> Batch:
+    def batch_process(
+        self, batch: Batch, index: list[int], rank: None | int = None
+    ) -> Batch:
         assert self._out_features is not None
 
         if rank is None:
@@ -296,11 +272,12 @@ class DataFlow(object):
         # convert to pyarrow table with correct schema
         return pa.table(
             data=self.batch_process(batch, index, rank),
-            schema=convert_features_to_arrow_schema(self._out_features.feature_),
+            schema=convert_features_to_arrow_schema(
+                self._out_features.feature_
+            ),
         )
-    
-    def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
 
+    def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
         # get the dataset features
         if isinstance(ds, (datasets.Dataset, datasets.IterableDataset)):
             features = ds.features
@@ -315,9 +292,8 @@ class DataFlow(object):
                 "got %s" % type(data)
             )
 
-        if (
-            (features is not None)
-            and not check_feature_equals(features, self.src_features.feature_)
+        if (features is not None) and not check_feature_equals(
+            features, self.src_features.feature_
         ):
             # TODO: should only check whether the features are present
             #       i.e. they should be a subset and don't need to match exactly
@@ -345,7 +321,6 @@ class DataFlow(object):
         return ds
 
     def _internal_apply(self, ds: D, **kwargs) -> D:
-
         # required settings
         kwargs["batched"] = True
         kwargs["with_indices"] = True
@@ -371,4 +346,3 @@ class DataFlow(object):
                 - set(self._out_features.feature_.keys()),
                 **kwargs,
             )
-

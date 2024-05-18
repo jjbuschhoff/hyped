@@ -1,6 +1,7 @@
-from tests.hyped.data.processors.base_test import BaseDataProcessorTest
-from hyped.data.processors.ops.noop import NoOp, NoOpConfig
 from datasets import Features, Sequence, Value
+
+from hyped.data.processors.ops.noop import NoOp, NoOpConfig
+from tests.hyped.data.processors.base_test import BaseDataProcessorTest
 
 
 class TestNoOp_Value(BaseDataProcessorTest):
@@ -14,6 +15,7 @@ class TestNoOp_Value(BaseDataProcessorTest):
     # expected output
     expected_output = {"y": list(range(100))}
 
+
 class TestNoOp_Sequence(BaseDataProcessorTest):
     # processor
     processor_type = NoOp
@@ -25,28 +27,16 @@ class TestNoOp_Sequence(BaseDataProcessorTest):
     # expected output
     expected_output = {"y": [[i, i] for i in range(100)]}
 
+
 class TestNoOp_Features(BaseDataProcessorTest):
     # processor
     processor_type = NoOp
     processor_config = NoOpConfig()
     # input
     input_features = Features(
-        {
-            "x": {
-                "a": Value("int32"),
-                "b": Value("string")
-            }
-        }
+        {"x": {"a": Value("int32"), "b": Value("string")}}
     )
-    input_data = {
-        "x": [
-            {"a": i, "b": str(i)} for i in range(100)
-        ]
-    }
+    input_data = {"x": [{"a": i, "b": str(i)} for i in range(100)]}
     input_index = list(range(100))
     # expected output
-    expected_output = {
-        "y": [
-            {"a": i, "b": str(i)} for i in range(100)
-        ]
-    }
+    expected_output = {"y": [{"a": i, "b": str(i)} for i in range(100)]}

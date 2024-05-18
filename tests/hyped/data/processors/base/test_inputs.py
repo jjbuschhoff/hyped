@@ -1,21 +1,21 @@
+from unittest.mock import MagicMock
+
 import pytest
 from datasets import Sequence, Value
+from typing_extensions import Annotated
 
-#import hyped.data.processors.base
-from hyped.data.ref import FeatureRef
 from hyped.data.processors.base.inputs import (
-    InputRefs,
-    FeatureValidator,
     CheckFeatureEquals,
-    CheckFeatureIsSequence
+    CheckFeatureIsSequence,
+    FeatureValidator,
+    InputRefs,
 )
 
-from unittest.mock import MagicMock
-from typing_extensions import Annotated
+# import hyped.data.processors.base
+from hyped.data.ref import FeatureRef
 
 
 def test_feature_validator():
-
     # create mock validators
     x_validator = MagicMock()
     y_validator = MagicMock()
@@ -35,12 +35,12 @@ def test_feature_validator():
     x_validator.assert_called_with(x_ref, Value("int32"))
     y_validator.assert_called_with(y_ref, Value("string"))
 
-def test_check_feature_equals():
 
+def test_check_feature_equals():
     class CustomInputRefs(InputRefs):
         x: Annotated[FeatureRef, CheckFeatureEquals(Value("int32"))]
         y: Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
-    
+
     k, n, f = tuple(), -1, None
     # create dummy input refs
     x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
@@ -52,16 +52,23 @@ def test_check_feature_equals():
     with pytest.raises(TypeError):
         CustomInputRefs(x=x_ref, y=x_ref)
 
-def test_check_feature_is_sequence():
 
+def test_check_feature_is_sequence():
     class CustomInputRefs(InputRefs):
         x: Annotated[FeatureRef, CheckFeatureIsSequence(Value("int32"))]
         y: Annotated[FeatureRef, CheckFeatureIsSequence(Value("string"))]
-    
+
     k, n, f = tuple(), -1, None
     # create dummy input refs
-    x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Sequence(Value("int32")))
-    y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Sequence(Value("string"), length=2))
+    x_ref = FeatureRef(
+        key_=k, node_id_=n, flow_=f, feature_=Sequence(Value("int32"))
+    )
+    y_ref = FeatureRef(
+        key_=k,
+        node_id_=n,
+        flow_=f,
+        feature_=Sequence(Value("string"), length=2),
+    )
     # create input refs, all types match
     CustomInputRefs(x=x_ref, y=y_ref)
 
@@ -72,8 +79,10 @@ def test_check_feature_is_sequence():
     # test with specified length
     class CustomInputRefs(InputRefs):
         x: Annotated[FeatureRef, CheckFeatureIsSequence(Value("int32"))]
-        y: Annotated[FeatureRef, CheckFeatureIsSequence(Value("string"), length=2)]
-    
+        y: Annotated[
+            FeatureRef, CheckFeatureIsSequence(Value("string"), length=2)
+        ]
+
     # create input refs, all types match
     CustomInputRefs(x=x_ref, y=y_ref)
     # create input refs but one type doesn't match the expectation
@@ -82,7 +91,6 @@ def test_check_feature_is_sequence():
 
 
 def test_input_refs():
-
     class CustomInputRefs(InputRefs):
         x: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
         y: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]

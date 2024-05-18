@@ -32,7 +32,7 @@ class TestFeatureKey(object):
         # test string representations of feature key
         str(key)
         repr(key)
-    
+
     @pytest.mark.parametrize(
         "key,features,feature",
         [

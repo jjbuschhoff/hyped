@@ -123,14 +123,15 @@ def pydantic_model_from_features(
 
 
 class validate_type_meta(ModelMetaclass):
-
     def __new__(cls, name, bases, attrs) -> type:
         T = super().__new__(cls, name, bases, attrs)
         T.type_validator()
         return T
 
-class BaseModelWithTypeValidation(pydantic.BaseModel, metaclass=validate_type_meta):
-    
+
+class BaseModelWithTypeValidation(
+    pydantic.BaseModel, metaclass=validate_type_meta
+):
     @classmethod
     def type_validator(cls) -> None:
         pass
