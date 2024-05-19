@@ -9,7 +9,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 authors = [
-    {name = "Niclas Doll"},
+    {name = "open-hyped"},
 ]
 requires-python = ">=3.10"
 license = {text = "Apache 2.0"}
@@ -28,7 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 linting = ["pre-commit"]
-tests = ["pytest", "pytest-cov"]
+tests = ["pytest", "pytest-cov", "pytest-asyncio"]
 docs = ["sphinx", "sphinx_rtd_theme"]
 cas = ["dkpro-cassis>=0.8.0"]
 llm = ["openai>=1.23.6"]
