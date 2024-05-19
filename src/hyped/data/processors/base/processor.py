@@ -154,7 +154,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         # build inputs from keyword arguments if needed
         inputs = inputs if inputs is not None else self._in_refs_type(**kwargs)
         # add new node to flow and return the output refs
-        return inputs.flow.add_processor(self, inputs)
+        return inputs.flow.add_processor_node(self, inputs)
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int

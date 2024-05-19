@@ -21,10 +21,10 @@ from hyped.data.processors.ops.noop import NoOp, NoOpInputRefs
 def setup_graph():
     # create the graph and add the source node
     graph = DataFlowGraph()
-    src = graph.add_src_node(Features({"val": Value("int32")}))
+    src = graph.add_source_node(Features({"val": Value("int32")}))
     # add processors
-    o1 = graph.add_processor(NoOp(), NoOpInputRefs(x=src.val))
-    o2 = graph.add_processor(NoOp(), NoOpInputRefs(x=o1.y))
+    o1 = graph.add_processor_node(NoOp(), NoOpInputRefs(x=src.val))
+    o2 = graph.add_processor_node(NoOp(), NoOpInputRefs(x=o1.y))
     # return setup
     return graph, o1, o2
 
@@ -56,59 +56,120 @@ def setup_flow(setup_graph):
 
 
 class TestDataFlowGraph:
-    def test_add_processor(self):
+    def test_add_processor_node(self):
         features = Features({"val": Value("int32")})
         # create the graph and add the source node
         graph = DataFlowGraph()
-        src = graph.add_src_node(features)
+        src = graph.add_source_node(features)
         assert SRC_NODE_ID in graph
-        assert graph.nodes[SRC_NODE_ID]["processor"] is None
-        assert graph.nodes[SRC_NODE_ID]["features"] == features
+        assert graph.nodes[SRC_NODE_ID][DataFlowGraph.NodeProperty.DEPTH] == 0
+        assert (
+            graph.nodes[SRC_NODE_ID][DataFlowGraph.NodeProperty.PROCESSOR]
+            is None
+        )
+        assert (
+            graph.nodes[SRC_NODE_ID][DataFlowGraph.NodeProperty.FEATURES]
+            == features
+        )
         assert src.feature_ == features
 
-        # add processors
         p1, i1 = NoOp(), NoOpInputRefs(x=src.val)
-        o1 = graph.add_processor(p1, i1)
+        o1 = graph.add_processor_node(p1, i1)
 
         # check node
         assert o1.node_id_ in graph
-        assert graph.nodes[o1.node_id_]["processor"] == p1
-        assert graph.nodes[o1.node_id_]["features"] == Features(
-            {"y": Value("int32")}
+        assert graph.nodes[o1.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 1
+        assert (
+            graph.nodes[o1.node_id_][DataFlowGraph.NodeProperty.PROCESSOR]
+            == p1
         )
+        assert graph.nodes[o1.node_id_][
+            DataFlowGraph.NodeProperty.FEATURES
+        ] == Features({"y": Value("int32")})
         # check edge
         assert graph.has_edge(SRC_NODE_ID, o1.node_id_)
         for n, r in i1.named_refs.items():
             assert n in graph[SRC_NODE_ID][o1.node_id_]
-            assert graph[SRC_NODE_ID][o1.node_id_][n]["feature_key"] == r.key_
+            assert (
+                graph[SRC_NODE_ID][o1.node_id_][n][
+                    DataFlowGraph.EdgeProperty.KEY
+                ]
+                == r.key_
+            )
 
         p2, i2 = NoOp(), NoOpInputRefs(x=o1.y)
-        o2 = graph.add_processor(p2, i2)
+        o2 = graph.add_processor_node(p2, i2)
 
         # check node
         assert o2.node_id_ in graph
-        assert graph.nodes[o2.node_id_]["processor"] == p2
-        assert graph.nodes[o2.node_id_]["features"] == Features(
-            {"y": Value("int32")}
+        assert graph.nodes[o2.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 2
+        assert (
+            graph.nodes[o2.node_id_][DataFlowGraph.NodeProperty.PROCESSOR]
+            == p2
         )
+        assert graph.nodes[o2.node_id_][
+            DataFlowGraph.NodeProperty.FEATURES
+        ] == Features({"y": Value("int32")})
         # check edge
         assert graph.has_edge(o1.node_id_, o2.node_id_)
         for n, r in i2.named_refs.items():
             assert n in graph[o1.node_id_][o2.node_id_]
-            assert graph[o1.node_id_][o2.node_id_][n]["feature_key"] == r.key_
+            assert (
+                graph[o1.node_id_][o2.node_id_][n][
+                    DataFlowGraph.EdgeProperty.KEY
+                ]
+                == r.key_
+            )
+
+    def test_depth_property(self):
+        # create the graph and add the source node
+        graph = DataFlowGraph()
+        src = graph.add_source_node(Features({"val": Value("int32")}))
+
+        # add first level processors
+        p1, i1 = NoOp(), NoOpInputRefs(x=src.val)
+        o1 = graph.add_processor_node(p1, i1)
+
+        p2, i2 = NoOp(), NoOpInputRefs(x=src.val)
+        o2 = graph.add_processor_node(p2, i2)
+
+        # add second level processors
+        p3, i3 = NoOp(), NoOpInputRefs(x=o1.y)
+        o3 = graph.add_processor_node(p3, i3)
+
+        p4, i4 = NoOp(), NoOpInputRefs(x=o2.y)
+        o4 = graph.add_processor_node(p4, i4)
+
+        p5, i5 = NoOp(), NoOpInputRefs(x=o2.y)
+        o5 = graph.add_processor_node(p5, i5)
+
+        # check depth property
+        assert graph.nodes[src.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 0
+        assert graph.nodes[o1.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 1
+        assert graph.nodes[o2.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 1
+        assert graph.nodes[o3.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 2
+        assert graph.nodes[o4.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 2
+        assert graph.nodes[o5.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 2
+
+        # add third level processor
+        p6, i6 = NoOp(), NoOpInputRefs(x=o3.y)
+        o6 = graph.add_processor_node(p6, i6)
+
+        # check depth property
+        assert graph.nodes[o6.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 3
 
     def test_add_processor_invalid_input(self):
         g1 = DataFlowGraph()
         g2 = DataFlowGraph()
         # add source nodes
-        x1 = g1.add_src_node(Features({"val": Value("int32")}))
-        x2 = g2.add_src_node(Features({"val": Value("int32")}))
+        x1 = g1.add_source_node(Features({"val": Value("int32")}))
+        x2 = g2.add_source_node(Features({"val": Value("int32")}))
         # add valid nodes
-        g1.add_processor(NoOp(), NoOpInputRefs(x=x1.val))
-        g2.add_processor(NoOp(), NoOpInputRefs(x=x2.val))
+        g1.add_processor_node(NoOp(), NoOpInputRefs(x=x1.val))
+        g2.add_processor_node(NoOp(), NoOpInputRefs(x=x2.val))
         # try add invalid node
         with pytest.raises(RuntimeError):
-            g1.add_processor(NoOp(), NoOpInputRefs(x=x2.val))
+            g1.add_processor_node(NoOp(), NoOpInputRefs(x=x2.val))
 
     def test_dependency_graph(self, setup_graph):
         graph, out1, out2 = setup_graph
@@ -143,7 +204,7 @@ class TestExecutionState:
     def test_collect_value(self):
         # create the graph and add the source node
         graph = DataFlowGraph()
-        src = graph.add_src_node(Features({"val": {"x": Value("string")}}))
+        src = graph.add_source_node(Features({"val": {"x": Value("string")}}))
         # create arguments for execution state
         rank = 0
         index = [0, 1, 2]
@@ -160,7 +221,7 @@ class TestExecutionState:
     def test_collect_inputs(self):
         # create the graph and add the source node
         graph = DataFlowGraph()
-        src = graph.add_src_node(Features({"val": {"x": Value("string")}}))
+        src = graph.add_source_node(Features({"val": {"x": Value("string")}}))
         # create arguments for execution state
         rank = 0
         index = [0, 1, 2]
@@ -169,13 +230,13 @@ class TestExecutionState:
         state = ExecutionState(graph, batch, index, rank)
 
         # add processor and collect inputs for it
-        out = graph.add_processor(NoOp(), NoOpInputRefs(x=src))
+        out = graph.add_processor_node(NoOp(), NoOpInputRefs(x=src))
         collected, index = state.collect_inputs(out.node_id_)
         assert index == index
         assert collected == {"x": [{"val": "a"}, {"val": "b"}, {"val": "c"}]}
 
         # add processor and collect inputs for it
-        out = graph.add_processor(NoOp(), NoOpInputRefs(x=src.val))
+        out = graph.add_processor_node(NoOp(), NoOpInputRefs(x=src.val))
         collected, index = state.collect_inputs(out.node_id_)
         assert index == index
         assert collected == {"x": ["a", "b", "c"]}

@@ -123,7 +123,7 @@ class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
         processor.call(collection=cls.collection)
         # this should end up being two different
         # processor instances in the flow
-        calls = mock_flow.add_processor.mock_calls
+        calls = mock_flow.add_processor_node.mock_calls
         assert len(calls) == 2
         assert calls[0].args[0] != calls[1].args[0]
 

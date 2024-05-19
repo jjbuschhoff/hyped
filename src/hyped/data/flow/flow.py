@@ -21,6 +21,7 @@ The module also provides various utility functions and types to support data pro
 from __future__ import annotations
 
 import asyncio
+from enum import Enum
 from typing import Any, TypeVar
 
 import datasets
@@ -62,7 +63,69 @@ class DataFlowGraph(nx.MultiDiGraph):
     edges define the data flow between these processors.
     """
 
-    def add_src_node(self, features: datasets.Features) -> FeatureRef:
+    class NodeProperty(str, Enum):
+        """Enum representing properties of a node in the data flow graph."""
+
+        PROCESSOR = "processor"
+        """
+        Represents the data processor associated with the node.
+
+        Type: BaseDataProcessor
+
+        This property holds a reference to the data processor instance that the node
+        represents within the data flow graph.
+        """
+
+        FEATURES = "features"
+        """
+        Represents the output features associated with the node.
+
+        Type: datasets.Features
+
+        This property contains the output features produced by the data processor,
+        encapsulated in a HuggingFace `datasets.Features` instance. It defines the
+        structure and types of data that are output by this node.
+        """
+
+        DEPTH = "depth"
+        """
+        Represents the depth of the node within the data flow graph.
+
+        Type: int
+
+        This property indicates the level of the node in the graph, with the root
+        node having a depth of 0. It is used to understand the hierarchical position
+        of the node relative to other nodes in the data flow.
+        """
+
+    class EdgeProperty(str, Enum):
+        """Enum representing properties of an edge in the data flow graph."""
+
+        NAME = "key"
+        """
+        Represents the name of the edge.
+
+        Type: str
+
+        This property corresponds to the keyword of the argument used as an input
+        to the processor, linking the edge to a specific input parameter.
+
+        The name is also used by NetworkX as an identifier to distinguish multiedges
+        between a pair of nodes. It serves as a unique identifier for the edge.
+        """
+
+        KEY = "feature_key"
+        """
+        Represents the key of the feature associated with the edge.
+
+        Type: FeatureKey
+
+        This property specifies which subfeature of the output of the source node
+        is flowing through the edge. It defines the particular feature that is being
+        transmitted from one node to another in the data flow graph.
+        """
+
+    def add_source_node(self, features: datasets.Features) -> FeatureRef:
         """Add a the source node to the graph.
 
         This method adds a source node to the graph, which acts as the initial
@@ -79,13 +142,20 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         assert SRC_NODE_ID not in self, "Graph already contains a source node"
         # add src node to graph
-        self.add_node(SRC_NODE_ID, processor=None, features=features)
+        self.add_node(
+            SRC_NODE_ID,
+            **{
+                DataFlowGraph.NodeProperty.PROCESSOR: None,
+                DataFlowGraph.NodeProperty.FEATURES: features,
+                DataFlowGraph.NodeProperty.DEPTH: 0,
+            },
+        )
         # return feature ref over input features
         return FeatureRef(
             key_=tuple(), feature_=features, node_id_=SRC_NODE_ID, flow_=self
         )
 
-    def add_processor(
+    def add_processor_node(
         self, processor: BaseDataProcessor, inputs: InputRefs
     ) -> OutputRefs:
         """Add a processor node to the graph.
@@ -116,12 +186,20 @@ class DataFlowGraph(nx.MultiDiGraph):
         )
 
         # add processor to graph
+        depth = -1
+        node_id = self.number_of_nodes()
         # TODO: seems unintuitive that the output refs are
         #       created here and not in the call method of
         #       the processor
-        node_id = self.number_of_nodes()
         outputs = processor._out_refs_type(processor.config, inputs, node_id)
-        self.add_node(node_id, processor=processor, features=outputs.feature_)
+        self.add_node(
+            node_id,
+            **{
+                DataFlowGraph.NodeProperty.PROCESSOR: processor,
+                DataFlowGraph.NodeProperty.FEATURES: outputs.feature_,
+                DataFlowGraph.NodeProperty.DEPTH: -1,
+            },
+        )
         # add dependency edges to graph
         for name, ref in inputs.named_refs.items():
             # make sure the inputs come from this flow
@@ -137,8 +215,23 @@ class DataFlowGraph(nx.MultiDiGraph):
             )
             # add edge to other nodes
             x = self.add_edge(
-                ref.node_id_, node_id, key=name, feature_key=ref.key_
+                ref.node_id_,
+                node_id,
+                **{
+                    DataFlowGraph.EdgeProperty.NAME: name,
+                    DataFlowGraph.EdgeProperty.KEY: ref.key_,
+                },
             )
+            # update the depth of the node based on the depth of the source node
+            depth = max(
+                depth,
+                self.nodes[ref.node_id_][DataFlowGraph.NodeProperty.DEPTH] + 1,
+            )
+
+        # update the depth of the node
+        self.nodes[node_id][DataFlowGraph.NodeProperty.DEPTH] = depth
+        # make sure the graph is a DAG
+        assert nx.is_directed_acyclic_graph(self)
 
         return outputs
 
@@ -445,7 +538,7 @@ class DataFlow(object):
         """
         # create graph
         self._graph = DataFlowGraph()
-        self._src_features = self._graph.add_src_node(features=features)
+        self._src_features = self._graph.add_source_node(features=features)
         self._out_features: None | FeatureRef = None
 
     @property

@@ -53,7 +53,7 @@ class TestBaseDataProcessor:
             # this should add the processor to the mock flow
             out = proc.call(inputs=mock_inputs)
             # check output and make sure processor was added
-            mock_inputs.flow.add_processor.assert_called_with(
+            mock_inputs.flow.add_processor_node.assert_called_with(
                 proc, mock_inputs
             )
 
