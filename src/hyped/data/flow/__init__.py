@@ -1,15 +1,49 @@
-"""Module for data flow and feature reference management in data processing workflows.
+"""A comprehensive framework for constructing, managing, and executing complex data processing pipelines.
 
-This module provides the essential components for managing the data flow and feature
-references within data processing pipelines. It includes functionality for defining
-and handling the flow of data through various processing nodes, as well as managing
-the references to specific data features within the pipeline.
+This package provides a comprehensive framework for constructing, managing,
+and executing complex data processing pipelines. The framework is designed
+to be modular and flexible, allowing users to define data flows, processors,
+and augmenters to handle a wide variety of data processing tasks.
 
-Key Features:
-    - **Data Flow Management**: Defines and manages the flow of data through different
-      nodes in a data processing pipeline, ensuring that data is correctly routed and
-      processed in the desired sequence.
-    - **Feature Reference Handling**: Provides a robust system for referencing specific
-      data features within the pipeline. This allows for easy access and manipulation
-      of data features, facilitating complex data transformations and analysis.
+Sub-modules:
+    - flow: Defines the core classes and functions for creating and managing
+        data flows as directed acyclic graphs (DAGs). 
+
+    - processors: Provides a comprehensive collection of data processors designed
+        to handle different data modalities and perform a wide range of data
+        transformations. Data processors are the fundamental building blocks in a
+        data flow graph, acting as nodes that implement specific, modular data
+        transformations.
+
+    - augmentors: TODO: coming soon
+
+    - ops: Provides high-level feature operators for data processors.
+        The operator module defines high-level functions for performing common
+        operations. These functions delegate the actual processing to specific
+        processors. Feature operators are designed to simplify the process of
+        adding processors to a data flow by providing high-level functions
+
+Example:
+    Define a data flow for processing text data:
+
+    .. code-block:: python
+
+        import datasets
+        from hyped.data.flow import DataFlow
+        from hyped.data.flow.processors.tokenizers import TransformersTokenizer
+
+        # create the data flow instance
+        features = datasets.Features({"text": datasets.Value("string")})
+        flow = DataFlow(features=features)
+
+        # Define a processing step to tokenize text
+        tokenizer = TokenizerProcessor(model_name="bert-base-uncased")
+        tokenized_features = tokenizer.call(text=data_flow.src_features.text)
+
+        # Apply the data flow to a dataset
+        dataset = datasets.load(...)
+        processed_dataset = flow.apply(dataset)
 """
+
+from . import ops
+from .flow import DataFlow

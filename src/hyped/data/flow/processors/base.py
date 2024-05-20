@@ -54,16 +54,23 @@ from typing import Any, Generic, TypeVar
 
 from typing_extensions import TypeAlias
 
-from hyped.base.config import BaseConfigurable
+from hyped.base.config import BaseConfig, BaseConfigurable
 from hyped.base.generic import solve_typevar
-from hyped.data.flow.ref import FeatureRef
-
-from .config import BaseDataProcessorConfig
-from .inputs import InputRefs
-from .outputs import OutputRefs
+from hyped.data.flow.refs.inputs import InputRefs
+from hyped.data.flow.refs.outputs import OutputRefs
 
 Batch: TypeAlias = dict[str, list[Any]]
 Sample: TypeAlias = dict[str, Any]
+
+
+class BaseDataProcessorConfig(BaseConfig):
+    """Base configuration class for data processors.
+
+    This class serves as the base configuration class for data processors.
+    It inherits from `BaseConfig`, a Pydantic model, providing basic configuration
+    functionality for data processing tasks.
+    """
+
 
 C = TypeVar("C", bound=BaseDataProcessorConfig)
 I = TypeVar("I", bound=InputRefs)

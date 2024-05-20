@@ -2,7 +2,7 @@ import pytest
 from datasets import Features, Sequence, Value
 
 from hyped.common.feature_key import FeatureKey
-from hyped.data.flow.ref import FeatureRef
+from hyped.data.flow.refs.ref import FeatureRef
 
 
 class TestFeatureRef(object):

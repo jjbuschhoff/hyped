@@ -4,14 +4,14 @@ import pytest
 from datasets import Features, Sequence, Value
 
 from hyped.common.feature_checks import check_feature_equals
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.ops.collect import (
+from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
     CollectFeaturesConfig,
     CollectFeaturesInputRefs,
     FeatureCollection,
 )
-from tests.hyped.data.processors.base_test import BaseDataProcessorTest
+from hyped.data.flow.refs.ref import FeatureRef
+from tests.hyped.data.flow.processors.base import BaseDataProcessorTest
 
 mock_flow = MagicMock()
 mock_flow.add_processor = MagicMock()

@@ -1,9 +1,8 @@
-import pytest
 from datasets import Features, Value
 
 from hyped.data.flow.flow import DataFlow
-from hyped.data.ops import collect
-from hyped.data.processors.ops.collect import CollectFeatures
+from hyped.data.flow.ops import collect
+from hyped.data.flow.processors.ops.collect import CollectFeatures
 
 
 def test_collect():

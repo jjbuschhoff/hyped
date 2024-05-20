@@ -3,8 +3,11 @@ import pickle
 
 from datasets import Features, Sequence, Value
 
-from hyped.data.processors.parsers.json import JsonParser, JsonParserConfig
-from tests.hyped.data.processors.base_test import BaseDataProcessorTest
+from hyped.data.flow.processors.parsers.json import (
+    JsonParser,
+    JsonParserConfig,
+)
+from tests.hyped.data.flow.processors.base import BaseDataProcessorTest
 
 
 class BaseJsonParserTest(BaseDataProcessorTest):

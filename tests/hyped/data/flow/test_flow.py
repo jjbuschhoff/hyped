@@ -14,8 +14,7 @@ from hyped.data.flow.flow import (
     DataFlowGraph,
     ExecutionState,
 )
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.ops.noop import NoOp, NoOpInputRefs
+from hyped.data.flow.processors.ops.noop import NoOp, NoOpInputRefs
 
 
 # fixtures

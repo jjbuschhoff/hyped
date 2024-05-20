@@ -4,13 +4,13 @@ import pytest
 from datasets import Value
 from typing_extensions import Annotated
 
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.base import (
+from hyped.data.flow.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
 )
-from hyped.data.processors.base.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.processors.base.outputs import OutputFeature, OutputRefs
+from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.refs.outputs import OutputFeature, OutputRefs
+from hyped.data.flow.refs.ref import FeatureRef
 
 
 class MockOutputRefs(OutputRefs):
@@ -47,7 +47,7 @@ class TestBaseDataProcessor:
 
         # patch flow property of input refs
         with patch(
-            "hyped.data.processors.base.inputs.InputRefs.flow",
+            "hyped.data.flow.refs.inputs.InputRefs.flow",
             callable=PropertyMock,
         ):
             # this should add the processor to the mock flow

@@ -4,11 +4,14 @@ import pytest
 from datasets import Features, Sequence
 
 from hyped.common.feature_checks import check_object_matches_feature
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.base.config import BaseDataProcessorConfig
-from hyped.data.processors.base.inputs import InputRefs
-from hyped.data.processors.base.outputs import OutputRefs
-from hyped.data.processors.base.processor import BaseDataProcessor, Batch
+from hyped.data.flow.processors.base import (
+    BaseDataProcessor,
+    BaseDataProcessorConfig,
+    Batch,
+)
+from hyped.data.flow.refs.inputs import InputRefs
+from hyped.data.flow.refs.outputs import OutputRefs
+from hyped.data.flow.refs.ref import FeatureRef
 
 
 class BaseDataProcessorTest:

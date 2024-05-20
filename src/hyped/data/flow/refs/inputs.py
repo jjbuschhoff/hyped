@@ -35,7 +35,6 @@ Usage Example:
     In this example, `CustomInputRefs` extends `InputRefs` to define a collection of input
     references with specified validators for feature type checking.
 """
-from functools import partial
 from typing import Callable
 
 from datasets.features.features import FeatureType
@@ -47,7 +46,8 @@ from hyped.common.feature_checks import (
     raise_feature_is_sequence,
 )
 from hyped.common.pydantic import BaseModelWithTypeValidation
-from hyped.data.flow.ref import FeatureRef
+
+from .ref import FeatureRef
 
 
 class FeatureValidator(AfterValidator):

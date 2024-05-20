@@ -10,14 +10,14 @@ from datasets.features.features import Features, FeatureType, Sequence, Value
 from pydantic import BaseModel, BeforeValidator, ConfigDict, PlainSerializer
 
 from hyped.common.pydantic import pydantic_model_from_features
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.base import (
+from hyped.data.flow.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
     Batch,
 )
-from hyped.data.processors.base.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.processors.base.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.flow.refs.ref import FeatureRef
 
 
 class JsonParserInputRefs(InputRefs):

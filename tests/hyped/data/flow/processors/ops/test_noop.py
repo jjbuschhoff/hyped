@@ -1,7 +1,7 @@
 from datasets import Features, Sequence, Value
 
-from hyped.data.processors.ops.noop import NoOp, NoOpConfig
-from tests.hyped.data.processors.base_test import BaseDataProcessorTest
+from hyped.data.flow.processors.ops.noop import NoOp, NoOpConfig
+from tests.hyped.data.flow.processors.base import BaseDataProcessorTest
 
 
 class TestNoOp_Value(BaseDataProcessorTest):

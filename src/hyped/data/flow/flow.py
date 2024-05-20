@@ -37,11 +37,11 @@ from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
-from hyped.data.processors.base import BaseDataProcessor
-from hyped.data.processors.base.inputs import InputRefs
-from hyped.data.processors.base.outputs import OutputRefs
 
-from .ref import FeatureRef
+from .processors.base import BaseDataProcessor
+from .refs.inputs import InputRefs
+from .refs.outputs import OutputRefs
+from .refs.ref import FeatureRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 D = TypeVar(
@@ -555,24 +555,6 @@ class DataFlow(object):
         batch_process: Processes a single batch of data.
         apply: Applies the data flow to an entire dataset.
         plot: Plot the data flow to a `matplotlib.pyplot` axes.
-
-    Example:
-        Define a data flow for processing text data:
-
-        .. code-block:: python
-
-            text_features = datasets.Features({"text": datasets.Value("string")})
-            data_flow = DataFlow(features=text_features)
-
-            # Define a processing step to tokenize text
-            tokenizer = TokenizerProcessor(model_name="bert-base-uncased")
-            tokenized_features = tokenizer.output_features
-
-            # Add the tokenizer processor to the data flow
-            data_flow.add_processor_node(tokenizer, inputs=data_flow.src_features)
-
-            # Apply the data flow to a dataset
-            processed_dataset = data_flow.apply(dataset)
     """
 
     def __init__(self, features: datasets.Features) -> None:

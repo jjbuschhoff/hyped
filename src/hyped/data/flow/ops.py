@@ -33,9 +33,8 @@ Usage Example:
         )
 """
 
-from hyped.data.processors.ops.collect import CollectFeatures
-
-from .flow.ref import FeatureRef
+from .processors.ops.collect import CollectFeatures
+from .refs.ref import FeatureRef
 
 
 def collect(collection: None | dict | list = None, **kwargs) -> FeatureRef:

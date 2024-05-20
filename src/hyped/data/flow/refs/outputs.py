@@ -33,11 +33,11 @@ from typing import Callable, ClassVar
 
 from datasets.features.features import Features, FeatureType
 
+from hyped.base.config import BaseConfig
 from hyped.common.pydantic import BaseModelWithTypeValidation
-from hyped.data.flow.ref import FeatureRef
 
-from .config import BaseDataProcessorConfig
 from .inputs import InputRefs
+from .ref import FeatureRef
 
 
 class LambdaOutputFeature(object):
@@ -47,23 +47,21 @@ class LambdaOutputFeature(object):
     feature type based on the provided data processor configuration and
     input references.
 
-    Parameters:
-        f (Callable[[BaseDataProcessorConfig, InputRefs], FeatureType]):
-            The lambda function for generating the output feature type.
-
     Attributes:
-        build_feature_type (Callable[[BaseDataProcessorConfig, InputRefs], FeatureType]):
+        build_feature_type (Callable[[BaseConfig, InputRefs], FeatureType]):
             The lambda function for generating the output feature type.
     """
 
     def __init__(
-        self, f: Callable[[BaseDataProcessorConfig, InputRefs], FeatureType]
+        self, f: Callable[[BaseConfig, InputRefs], FeatureType]
     ) -> None:
         """Initialize the LambdaOutputFeature instance.
 
         Args:
-            f (Callable[[BaseDataProcessorConfig, InputRefs], FeatureType]):
+            f (Callable[[BaseConfig, InputRefs], FeatureType]):
                 The lambda function for generating the output feature type.
+                Receives the configuration of the processor or augmenter and
+                the input refs instance corresponding to the call.
         """
         self.build_feature_type = f
 
@@ -133,14 +131,14 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
 
     def __init__(
         self,
-        config: BaseDataProcessorConfig,
+        config: BaseConfig,
         inputs: InputRefs,
         node_id: int,
     ) -> None:
         """Initialize the OutputRefs instance.
 
         Parameters:
-            config (BaseDataProcessorConfig): The configuration of the data processor.
+            config (BaseConfig): The configuration of the data processor or augmenter.
             inputs (InputRefs): The input references used by the data processor.
             node_id (int): The identifier of the data processor node.
         """

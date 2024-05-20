@@ -21,14 +21,14 @@ from pydantic._internal._model_construction import ModelMetaclass
 from typing_extensions import Annotated
 
 from hyped.common.feature_checks import check_feature_equals
-from hyped.data.flow.ref import FeatureRef
-from hyped.data.processors.base import (
+from hyped.data.flow.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
     Batch,
 )
-from hyped.data.processors.base.inputs import InputRefs
-from hyped.data.processors.base.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.flow.refs.inputs import InputRefs
+from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.flow.refs.ref import FeatureRef
 
 
 class FeatureCollection(BaseModel):
