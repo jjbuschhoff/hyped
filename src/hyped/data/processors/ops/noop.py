@@ -65,7 +65,9 @@ class NoOp(BaseDataProcessor[NoOpConfig, NoOpInputRefs, NoOpOutputRefs]):
         """
         return cls()
 
-    async def process(self, inputs: Batch, index: int, rank: int) -> Batch:
+    async def batch_process(
+        self, inputs: Batch, index: list[int], rank: int
+    ) -> tuple[Batch, list[int]]:
         """Processes a batch of inputs and returns the corresponding batch of outputs.
 
         This method implements the processing logic for the NoOp data processor,
@@ -80,4 +82,4 @@ class NoOp(BaseDataProcessor[NoOpConfig, NoOpInputRefs, NoOpOutputRefs]):
         Returns:
             Batch: The batch of output samples.
         """
-        return {"y": inputs["x"]}
+        return {"y": inputs["x"]}, index
