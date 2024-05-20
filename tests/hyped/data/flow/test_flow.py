@@ -1,6 +1,8 @@
 import asyncio
+from unittest.mock import patch
 
 import datasets
+import matplotlib.pyplot as plt
 import pytest
 from datasets import Features, Value
 
@@ -121,7 +123,7 @@ class TestDataFlowGraph:
                 == r.key_
             )
 
-    def test_depth_property(self):
+    def test_node_depth(self):
         # create the graph and add the source node
         graph = DataFlowGraph()
         src = graph.add_source_node(Features({"val": Value("int32")}))
@@ -157,6 +159,57 @@ class TestDataFlowGraph:
 
         # check depth property
         assert graph.nodes[o6.node_id_][DataFlowGraph.NodeProperty.DEPTH] == 3
+
+    def test_graph_depth(self):
+        features = Features({"val": Value("int32")})
+        # create the graph and add the source node
+        graph = DataFlowGraph()
+        src = graph.add_source_node(features)
+        p1, i1 = NoOp(), NoOpInputRefs(x=src.val)
+        o1 = graph.add_processor_node(p1, i1)
+        p2, i2 = NoOp(), NoOpInputRefs(x=o1.y)
+        o2 = graph.add_processor_node(p2, i2)
+
+        # check depth
+        assert graph.depth == 3
+
+        # add another branch to increase depth
+        p3, i3 = NoOp(), NoOpInputRefs(x=o2.y)
+        o3 = graph.add_processor_node(p3, i3)
+        assert graph.depth == 4
+
+        # add another node at the same depth level
+        p4, i4 = NoOp(), NoOpInputRefs(x=o1.y)
+        o4 = graph.add_processor_node(p4, i4)
+        assert graph.depth == 4
+
+    def test_graph_width(self):
+        features = Features({"val": Value("int32")})
+        # create the graph and add the source node
+        graph = DataFlowGraph()
+        src = graph.add_source_node(features)
+        p1, i1 = NoOp(), NoOpInputRefs(x=src.val)
+        o1 = graph.add_processor_node(p1, i1)
+        p2, i2 = NoOp(), NoOpInputRefs(x=o1.y)
+        o2 = graph.add_processor_node(p2, i2)
+
+        # check width
+        assert graph.width == 1
+
+        # add another branch to increase width at depth 1
+        p3, i3 = NoOp(), NoOpInputRefs(x=src.val)
+        o3 = graph.add_processor_node(p3, i3)
+        assert graph.width == 2
+
+        # add another node at the same depth level as an existing node
+        p4, i4 = NoOp(), NoOpInputRefs(x=o1.y)
+        o4 = graph.add_processor_node(p4, i4)
+        assert graph.width == 2
+
+        # add another node at a new depth level
+        p5, i5 = NoOp(), NoOpInputRefs(x=o2.y)
+        o5 = graph.add_processor_node(p5, i5)
+        assert graph.width == 2
 
     def test_add_processor_invalid_input(self):
         g1 = DataFlowGraph()
@@ -285,7 +338,7 @@ class TestDataFlowExecutor:
         index = [0, 1, 2]
         rank = 0
 
-        output_batch = await executor.execute(batch, index, rank)
+        await executor.execute(batch, index, rank)
 
 
 class TestDataFlow:
@@ -387,3 +440,51 @@ class TestDataFlow:
         # check output
         assert out_ds.features == flow.out_features.feature_
         assert all(i == j for i, j in zip(ds["val"], out_ds["y"]))
+
+    @pytest.mark.parametrize(
+        "with_edge_labels, edge_label_format",
+        [
+            (False, "{name}={key}"),
+            (True, "{name}={key}"),
+            (True, "{name}"),
+            (True, "{key}"),
+        ],
+    )
+    def test_plot(self, setup_flow, with_edge_labels, edge_label_format):
+        flow, out1, out2 = setup_flow
+        # Ensure the plot function runs without errors and returns an Axes object
+        with patch(
+            "matplotlib.pyplot.show"
+        ):  # Mock plt.show to avoid displaying the plot during tests
+            ax = flow.plot(
+                src_node_label="[ROOT]", with_edge_labels=with_edge_labels
+            )
+            assert isinstance(ax, plt.Axes)
+
+        # Check if node labels are correct
+        for node, data in flow._graph.nodes(data=True):
+            node_label = (
+                "[ROOT]"
+                if node == SRC_NODE_ID
+                else type(data[DataFlowGraph.NodeProperty.PROCESSOR]).__name__
+            )
+            assert any(
+                node_label in text.get_text() for text in ax.texts
+            ), f"Node label {node_label} is missing in the plot."
+
+        # Check if edge labels are correct
+        for edge in flow._graph.edges(data=True):
+            _, _, data = edge
+            edge_label = edge_label_format.format(
+                name=data[DataFlowGraph.EdgeProperty.NAME],
+                key=data[DataFlowGraph.EdgeProperty.KEY],
+            )
+
+            if with_edge_labels:
+                assert any(
+                    edge_label in text.get_text() for text in ax.texts
+                ), f"Edge label {edge_label} is missing in the plot."
+            else:
+                assert all(
+                    edge_label not in text.get_text() for text in ax.texts
+                ), f"Edge label {edge_label} in the plot but shouldn't be included."

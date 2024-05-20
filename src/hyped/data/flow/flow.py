@@ -21,12 +21,16 @@ The module also provides various utility functions and types to support data pro
 from __future__ import annotations
 
 import asyncio
+import re
 from enum import Enum
+from itertools import groupby
 from typing import Any, TypeVar
 
 import datasets
+import matplotlib.pyplot as plt
 import nest_asyncio
 import networkx as nx
+import numpy as np
 import pyarrow as pa
 from torch.utils.data import get_worker_info
 from typing_extensions import TypeAlias
@@ -101,7 +105,7 @@ class DataFlowGraph(nx.MultiDiGraph):
     class EdgeProperty(str, Enum):
         """Enum representing properties of an edge in the data flow graph."""
 
-        NAME = "key"
+        NAME = "name"
         """
         Represents the name of the edge.
 
@@ -124,6 +128,43 @@ class DataFlowGraph(nx.MultiDiGraph):
         is flowing through the edge. It defines the particular feature that is being
         transmitted from one node to another in the data flow graph.
         """
+
+    @property
+    def depth(self) -> int:
+        """Computes the total depth of the data flow graph.
+
+        The depth is defined as the maximum level of any node in the graph, where the root
+        node has a depth of 0. This property calculates the depth by finding the maximum
+        depth attribute among all nodes in the graph.
+
+        Returns:
+            int: The total depth of the graph.
+        """
+        return (
+            max(
+                nx.get_node_attributes(
+                    self, DataFlowGraph.NodeProperty.DEPTH
+                ).values()
+            )
+            + 1
+        )
+
+    @property
+    def width(self) -> int:
+        """Computes the width of the data flow graph.
+
+        The width is defined as the maximum number of nodes present at any single depth level
+        in the graph. This property calculates the width by grouping nodes by their depth and
+        finding the largest group.
+
+        Returns:
+            int: The maximum width of the graph.
+        """
+        # group nodes by their layer
+        depths = nx.get_node_attributes(self, DataFlowGraph.NodeProperty.DEPTH)
+        layers = groupby(sorted(self, key=depths.get), key=depths.get)
+        # find larges layer in graph
+        return max(len(list(layer)) for _, layer in layers)
 
     def add_source_node(self, features: datasets.Features) -> FeatureRef:
         """Add a the source node to the graph.
@@ -217,6 +258,7 @@ class DataFlowGraph(nx.MultiDiGraph):
             x = self.add_edge(
                 ref.node_id_,
                 node_id,
+                key=name,
                 **{
                     DataFlowGraph.EdgeProperty.NAME: name,
                     DataFlowGraph.EdgeProperty.KEY: ref.key_,
@@ -502,6 +544,8 @@ class DataFlow(object):
     ensure efficient and accurate data processing.
 
     Properties:
+        width: Returns the width of the underlying graph structure.
+        depth: Returns the depth of the underlying graph structure.
         src_features: Returns the reference to the source features.
         out_features: Returns the reference to the output features, raising an
             error if not set.
@@ -510,6 +554,7 @@ class DataFlow(object):
         build: Constructs a sub-data flow for specified output features.
         batch_process: Processes a single batch of data.
         apply: Applies the data flow to an entire dataset.
+        plot: Plot the data flow to a `matplotlib.pyplot` axes.
 
     Example:
         Define a data flow for processing text data:
@@ -524,7 +569,7 @@ class DataFlow(object):
             tokenized_features = tokenizer.output_features
 
             # Add the tokenizer processor to the data flow
-            data_flow.add_processor(tokenizer, inputs=data_flow.src_features)
+            data_flow.add_processor_node(tokenizer, inputs=data_flow.src_features)
 
             # Apply the data flow to a dataset
             processed_dataset = data_flow.apply(dataset)
@@ -540,6 +585,32 @@ class DataFlow(object):
         self._graph = DataFlowGraph()
         self._src_features = self._graph.add_source_node(features=features)
         self._out_features: None | FeatureRef = None
+
+    @property
+    def depth(self) -> int:
+        """Computes the total depth of the data flow graph.
+
+        The depth is defined as the maximum level of any node in the graph, where the root
+        node has a depth of 0. This property calculates the depth by finding the maximum
+        depth attribute among all nodes in the graph.
+
+        Returns:
+            int: The total depth of the graph.
+        """
+        return self._graph.depth
+
+    @property
+    def width(self) -> int:
+        """Computes the maximum width of the data flow graph.
+
+        The width is defined as the maximum number of nodes present at any single depth level
+        in the graph. This property calculates the width by grouping nodes by their depth and
+        finding the largest group.
+
+        Returns:
+            int: The maximum width of the graph.
+        """
+        return self._graph.width
 
     @property
     def src_features(self) -> FeatureRef:
@@ -746,3 +817,118 @@ class DataFlow(object):
                 - set(self._out_features.feature_.keys()),
                 **kwargs,
             )
+
+    def plot(
+        self,
+        with_edge_labels: bool = True,
+        edge_label_format: str = "{name}={key}",
+        src_node_label: str = "[ROOT]",
+        edge_font_size: int = 6,
+        node_font_size: int = 6,
+        node_size: int = 5_000,
+        arrowsize: int = 25,
+        ax: None | plt.Axes = None,
+    ) -> plt.Axes:
+        """Plot the data flow graph.
+
+        Args:
+            with_edge_labels (bool): Whether to include labels on the edges. Defaults to True.
+            edge_label_format (str): Format string for edge labels. Defaults to "{name}={key}".
+            src_node_label (str): Label for the source node. Defaults to "[ROOT]".
+            edge_font_size (int): The font size for edge labels. Defaults to 6.
+            node_font_size (int): The font size for node labels. Defaults to 6.
+            node_size (int): The size of the nodes. Defaults to 5_000.
+            arrowsize (int): The size of the arrows on the edges. Defaults to 25.
+            ax (Optional[plt.Axes]): Matplotlib axes object to draw the plot on. Defaults to None.
+
+        Returns:
+            plt.Axes: The Matplotlib axes object with the plot.
+        """
+        # create a plot axes
+        if ax is None:
+            _, ax = plt.subplots(
+                1, 1, figsize=(self.depth * 2, self.width * 2.5)
+            )
+
+        # compute the node positions
+        pos = nx.multipartite_layout(
+            self._graph, subset_key=DataFlowGraph.NodeProperty.DEPTH
+        )
+
+        # plot the raw graph
+        nx.draw(
+            self._graph,
+            pos,
+            with_labels=False,
+            node_size=node_size,
+            arrowsize=arrowsize,
+            ax=ax,
+        )
+
+        # limit the maximum number of character in a single line in nodes
+        max_line_length = node_size // (node_font_size * 65)
+
+        node_labels = {}
+        # build node labels
+        for node, data in self._graph.nodes(data=True):
+            if node == SRC_NODE_ID:
+                # add root node label
+                node_labels[node] = src_node_label
+
+            else:
+                # get the processor type name of the current node
+                proc = data[DataFlowGraph.NodeProperty.PROCESSOR]
+                node_label = type(proc).__name__
+                # split string into words
+                words = re.split(r"(?<=[a-z])(?=[A-Z])", node_label)
+                # group words such that each group has a limited number of
+                # characers
+                lengths = np.cumsum(list(map(len, words))) // max_line_length
+                groups = groupby(range(len(words)), key=lengths.__getitem__)
+                # join groups with newlines inbetween
+                node_labels[node] = "\n".join(
+                    ["".join([words[i] for i in group]) for _, group in groups]
+                )
+
+        # add node labels
+        nx.draw_networkx_labels(
+            self._graph,
+            pos,
+            labels=node_labels,
+            font_size=node_font_size,
+            ax=ax,
+        )
+
+        # add edge labels
+        if with_edge_labels:
+            # group multi-edges by their source and target nodes
+            grouped_edges = groupby(
+                sorted(
+                    self._graph.edges(data=True), key=lambda e: (e[0], e[1])
+                ),
+                key=lambda e: (e[0], e[1]),
+            )
+
+            edge_labels = {}
+            # build edge labels
+            for edge, group in grouped_edges:
+                edge_labels[edge] = "\n".join(
+                    [
+                        edge_label_format.format(
+                            name=data[DataFlowGraph.EdgeProperty.NAME],
+                            key=str(data[DataFlowGraph.EdgeProperty.KEY]),
+                        )
+                        for _, _, data in group
+                    ]
+                )
+
+            # draw the edge labels
+            nx.draw_networkx_edge_labels(
+                self._graph,
+                pos,
+                edge_labels=edge_labels,
+                font_size=edge_font_size,
+                ax=ax,
+            )
+
+        return ax
