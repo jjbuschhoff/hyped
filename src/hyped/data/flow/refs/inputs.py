@@ -5,15 +5,15 @@ used by data processors. It includes validators for checking feature types as we
 a collection class for managing input references and associated validators.
 
 Classes:
-    - `FeatureValidator`: Validator for checking the type of a FeatureRef instance.
-    - `CheckFeatureEquals`: Validator for checking if a FeatureRef matches a specific feature type.
-    - `CheckFeatureIsSequence`: Validator for checking if a FeatureRef refers to a sequence.
-    - `InputRefs`: A collection of input references used by data processors.
+    - :class:`FeatureValidator`: Validator for checking the type of a FeatureRef instance.
+    - :class:`CheckFeatureEquals`: Validator for checking if a FeatureRef matches a specific feature type.
+    - :class:`CheckFeatureIsSequence`: Validator for checking if a FeatureRef refers to a sequence.
+    - :class:`InputRefs`: A collection of input references used by data processors.
 
 Usage Example:
     Define a custom collection of input references with specified validators:
 
-    .. code-block: python
+    .. code-block:: python
 
         # Import necessary classes from the module
         from hyped.data.processors.inputs import InputRefs, CheckFeatureEquals, CheckFeatureIsSequence
@@ -32,7 +32,7 @@ Usage Example:
                 FeatureRef, CheckFeatureIsSequence(Value("int"), length=4)
             ]
 
-    In this example, `CustomInputRefs` extends `InputRefs` to define a collection of input
+    In this example, :class:`CustomInputRefs` extends :class:`InputRefs` to define a collection of input
     references with specified validators for feature type checking.
 """
 from typing import Callable
@@ -242,7 +242,7 @@ class InputRefs(BaseModelWithTypeValidation):
 
         Returns:
             dict[str, FeatureRef]: A dictionary mapping input reference field names
-                to their corresponding instances.
+            to their corresponding instances.
         """
         return {key: getattr(self, key) for key in self.model_fields.keys()}
 

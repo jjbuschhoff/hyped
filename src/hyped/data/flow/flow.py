@@ -7,15 +7,10 @@ and produces output features. Processors can be connected to form a directed
 acyclic graph, representing the flow of data through the processing pipeline.
 
 Classes:
-    - `DataFlow`: High-level interface for defining and executing data processing workflows.
-    - `DataFlowGraph`: A multi-directed graph representing a data flow of data processors.
-    - `ExecutionState`: Tracks the state during the execution of a data flow graph.
-    - `DataFlowExecutor`: Executes a data flow graph, managing the execution of each node and collecting results.
-
-The module also provides various utility functions and types to support data processing tasks, including:
-    - Feature reference management
-    - Dependency graph generation
-    - State tracking during execution
+    - :class:`DataFlow`: High-level interface for defining and executing data processing workflows.
+    - :class:`DataFlowGraph`: A multi-directed graph representing a data flow of data processors.
+    - :class:`ExecutionState`: Tracks the state during the execution of a data flow graph.
+    - :class:`DataFlowExecutor`: Executes a data flow graph, managing the execution of each node and collecting results.
 """
 
 from __future__ import annotations
@@ -74,7 +69,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the data processor associated with the node.
 
-        Type: BaseDataProcessor
+        Type: :class:`BaseDataProcessor`
 
         This property holds a reference to the data processor instance that the node
         represents within the data flow graph.
@@ -84,7 +79,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the output features associated with the node.
 
-        Type: datasets.Features
+        Type: :class:`datasets.Features`
 
         This property contains the output features produced by the data processor,
         encapsulated in a HuggingFace `datasets.Features` instance. It defines the
@@ -95,7 +90,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the depth of the node within the data flow graph.
 
-        Type: int
+        Type: :class:`int`
 
         This property indicates the level of the node in the graph, with the root
         node having a depth of 0. It is used to understand the hierarchical position
@@ -109,7 +104,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the name of the edge.
 
-        Type: str
+        Type: :class:`str`
 
         This property corresponds to the keyword of the argument used as an input
         to the processor, linking the edge to a specific input parameter.
@@ -122,7 +117,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the key of the feature associated with the edge.
 
-        Type: FeatureKey
+        Type: :class:`FeatureKey`
 
         This property specifies which subfeature of the output of the source node
         is flowing through the edge. It defines the particular feature that is being
@@ -542,19 +537,6 @@ class DataFlow(object):
     executor to provide a seamless experience for processing data. It handles the
     internal state management, execution scheduling, and data flow dependencies to
     ensure efficient and accurate data processing.
-
-    Properties:
-        width: Returns the width of the underlying graph structure.
-        depth: Returns the depth of the underlying graph structure.
-        src_features: Returns the reference to the source features.
-        out_features: Returns the reference to the output features, raising an
-            error if not set.
-
-    Methods:
-        build: Constructs a sub-data flow for specified output features.
-        batch_process: Processes a single batch of data.
-        apply: Applies the data flow to an entire dataset.
-        plot: Plot the data flow to a `matplotlib.pyplot` axes.
     """
 
     def __init__(self, features: datasets.Features) -> None:
@@ -628,11 +610,11 @@ class DataFlow(object):
 
         Raises:
             TypeError: If the collect feature is not of type
-                datasets.Features or dict.
+                `datasets.Features` or `dict`.
         """
         if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError(
-                f"Expected collect feature of type datasets.Features or dict, "
+                f"Expected collect feature of type `datasets.Features` or `dict`, "
                 f"but got {type(collect.feature_)}"
             )
 

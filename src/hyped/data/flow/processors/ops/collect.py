@@ -352,7 +352,7 @@ class CollectFeatures(
 
         Returns:
             tuple[Batch, list[int]]: The batch of output samples and the
-                corresponding indices.
+            corresponding indices.
         """
         # collect values
         out = {

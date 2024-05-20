@@ -11,12 +11,12 @@ a collection (e.g., dictionary or list). These functions leverage underlying pro
 classes, such as `CollectFeatures`, to execute the desired operations.
 
 Functions:
-    - `collect`: Collect features from a given collection.
+    - :class:`collect`: Collect features from a given collection.
 
 Usage Example:
-    Collect features from a dictionary using the `collect` operator:
+    Collect features from a dictionary using the :class:`collect` operator:
 
-    .. code-block: python
+    .. code-block:: python
 
         # Import the collect operator from the module
         from hyped.data.processors.operator import collect
@@ -29,8 +29,16 @@ Usage Example:
         
         # Collect features from the dictionary using the collect operator
         collected_features = collect(
-            collection={"out": flow.src_features.text}
+            collection={
+                "out": [
+                    flow.src_features.text,
+                    flow.src_features.text
+                ]
+            }
         )
+
+        collected_features.out  # work with the collected features
+
 """
 
 from .processors.ops.collect import CollectFeatures

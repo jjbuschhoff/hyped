@@ -6,14 +6,14 @@ or dynamically generated types, as well as a collection class for managing outpu
 references.
 
 Classes:
-    - `LambdaOutputFeature`: Represents a lambda function for generating an output feature type.
-    - `OutputFeature`: Represents an output feature with a predefined feature type.
-    - `OutputRefs`: A collection of output feature references.
+    - :class:`LambdaOutputFeature`: Represents a lambda function for generating an output feature type.
+    - :class:`OutputFeature`: Represents an output feature with a predefined feature type.
+    - :class:`OutputRefs`: A collection of output feature references.
 
 Usage Example:
     Define a collection of output feature references with specified output types:
 
-    .. code-block: python
+    .. code-block:: python
 
         # Import necessary classes from the module
         from hyped.data.ref import FeatureRef
@@ -26,8 +26,8 @@ Usage Example:
             # Define an output feature with a predefined feature type
             output_feature: Annotated[FeatureRef, OutputFeature(Value("string"))]
 
-    In this example, `CustomOutputRefs` extends `OutputRefs` to define a collection of output
-    feature references with specified output types.
+    In this example, :class:`CustomOutputRefs` extends :class:`OutputRefs` to define a collection
+    of output feature references with specified output types.
 """
 from typing import Callable, ClassVar
 

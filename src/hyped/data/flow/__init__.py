@@ -6,22 +6,22 @@ to be modular and flexible, allowing users to define data flows, processors,
 and augmenters to handle a wide variety of data processing tasks.
 
 Sub-modules:
-    - flow: Defines the core classes and functions for creating and managing
-        data flows as directed acyclic graphs (DAGs). 
+    - :class:`flow`: Defines the core classes and functions for creating and managing
+      data flows as directed acyclic graphs (DAGs). 
 
-    - processors: Provides a comprehensive collection of data processors designed
-        to handle different data modalities and perform a wide range of data
-        transformations. Data processors are the fundamental building blocks in a
-        data flow graph, acting as nodes that implement specific, modular data
-        transformations.
+    - :class:`processors`: Provides a comprehensive collection of data processors designed
+      to handle different data modalities and perform a wide range of data
+      transformations. Data processors are the fundamental building blocks in a
+      data flow graph, acting as nodes that implement specific, modular data
+      transformations.
 
-    - augmentors: TODO: coming soon
+    - :class:`augmentors`: coming soon
 
-    - ops: Provides high-level feature operators for data processors.
-        The operator module defines high-level functions for performing common
-        operations. These functions delegate the actual processing to specific
-        processors. Feature operators are designed to simplify the process of
-        adding processors to a data flow by providing high-level functions
+    - :class:`ops`: Provides high-level feature operators for data processors.
+      The operator module defines high-level functions for performing common
+      operations. These functions delegate the actual processing to specific
+      processors. Feature operators are designed to simplify the process of
+      adding processors to a data flow by providing high-level functions
 
 Example:
     Define a data flow for processing text data:

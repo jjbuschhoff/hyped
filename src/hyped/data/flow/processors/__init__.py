@@ -8,10 +8,10 @@ the core building blocks of complex data processing pipelines, facilitating effi
 and scalable data handling.
 
 Key Features of Data Processors in This Module:
-    - **Modularity**: Data processors are designed to perform distinct transformations,
-      allowing for easy composition and reusability within various data pipelines.
-    - **Flexibility**: Supports a wide array of data modalities and transformation
-      operations, providing the necessary tools for diverse data processing tasks.
-    - **Scalability**: Enables the construction of scalable data pipelines capable of
-      handling large volumes of data, ensuring efficiency and performance.
+  - **Modularity**: Data processors are designed to perform distinct transformations,
+    allowing for easy composition and reusability within various data pipelines.
+  - **Flexibility**: Supports a wide array of data modalities and transformation
+    operations, providing the necessary tools for diverse data processing tasks.
+  - **Scalability**: Enables the construction of scalable data pipelines capable of
+    handling large volumes of data, ensuring efficiency and performance.
 """

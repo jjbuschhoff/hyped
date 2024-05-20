@@ -5,21 +5,22 @@ nodes in a data flow graph. It includes generic classes for defining
 data processors with configurable input and output types.
 
 Classes:
-    - `BaseDataProcessor`: Base class for data processors in a data flow graph.
+    - :class:`BaseDataProcessorConfig`: Base class for data processor configurations.
+    - :class:`BaseDataProcessor`: Base class for data processors in a data flow graph.
 
 Usage Example:
     Define a custom data processor by subclassing `BaseDataProcessor`:
 
-    .. code-block: python
+    .. code-block:: python
 
         # Import necessary classes from the module
         from hyped.data.processors.base import (
             BaseDataProcessor, BaseDataProcessorConfig
         )
-        from hyped.data.processors.base.inputs import (
+        from hyped.data.flow.refs.inputs import (
             InputRefs, CheckFeatureEquals
         )
-        from hyped.data.processors.base.outputs import (
+        from hyped.data.flow.refs.outputs import (
             OutputRefs, OutputFeature
         )
         from datasets.features.features import Value
@@ -42,8 +43,8 @@ Usage Example:
                 # Define processing logic here
                 return str(inputs["x"]) * self.config.k
 
-    In this example, `CustomDataProcessor` extends `BaseDataProcessor` and
-    implements the `process` method to define custom processing logic.
+    In this example, :class:`CustomDataProcessor` extends :class:`BaseDataProcessor` and
+    implements the :class:`BaseDataProcessor.process` method to define custom processing logic.
 """
 from __future__ import annotations
 
@@ -86,8 +87,8 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
     the `process` method to define their processing logic.
 
     Attributes:
-        _config (C): The configuration object for the data processor.
-        _is_process_async (bool): A flag indicating whether the `process` function is asynchronous.
+        _is_process_async (bool): A flag indicating whether the :class:`BaseDataProcessor.process`
+            function is asynchronous.
         _in_refs_type (Type[I]): The type of input references expected by the processor.
         _out_refs_type (Type[O]): The type of output references produced by the processor.
     """
@@ -144,7 +145,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
 
         Args:
             inputs (None | I, optional): The input references to the processor. Defaults to None.
-            **kwargs: Additional keyword arguments to be passed as inputs.
+            **kwargs: Keyword arguments to be passed as inputs instead of the `inputs` argument.
 
         Returns:
             O: The output references produced by the processor.
@@ -210,6 +211,8 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
 
     def process(self, inputs: Sample, index: int, rank: int) -> Sample:
         """Processes a single input sample synchronously and returns the corresponding output sample.
+
+        Asynchronous processing is also supported by defining this function as :class:`async`.
 
         This method should be overridden by subclasses to define the processing logic.
 
