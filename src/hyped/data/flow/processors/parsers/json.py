@@ -3,7 +3,7 @@
 The processor is designed to parse JSON strings into structured feature types
 using Pydantic for deserialization and validation.
 """
-
+import json
 from typing import Annotated
 
 from datasets.features.features import Features, FeatureType, Sequence, Value
