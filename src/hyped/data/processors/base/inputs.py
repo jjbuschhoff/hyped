@@ -128,9 +128,11 @@ class CheckFeatureEquals(FeatureValidator):
             TypeError: If the provided reference does not match the expected
                 feature type or types.
         """
-        super(CheckFeatureEquals, self).__init__(
-            partial(raise_feature_equals, target=feature_type)
-        )
+
+        def check(ref: FeatureRef, feature: FeatureType) -> None:
+            raise_feature_equals(ref.key_, feature, feature_type)
+
+        super(CheckFeatureEquals, self).__init__(check)
 
 
 class CheckFeatureIsSequence(FeatureValidator):
@@ -175,7 +177,7 @@ class CheckFeatureIsSequence(FeatureValidator):
             if -1 != length != get_sequence_length(feature):
                 raise TypeError(
                     "Expected `%s` to be a sequence of length %i, got %i"
-                    % (str(ref), length, get_sequence_length(feature))
+                    % (str(ref.key_), length, get_sequence_length(feature))
                 )
             return ref
 
