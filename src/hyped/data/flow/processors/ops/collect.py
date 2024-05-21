@@ -13,8 +13,9 @@ output features.
 """
 from __future__ import annotations
 
-from typing import Any
+import typing
 
+from datasets import Dataset
 from datasets.features.features import Features, FeatureType, Sequence
 from pydantic import BaseModel, BeforeValidator, Field
 from pydantic._internal._model_construction import ModelMetaclass
@@ -31,6 +32,43 @@ from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
 from hyped.data.flow.refs.ref import FeatureRef
 
 
+class Const(BaseModel):
+    """Constant Value Wrapper.
+
+    This wrapper is used to specify constant values in feature descriptions.
+
+    Consider the following example:
+
+    .. code-block: python
+
+        feature = Feature(
+            {
+                "const": Const("This is a constant value"),
+                "lookup": "feature"
+            }
+        )
+
+    Arguments:
+        value (str | int | float):
+            value
+    """
+
+    value: str | int | float
+
+    def __str__(self) -> str:
+        """String representation of the constant feature value."""
+        return "Const(%s)" % repr(self.value)
+
+    def __repr__(self) -> str:
+        """String representation of the constant feature value."""
+        return str(self)
+
+    @property
+    def ftype(self) -> Value:
+        """HuggingFace Datasets Feature Type of the constant value."""
+        return Dataset.from_dict({"feature": [self.value]}).features["feature"]
+
+
 class FeatureCollection(BaseModel):
     """Represents a collection of features.
 
@@ -41,9 +79,10 @@ class FeatureCollection(BaseModel):
 
     collection: Annotated[
         (
-            dict[str, FeatureCollection | FeatureRef]
+            dict[str, FeatureCollection | FeatureRef | Const]
             | Annotated[
-                list[FeatureCollection | FeatureRef], Field(min_length=1)
+                list[FeatureCollection | FeatureRef | Const],
+                Field(min_length=1),
             ]
         ),
         BeforeValidator(
@@ -53,19 +92,23 @@ class FeatureCollection(BaseModel):
                         v
                         if isinstance(v, FeatureRef)
                         else FeatureCollection(collection=v)
+                        if isinstance(v, (typing.Mapping, list, tuple))
+                        else Const(value=v)
                     )
                     for k, v in x.items()
                 }
-                if isinstance(x, dict)
+                if isinstance(x, typing.Mapping)
                 else [
                     (
                         v
                         if isinstance(v, FeatureRef)
                         else FeatureCollection(collection=v)
+                        if isinstance(v, (typing.Mapping, list, tuple))
+                        else Const(value=v)
                     )
                     for v in x
                 ]
-                if isinstance(x, list)
+                if isinstance(x, (list, tuple))
                 else x
             )
         ),
@@ -84,7 +127,15 @@ class FeatureCollection(BaseModel):
         if isinstance(self.collection, dict):
             return Features(
                 {
-                    k: (v.feature_ if isinstance(v, FeatureRef) else v.feature)
+                    k: (
+                        v.ftype
+                        if isinstance(v, Const)
+                        else v.feature_
+                        if isinstance(v, FeatureRef)
+                        else v.feature
+                        if isinstance(v, FeatureCollection)
+                        else None  # unexpected type in collection
+                    )
                     for k, v in self.collection.items()
                 }
             )
@@ -92,7 +143,15 @@ class FeatureCollection(BaseModel):
         if isinstance(self.collection, list):
             # collect all features in specified in the list
             collected_features = (
-                (v.feature_ if isinstance(v, FeatureRef) else v.feature)
+                (
+                    v.ftype
+                    if isinstance(v, Const)
+                    else v.feature_
+                    if isinstance(v, FeatureRef)
+                    else v.feature
+                    if isinstance(v, FeatureCollection)
+                    else None  # unexpected type in collection
+                )
                 for v in self.collection
             )
             f = next(collected_features)
@@ -126,7 +185,9 @@ class FeatureCollection(BaseModel):
 
         return feature_refs
 
-    def _collect_values(self, inputs: Batch) -> list[Any]:
+    def _collect_values(
+        self, inputs: Batch, batch_size: int
+    ) -> list[typing.Any]:
         """Recursively collects values from an input batch.
 
         This method recursively collects values from the input batch according
@@ -136,6 +197,7 @@ class FeatureCollection(BaseModel):
 
         Args:
             inputs (Batch): The batch of input samples.
+            batch_size (int): The number of samples in the batch.
 
         Returns:
             list[Any]: The collected values.
@@ -145,9 +207,13 @@ class FeatureCollection(BaseModel):
             # convert from dict of lists to list of dicts
             data = {
                 k: (
-                    inputs[str(hash(v))]
+                    [v.value] * batch_size
+                    if isinstance(v, Const)
+                    else inputs[str(hash(v))]
                     if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs)
+                    else v._collect_values(inputs, batch_size)
+                    if isinstance(v, FeatureCollection)
+                    else None  # unexpected type in collection
                 )
                 for k, v in self.collection.items()
             }
@@ -160,9 +226,13 @@ class FeatureCollection(BaseModel):
             # collect values from sub-collection and transpose
             data = (
                 (
-                    inputs[str(hash(v))]
+                    [v.value] * batch_size
+                    if isinstance(v, Const)
+                    else inputs[str(hash(v))]
                     if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs)
+                    else v._collect_values(inputs, batch_size)
+                    if isinstance(v, FeatureCollection)
+                    else None  # unexpected type in collection
                 )
                 for v in self.collection
             )
@@ -220,6 +290,12 @@ class CollectFeaturesInputRefs(InputRefs):
         Returns:
             object: The associated data flow graph.
         """
+        if len(self.collection.refs) == 0:
+            raise NotImplementedError(
+                "Constant Processors without any input references are not "
+                "supported yet."
+            )
+
         return next(iter(self.collection.refs)).flow_
 
 
@@ -366,7 +442,9 @@ class CollectFeatures(
         """
         # collect values
         out = Batch(
-            collected=self.collect_values(inputs=inputs, col=self.collection)
+            collected=self.collection._collect_values(
+                inputs=inputs, batch_size=len(index)
+            )
         )
         # return collected values and index
         return out, index
