@@ -16,7 +16,7 @@ from __future__ import annotations
 import typing
 
 from datasets import Dataset
-from datasets.features.features import Features, FeatureType, Sequence
+from datasets.features.features import Features, FeatureType, Sequence, Value
 from pydantic import BaseModel, BeforeValidator, Field
 from pydantic._internal._model_construction import ModelMetaclass
 from typing_extensions import Annotated
@@ -31,29 +31,37 @@ from hyped.data.flow.refs.inputs import InputRefs
 from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
 from hyped.data.flow.refs.ref import FeatureRef
 
+T = typing.TypeVar("T", str, int, float)
+
 
 class Const(BaseModel):
     """Constant Value Wrapper.
 
-    This wrapper is used to specify constant values in feature descriptions.
-
-    Consider the following example:
-
-    .. code-block: python
-
-        feature = Feature(
-            {
-                "const": Const("This is a constant value"),
-                "lookup": "feature"
-            }
-        )
-
-    Arguments:
-        value (str | int | float):
-            value
+    This wrapper is used to internally mark constant values in feature descriptions.
+    It allows for the inclusion of constant values within feature collections,
+    ensuring that these constants are properly handled and propagated within
+    the data flow.
     """
 
-    value: str | int | float
+    value: T
+    """The value wrapped by the constant wrapper"""
+
+    ftype: Value = None
+    """HuggingFace Datasets Feature Type of the constant value."""
+
+    def __init__(self, value: T, ftype: Value = None) -> None:
+        """Initialize the Const object.
+
+        Args:
+            value (T): The constant value to be wrapped.
+            ftype (Value, optional): The feature type of the constant value. If not provided,
+                it will be inferred from the value.
+        """
+        # infer the feature type from the value
+        if ftype is None:
+            ftype = Dataset.from_dict({"feature": [value]}).features["feature"]
+        # initialize model
+        super(Const, self).__init__(value=value, ftype=ftype)
 
     def __str__(self) -> str:
         """String representation of the constant feature value."""
@@ -63,18 +71,23 @@ class Const(BaseModel):
         """String representation of the constant feature value."""
         return str(self)
 
-    @property
-    def ftype(self) -> Value:
-        """HuggingFace Datasets Feature Type of the constant value."""
-        return Dataset.from_dict({"feature": [self.value]}).features["feature"]
-
 
 class FeatureCollection(BaseModel):
     """Represents a collection of features.
 
-    This class provides a structure for a collection of features.
-    It can be infinitely nested dictionaries or lists. The leaves
-    of this nested structure must be FeatureRef instances.
+    This class represents a collection of features that can be structured
+    as nested dictionaries or lists. The leaves of this nested structure
+    can be either :class:`FeatureRef` instances or primitive values.
+
+    - :class:`FeatureRef` instances represent references to features within
+      the data flow.
+    - :class:`Const` instances represent constant feature values, which will
+      be propagated to all collected samples
+    - Primitive values are converted to :class:`Const` instances
+      with inferred feature type.
+
+    This flexibility allows for the inclusion of both dynamic feature references
+    and static constant values within the same feature collection.
     """
 
     collection: Annotated[
@@ -90,7 +103,9 @@ class FeatureCollection(BaseModel):
                 {
                     k: (
                         v
-                        if isinstance(v, FeatureRef)
+                        if isinstance(
+                            v, (FeatureRef, FeatureCollection, Const)
+                        )
                         else FeatureCollection(collection=v)
                         if isinstance(v, (typing.Mapping, list, tuple))
                         else Const(value=v)
@@ -101,7 +116,9 @@ class FeatureCollection(BaseModel):
                 else [
                     (
                         v
-                        if isinstance(v, FeatureRef)
+                        if isinstance(
+                            v, (FeatureRef, FeatureCollection, Const)
+                        )
                         else FeatureCollection(collection=v)
                         if isinstance(v, (typing.Mapping, list, tuple))
                         else Const(value=v)
@@ -165,25 +182,46 @@ class FeatureCollection(BaseModel):
             return Sequence(f, length=len(self.collection))
 
     @property
-    def refs(self) -> set[FeatureRef]:
-        """Get the feature references within the collection.
+    def named_refs(self) -> dict[str, FeatureRef]:
+        """Retrieve a dictionary of all feature references within the collection.
+
+        This property method traverses the nested structure of the `FeatureCollection`
+        and collects all `FeatureRef` instances. The keys in the returned dictionary
+        represent the paths to the references in the nested structure, using dot notation
+        for dictionaries and square bracket notation for lists.
 
         Returns:
-            set[FeatureRef]: A set of feature references.
+            dict[str, FeatureRef]: A dictionary mapping the paths to their respective
+            :class:`FeatureRef` instances.
         """
-        feature_refs = set()
-
-        for v in (
-            self.collection.values()
+        named_items = (
+            self.collection
             if isinstance(self.collection, dict)
-            else self.collection
-        ):
-            if isinstance(v, FeatureCollection):
-                feature_refs.update(v.refs)
-            elif isinstance(v, FeatureRef):
-                feature_refs.add(v)
+            else {"[%i]" % i: v for i, v in enumerate(self.collection)}
+        )
 
-        return feature_refs
+        named_refs = {}
+        # collect all named references
+        # names are the paths to the reference in the nested structure
+        for k, v in named_items.items():
+            if isinstance(v, FeatureRef):
+                # collect feature refs
+                named_refs[k] = v
+
+            elif isinstance(v, FeatureCollection):
+                # collect refs from sub-collection
+                named_refs.update(
+                    {
+                        (
+                            f"{k}.{kk}"
+                            if isinstance(v.collection, dict)
+                            else f"{k}{kk}"
+                        ): ref
+                        for kk, ref in v.named_refs.items()
+                    }
+                )
+
+        return named_refs
 
     def _collect_values(
         self, inputs: Batch, batch_size: int
@@ -202,41 +240,51 @@ class FeatureCollection(BaseModel):
         Returns:
             list[Any]: The collected values.
         """
-        if isinstance(self.collection, dict):
-            # collect values from sub-collection and
-            # convert from dict of lists to list of dicts
-            data = {
-                k: (
-                    [v.value] * batch_size
-                    if isinstance(v, Const)
-                    else inputs[str(hash(v))]
-                    if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs, batch_size)
-                    if isinstance(v, FeatureCollection)
-                    else None  # unexpected type in collection
-                )
-                for k, v in self.collection.items()
-            }
-            return [
-                dict(zip(data.keys(), values))
-                for values in zip(*data.values())
-            ]
 
-        if isinstance(self.collection, list):
-            # collect values from sub-collection and transpose
-            data = (
-                (
-                    [v.value] * batch_size
-                    if isinstance(v, Const)
-                    else inputs[str(hash(v))]
-                    if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs, batch_size)
-                    if isinstance(v, FeatureCollection)
-                    else None  # unexpected type in collection
+        def collect(
+            col: FeatureCollection, values: dict[FeatureRef, typing.Any]
+        ) -> list[typing.Any]:
+            if isinstance(col.collection, dict):
+                # collect values from sub-collection and
+                # convert from dict of lists to list of dicts
+                data = {
+                    k: (
+                        [v.value] * batch_size
+                        if isinstance(v, Const)
+                        else values[v]
+                        if isinstance(v, FeatureRef)
+                        else collect(v, values)
+                        if isinstance(v, FeatureCollection)
+                        else None  # unexpected type in collection
+                    )
+                    for k, v in col.collection.items()
+                }
+                return [
+                    dict(zip(data.keys(), values))
+                    for values in zip(*data.values())
+                ]
+
+            if isinstance(col.collection, list):
+                # collect values from sub-collection and transpose
+                data = (
+                    (
+                        [v.value] * batch_size
+                        if isinstance(v, Const)
+                        else values[v]
+                        if isinstance(v, FeatureRef)
+                        else collect(v, values)
+                        if isinstance(v, FeatureCollection)
+                        else None  # unexpected type in collection
+                    )
+                    for v in col.collection
                 )
-                for v in self.collection
-            )
-            return [list(row) for row in zip(*data)]
+                return [list(row) for row in zip(*data)]
+
+        # map inputs to refs
+        named_refs = self.named_refs
+        inputs = {named_refs[n]: v for n, v in inputs.items()}
+        # collect values
+        return collect(self, inputs)
 
 
 class CollectFeaturesInputRefs(InputRefs):
@@ -274,14 +322,10 @@ class CollectFeaturesInputRefs(InputRefs):
     def named_refs(self) -> dict[str, FeatureRef]:
         """Get the named input references.
 
-        This property returns a dictionary mapping input reference field names
-        to their corresponding instances. The field names are the hash values
-        of the FeatureRef instances in the collection.
-
         Returns:
             dict[str, FeatureRef]: A dictionary of named input references.
         """
-        return {str(hash(ref)): ref for ref in self.collection.refs}
+        return self.collection.named_refs
 
     @property
     def flow(self) -> object:
@@ -290,13 +334,13 @@ class CollectFeaturesInputRefs(InputRefs):
         Returns:
             object: The associated data flow graph.
         """
-        if len(self.collection.refs) == 0:
+        if len(self.collection.named_refs) == 0:
             raise NotImplementedError(
                 "Constant Processors without any input references are not "
                 "supported yet."
             )
 
-        return next(iter(self.collection.refs)).flow_
+        return next(iter(self.collection.named_refs.values())).flow_
 
 
 class CollectFeaturesOutputRefs(OutputRefs):
@@ -333,8 +377,37 @@ class CollectFeatures(
     """Data processor for collecting features into a new (nested) feature.
 
     This processor collects features from a nested structure defined by a
-    FeatureCollection object. It traverses the nested structure and gathers
-    the features, maintaining the structure defined by the FeatureCollection.
+    `FeatureCollection` object. It traverses the nested structure and gathers
+    the features, maintaining the structure defined by the `FeatureCollection`.
+
+    - :class:`FeatureRef` instances represent references to dynamic features
+      within the data flow.
+    - :class:`Const` instances represent constant feature values, which will
+      be propagated to all collected samples
+    - Primitive values are converted to :class:`Const` instances with inferred
+      feature type.
+
+    This allows the processor to combine both dynamic feature references and static
+    constant values into a single nested feature collection.
+
+    Example:
+        The following example collects a set of features and induces a constant feature:
+
+        .. code-block:: python
+
+            # assume ref is a feature reference to an existing feature
+            ref = ...
+            # collect features
+            features = CollectFeatures().call(
+                a=[ref, ref],
+                b={"x": ref}
+                c="constant feature",
+                d=Const(132, Value("int32"))  # manually specify the feature type
+            )
+            # features.a == [value, value]
+            # features.b == {"x": value}
+            # features.c == "constant feature"
+            # features.d == 132
     """
 
     def __init__(self) -> None:
