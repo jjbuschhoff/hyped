@@ -6,12 +6,14 @@
 [![PyPi version](https://badgen.net/pypi/v/hyped/)](https://pypi.org/project/hyped)
 [![PyPi license](https://badgen.net/pypi/license/hyped/)](https://pypi.org/project/hyped/)
 
-Hyped is a versatile framework built on top of Hugging Face Datasets, designed to simplify the management and execution of data pipelines. With Hyped, you can define data pipelines as sequences of data processors, leveraging the rich ecosystem of Hugging Face datasets while also providing the flexibility to implement custom processors when needed.
+Hyped is a versatile framework built on top of [HuggingFace Datasets](https://huggingface.co/docs/datasets/en/index), designed to simplify the management and execution of data pipelines. With Hyped, you can define data pipelines as a Directed Acyclic Graph (DAG) of data processors, leveraging the rich ecosystem of the datasets library while also providing the flexibility to implement custom processors when needed.
+
+Hyped aims to offer an intuitive high-level interface for defining and executing data pipelines, all while being flexible and scalable.
 
 ## Features
 
 - **Seamless Integration with Hugging Face Datasets**: Utilize the extensive collection of datasets available through [HuggingFace](https://huggingface.co/docs/datasets/en/index) with ease. Hyped handles data loading and preprocessing using HuggingFace's powerful tools.
-- **Flexible Data Processing**: Define complex data processing workflows using a sequence of data processors. Hyped comes with a set of general-purpose processors out of the box, allowing for a wide range of transformations and manipulations on your data.
+- **Flexible Data Processing**: Define complex data processing workflows by linking data processors in a DAG. Hyped comes with a set of general-purpose processors out of the box, allowing for a wide range of transformations and manipulations on your data.
 - **Configurable Data Processors**: Each data processor in Hyped is fully configurable, allowing users to fine-tune their behavior according to specific requirements. This flexibility enables users to customize data processing workflows and adapt them to different use cases seamlessly.
 - **Custom Processor Support**: Implement custom data processors tailored to your specific requirements. Whether you need to apply domain-specific transformations or integrate with external libraries, Hyped provides the flexibility to extend its functionality as needed.
 - **Efficient Execution**: Execute your data pipelines efficiently, whether you're working with small datasets or processing large volumes of data. Hyped supports multiprocessing and data streaming out of the box, enabling efficient utilization of computational resources and avoiding memory limitations when processing large datasets.
@@ -51,36 +53,42 @@ Now you're ready to start using Hyped for managing and executing your data pipel
 Start by importing the necessary modules and classes:
 ```python
 import datasets
-from hyped.data.pipe import DataPipe
-from hyped.data.processors.tokenizers.hf import (
-    HuggingFaceTokenizer,
-    HuggingFaceTokenizerConfig
+from hyped.data.flow import DataFlow
+from hyped.data.flow.processors.tokenizers.transformers import (
+    TransformersTokenizer,
+    TransformersTokenizerConfig
 )
 ```
 
 Next, load your dataset using the datasets library. In this example, we load the IMDb dataset:
 
 ```python
-ds = datasets.load_dataset("imdb")
+ds = datasets.load_dataset("imdb", split="test")
 ```
 
-Then, define your data pipeline using the `DataPipe` class from Hyped. Add data processors to the pipeline to specify the desired data transformations. For instance, the following code applies a HuggingFace tokenizer to tokenize the text feature of the dataset using the BERT tokenizer:
+With the dataset features available we can create a data flow instance:
 
 ```python
-pipe = DataPipe([
-    HuggingFaceTokenizer(
-        HuggingFaceTokenizerConfig(
-            tokenizer="bert-base-uncased",
-            text="text"
-        )
+flow = DataFlow(features=ds.features)
+```
+
+Now we can add processing steps by calling data processors on the features. In this example we add a tokenizer processor to tokenize the text input feature using a BERT tokenizer:
+
+```python
+tokenizer = TransformersTokenizer(
+    TransformersTokenizerConfig(
+        model_name="bert-base-uncased"
     )
-])
+)
+tokenized_features = tokenizer.call(
+    text=flow.src_features.text
+)
 ```
 
-Finally, apply the data pipeline to your dataset using the apply method:
+Finally, we can apply the data pipeline to your dataset using the `apply` method. Here we also need to specify the which features are to be collected into the output dataset:
 
 ```python
-ds = pipe.apply(ds)
+ds = flow.apply(ds, collect=tokenized_features)
 ```
 
 Now, your dataset has been processed according to the defined pipeline, and you can proceed with further analysis or downstream tasks in your application.
@@ -93,10 +101,10 @@ Hyped provides various configuration options that allow users to customize the b
 
 ### 1. Processor Configuration
 
-Each data processor in Hyped can be configured with specific parameters to tailor its behavior. For example, when using the HuggingFaceTokenizer, you can specify the tokenizer model to use, the maximum sequence length, and other tokenizer-specific settings.
+Each data processor in Hyped can be configured with specific parameters to tailor its behavior. For example, when using the `TransformersTokenizer`, you can specify the tokenizer model to use, the maximum sequence length, and other tokenizer-specific settings.
 
 ```python
-tokenizer_config = HuggingFaceTokenizerConfig(
+config = TransformersTokenizerConfig(
     tokenizer="bert-base-uncased",
     max_length=128,
     padding=True,
@@ -123,7 +131,7 @@ from hyped.data.io.writers.json import JsonDatasetWriter
 ds = datasets.load_dataset("imdb", split="train", streaming=True)
 
 # Apply data pipeline (lazy processing for streamed datasets)
-ds = pipe.apply(ds)
+ds = flow.apply(ds)
 
 # Write processed examples to disk using 4 worker processes
 JsonDatasetWriter("dump/", num_proc=4).consume(ds)
