@@ -172,7 +172,7 @@ class CheckFeatureIsSequence(FeatureValidator):
         """
 
         def check(ref: FeatureRef, feature: FeatureType) -> None:
-            raise_feature_is_sequence(ref, feature, value_type)
+            raise_feature_is_sequence(ref.key_, feature, value_type)
 
             if -1 != length != get_sequence_length(feature):
                 raise TypeError(

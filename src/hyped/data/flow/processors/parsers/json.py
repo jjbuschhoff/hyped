@@ -21,19 +21,19 @@ from hyped.data.flow.refs.ref import FeatureRef
 
 
 class JsonParserInputRefs(InputRefs):
-    """Input references for the JsonParser."""
+    """Inputs for the JsonParser."""
 
     json_str: Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
     """
-    Reference to the input JSON string feature.
+    The input JSON string feature.
     """
 
 
 class JsonParserOutputRefs(OutputRefs):
-    """Output references for the JsonParser."""
+    """Outputs for the JsonParser."""
 
     parsed: Annotated[FeatureRef, LambdaOutputFeature(lambda c, _: c.scheme)]
-    """Reference to the output parsed feature."""
+    """The output parsed feature."""
 
 
 class JsonParserConfig(BaseDataProcessorConfig):

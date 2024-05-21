@@ -75,8 +75,8 @@ class FeatureRef(BaseModel):
             lambda v: (
                 Features(v)
                 if isinstance(v, dict)
-                else Sequence(v)
-                if isinstance(v, list)
+                else Sequence(v[0])
+                if isinstance(v, list) and len(v) == 1
                 else v
                 if isinstance(v, FeatureType)
                 else Features.from_dict({"feature": json.loads(v)})["feature"]
