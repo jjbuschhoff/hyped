@@ -179,7 +179,7 @@ class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {
+    expected_output_data = {
         "collected": [{"a": i, "b": str(i)} for i in range(100)]
     }
 
@@ -211,7 +211,7 @@ class TestCollectFeatures_sequence(BaseCollectFeaturesTest):
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {"collected": [[i, i] for i in range(100)]}
+    expected_output_data = {"collected": [[i, i] for i in range(100)]}
 
 
 class TestCollectFeatures_nested(BaseCollectFeaturesTest):
@@ -244,7 +244,7 @@ class TestCollectFeatures_nested(BaseCollectFeaturesTest):
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {
+    expected_output_data = {
         "collected": [
             {
                 "a": {

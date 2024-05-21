@@ -3,7 +3,10 @@ from unittest.mock import MagicMock
 import pytest
 from datasets import Features, Sequence
 
-from hyped.common.feature_checks import check_object_matches_feature
+from hyped.common.feature_checks import (
+    check_feature_equals,
+    check_object_matches_feature,
+)
 from hyped.data.flow.processors.base import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
@@ -23,7 +26,8 @@ class BaseDataProcessorTest:
     input_data: Batch
     input_index: None | list[int] = None
     # expected output
-    expected_output: None | Batch = None
+    expected_output_features: None | Features = None
+    expected_output_data: None | Batch = None
     expected_output_index: None | list[int] = None
     # others
     rank: int = 0
@@ -78,13 +82,19 @@ class BaseDataProcessorTest:
             assert isinstance(val, list)
             assert len(val) == len(output_index)
 
+        # check output features
+        if cls.expected_output_features is not None:
+            assert check_feature_equals(
+                output_refs.feature_, cls.expected_output_features
+            )
+
         # check output matches features
         assert check_object_matches_feature(
             output, {k: Sequence(v) for k, v in output_refs.feature_.items()}
         )
 
         # check output matches expectation
-        if cls.expected_output is not None:
-            assert output == cls.expected_output
+        if cls.expected_output_data is not None:
+            assert output == cls.expected_output_data
         if cls.expected_output_index is not None:
             assert output_index == cls.expected_output_index
