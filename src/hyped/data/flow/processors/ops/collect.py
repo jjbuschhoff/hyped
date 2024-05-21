@@ -126,6 +126,48 @@ class FeatureCollection(BaseModel):
 
         return feature_refs
 
+    def _collect_values(self, inputs: Batch) -> list[Any]:
+        """Recursively collects values from an input batch.
+
+        This method recursively collects values from the input batch according
+        to the structure defined by the feature collection. It traverses the
+        nested structure and gathers the values, maintaining the structure
+        defined by the FeatureCollection.
+
+        Args:
+            inputs (Batch): The batch of input samples.
+
+        Returns:
+            list[Any]: The collected values.
+        """
+        if isinstance(self.collection, dict):
+            # collect values from sub-collection and
+            # convert from dict of lists to list of dicts
+            data = {
+                k: (
+                    inputs[str(hash(v))]
+                    if isinstance(v, FeatureRef)
+                    else v._collect_values(inputs)
+                )
+                for k, v in self.collection.items()
+            }
+            return [
+                dict(zip(data.keys(), values))
+                for values in zip(*data.values())
+            ]
+
+        if isinstance(self.collection, list):
+            # collect values from sub-collection and transpose
+            data = (
+                (
+                    inputs[str(hash(v))]
+                    if isinstance(v, FeatureRef)
+                    else v._collect_values(inputs)
+                )
+                for v in self.collection
+            )
+            return [list(row) for row in zip(*data)]
+
 
 class CollectFeaturesInputRefs(InputRefs):
     """Input references for the CollectFeatures data processor.
@@ -304,44 +346,6 @@ class CollectFeatures(
         self.collection = inputs.collection
         # call the processor
         return super(CollectFeatures, self).call(inputs=inputs)
-
-    def collect_values(
-        self, inputs: Batch, col: FeatureCollection | FeatureRef
-    ) -> list[Any]:
-        """Recursively collects values from the input batch.
-
-        This method recursively collects values from the input batch according
-        to the structure defined by the feature collection. It traverses the
-        nested structure and gathers the values, maintaining the structure
-        defined by the FeatureCollection.
-
-        Args:
-            inputs (Batch): The batch of input samples.
-            col (FeatureCollection | FeatureRef): The current feature collection
-                or feature reference to collect values from.
-
-        Returns:
-            list[Any]: The collected values.
-        """
-        if isinstance(col, FeatureRef):
-            return inputs[str(hash(col))]
-
-        if isinstance(col.collection, dict):
-            # collect values from sub-collection and
-            # convert from dict of lists to list of dicts
-            data = {
-                k: self.collect_values(inputs, v)
-                for k, v in col.collection.items()
-            }
-            return [
-                dict(zip(data.keys(), values))
-                for values in zip(*data.values())
-            ]
-
-        if isinstance(col.collection, list):
-            # collect values from sub-collection and transpose
-            data = (self.collect_values(inputs, v) for v in col.collection)
-            return [list(row) for row in zip(*data)]
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int
