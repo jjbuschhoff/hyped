@@ -75,14 +75,8 @@ flow = DataFlow(features=ds.features)
 Now we can add processing steps by calling data processors on the features. In this example we add a tokenizer processor to tokenize the text input feature using a BERT tokenizer:
 
 ```python
-tokenizer = TransformersTokenizer(
-    TransformersTokenizerConfig(
-        model_name="bert-base-uncased"
-    )
-)
-tokenized_features = tokenizer.call(
-    text=flow.src_features.text
-)
+tokenizer = TransformersTokenizer(model_name="bert-base-uncased")
+tokenized_features = tokenizer.call(text=flow.src_features.text)
 ```
 
 Finally, we can apply the data pipeline to your dataset using the `apply` method. Here we also need to specify the which features are to be collected into the output dataset:
