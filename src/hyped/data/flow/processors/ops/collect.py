@@ -245,7 +245,7 @@ class CollectFeatures(
         inputs: None | CollectFeaturesInputRefs = None,
         collection: None | FeatureCollection = None,
         **kwargs,
-    ) -> int:
+    ) -> CollectFeaturesOutputRefs:
         """Calls the CollectFeatures processor with specified inputs.
 
         This method calls the CollectFeatures processor with either the
@@ -263,7 +263,7 @@ class CollectFeatures(
             **kwargs: Additional keyword arguments to be passed as inputs.
 
         Returns:
-            int: The output of the CollectFeatures processor.
+            CollectFeaturesOutputRefs: The output of the CollectFeatures processor.
 
         Raises:
             ValueError: If multiple input options are specified.
@@ -361,10 +361,8 @@ class CollectFeatures(
             corresponding indices.
         """
         # collect values
-        out = {
-            "collected": self.collect_values(
-                inputs=inputs, col=self.collection
-            )
-        }
+        out = Batch(
+            collected=self.collect_values(inputs=inputs, col=self.collection)
+        )
         # return collected values and index
         return out, index
