@@ -71,6 +71,26 @@ class TestFeatureCollection(object):
     def test_refs(self, collection, refs):
         assert collection.refs == set(refs)
 
+    @pytest.mark.parametrize(
+        "collection,inputs,expected_output",
+        [
+            (FeatureCollection(collection={}), {}, []),
+            (
+                FeatureCollection(collection={"a": str_ref, "b": int_ref}),
+                {str(hash(str_ref)): ["A"], str(hash(int_ref)): [1]},
+                [{"a": "A", "b": 1}],
+            ),
+            (
+                FeatureCollection(collection=[int_ref, int_ref]),
+                {str(hash(int_ref)): [1]},
+                [[1, 1]],
+            ),
+        ],
+    )
+    def test_collect_values(self, collection, inputs, expected_output):
+        collected = collection._collect_values(inputs)
+        assert collected == expected_output
+
 
 class BaseCollectFeaturesTest(BaseDataProcessorTest):
     # processor
