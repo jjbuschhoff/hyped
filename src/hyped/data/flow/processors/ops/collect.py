@@ -182,25 +182,46 @@ class FeatureCollection(BaseModel):
             return Sequence(f, length=len(self.collection))
 
     @property
-    def refs(self) -> set[FeatureRef]:
-        """Get the feature references within the collection.
+    def named_refs(self) -> dict[str, FeatureRef]:
+        """Retrieve a dictionary of all feature references within the collection.
+
+        This property method traverses the nested structure of the `FeatureCollection`
+        and collects all `FeatureRef` instances. The keys in the returned dictionary
+        represent the paths to the references in the nested structure, using dot notation
+        for dictionaries and square bracket notation for lists.
 
         Returns:
-            set[FeatureRef]: A set of feature references.
+            dict[str, FeatureRef]: A dictionary mapping the paths to their respective
+            :class:`FeatureRef` instances.
         """
-        feature_refs = set()
-
-        for v in (
-            self.collection.values()
+        named_items = (
+            self.collection
             if isinstance(self.collection, dict)
-            else self.collection
-        ):
-            if isinstance(v, FeatureCollection):
-                feature_refs.update(v.refs)
-            elif isinstance(v, FeatureRef):
-                feature_refs.add(v)
+            else {"[%i]" % i: v for i, v in enumerate(self.collection)}
+        )
 
-        return feature_refs
+        named_refs = {}
+        # collect all named references
+        # names are the paths to the reference in the nested structure
+        for k, v in named_items.items():
+            if isinstance(v, FeatureRef):
+                # collect feature refs
+                named_refs[k] = v
+
+            elif isinstance(v, FeatureCollection):
+                # collect refs from sub-collection
+                named_refs.update(
+                    {
+                        (
+                            f"{k}.{kk}"
+                            if isinstance(v.collection, dict)
+                            else f"{k}{kk}"
+                        ): ref
+                        for kk, ref in v.named_refs.items()
+                    }
+                )
+
+        return named_refs
 
     def _collect_values(
         self, inputs: Batch, batch_size: int
@@ -219,41 +240,51 @@ class FeatureCollection(BaseModel):
         Returns:
             list[Any]: The collected values.
         """
-        if isinstance(self.collection, dict):
-            # collect values from sub-collection and
-            # convert from dict of lists to list of dicts
-            data = {
-                k: (
-                    [v.value] * batch_size
-                    if isinstance(v, Const)
-                    else inputs[str(hash(v))]
-                    if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs, batch_size)
-                    if isinstance(v, FeatureCollection)
-                    else None  # unexpected type in collection
-                )
-                for k, v in self.collection.items()
-            }
-            return [
-                dict(zip(data.keys(), values))
-                for values in zip(*data.values())
-            ]
 
-        if isinstance(self.collection, list):
-            # collect values from sub-collection and transpose
-            data = (
-                (
-                    [v.value] * batch_size
-                    if isinstance(v, Const)
-                    else inputs[str(hash(v))]
-                    if isinstance(v, FeatureRef)
-                    else v._collect_values(inputs, batch_size)
-                    if isinstance(v, FeatureCollection)
-                    else None  # unexpected type in collection
+        def collect(
+            col: FeatureCollection, values: dict[FeatureRef, typing.Any]
+        ) -> list[typing.Any]:
+            if isinstance(col.collection, dict):
+                # collect values from sub-collection and
+                # convert from dict of lists to list of dicts
+                data = {
+                    k: (
+                        [v.value] * batch_size
+                        if isinstance(v, Const)
+                        else values[v]
+                        if isinstance(v, FeatureRef)
+                        else collect(v, values)
+                        if isinstance(v, FeatureCollection)
+                        else None  # unexpected type in collection
+                    )
+                    for k, v in col.collection.items()
+                }
+                return [
+                    dict(zip(data.keys(), values))
+                    for values in zip(*data.values())
+                ]
+
+            if isinstance(col.collection, list):
+                # collect values from sub-collection and transpose
+                data = (
+                    (
+                        [v.value] * batch_size
+                        if isinstance(v, Const)
+                        else values[v]
+                        if isinstance(v, FeatureRef)
+                        else collect(v, values)
+                        if isinstance(v, FeatureCollection)
+                        else None  # unexpected type in collection
+                    )
+                    for v in col.collection
                 )
-                for v in self.collection
-            )
-            return [list(row) for row in zip(*data)]
+                return [list(row) for row in zip(*data)]
+
+        # map inputs to refs
+        named_refs = self.named_refs
+        inputs = {named_refs[n]: v for n, v in inputs.items()}
+        # collect values
+        return collect(self, inputs)
 
 
 class CollectFeaturesInputRefs(InputRefs):
@@ -291,14 +322,10 @@ class CollectFeaturesInputRefs(InputRefs):
     def named_refs(self) -> dict[str, FeatureRef]:
         """Get the named input references.
 
-        This property returns a dictionary mapping input reference field names
-        to their corresponding instances. The field names are the hash values
-        of the FeatureRef instances in the collection.
-
         Returns:
             dict[str, FeatureRef]: A dictionary of named input references.
         """
-        return {str(hash(ref)): ref for ref in self.collection.refs}
+        return self.collection.named_refs
 
     @property
     def flow(self) -> object:
@@ -307,13 +334,13 @@ class CollectFeaturesInputRefs(InputRefs):
         Returns:
             object: The associated data flow graph.
         """
-        if len(self.collection.refs) == 0:
+        if len(self.collection.named_refs) == 0:
             raise NotImplementedError(
                 "Constant Processors without any input references are not "
                 "supported yet."
             )
 
-        return next(iter(self.collection.refs)).flow_
+        return next(iter(self.collection.named_refs.values())).flow_
 
 
 class CollectFeaturesOutputRefs(OutputRefs):
