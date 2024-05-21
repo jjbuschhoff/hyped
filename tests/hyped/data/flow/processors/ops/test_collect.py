@@ -141,3 +141,43 @@ class TestCollectFeatures_sequence(BaseCollectFeaturesTest):
     input_index = list(range(100))
     # expected output
     expected_output = {"collected": [[i, i] for i in range(100)]}
+
+
+class TestCollectFeatures_nested(BaseCollectFeaturesTest):
+    # collection
+    collection = FeatureCollection(
+        collection={
+            "a": {
+                "b": int_ref,
+                "c": [
+                    {"x": str_ref, "y": str_ref},
+                    {"x": str_ref, "y": str_ref},
+                ],
+            }
+        }
+    )
+    # inputs
+    input_features = {
+        str(hash(int_ref)): int_ref.feature_,
+        str(hash(str_ref)): str_ref.feature_,
+    }
+    input_data = {
+        str(hash(int_ref)): [i for i in range(100)],
+        str(hash(str_ref)): [str(i) for i in range(100)],
+    }
+    input_index = list(range(100))
+    # expected output
+    expected_output = {
+        "collected": [
+            {
+                "a": {
+                    "b": i,
+                    "c": [
+                        {"x": str(i), "y": str(i)},
+                        {"x": str(i), "y": str(i)},
+                    ],
+                }
+            }
+            for i in range(100)
+        ]
+    }

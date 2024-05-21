@@ -83,12 +83,18 @@ class FeatureCollection(BaseModel):
         """
         if isinstance(self.collection, dict):
             return Features(
-                {k: v.feature_ for k, v in self.collection.items()}
+                {
+                    k: (v.feature_ if isinstance(v, FeatureRef) else v.feature)
+                    for k, v in self.collection.items()
+                }
             )
 
         if isinstance(self.collection, list):
             # collect all features in specified in the list
-            collected_features = (item.feature_ for item in self.collection)
+            collected_features = (
+                (v.feature_ if isinstance(v, FeatureRef) else v.feature)
+                for v in self.collection
+            )
             f = next(collected_features)
             # make sure the feature types match
             for ff in collected_features:

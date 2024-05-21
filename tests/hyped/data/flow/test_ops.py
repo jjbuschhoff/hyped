@@ -1,4 +1,4 @@
-from datasets import Features, Value
+from datasets import Features, Sequence, Value
 
 from hyped.data.flow.flow import DataFlow
 from hyped.data.flow.ops import collect
@@ -16,6 +16,8 @@ def test_collect():
     )
 
     out = collect([flow.src_features.x, flow.src_features.y])
+    # make sure the output feature is correct
+    assert out.feature_ == Sequence(Value("string"), length=2)
     # make sure the node has been added
     assert out.node_id_ in flow._graph
     assert isinstance(

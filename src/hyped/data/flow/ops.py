@@ -60,4 +60,4 @@ def collect(collection: None | dict | list = None, **kwargs) -> FeatureRef:
     Returns:
         FeatureRef: A FeatureRef instance representing the collected features.
     """
-    return CollectFeatures().call(collection=collection, **kwargs)
+    return CollectFeatures().call(collection=collection, **kwargs).collected
