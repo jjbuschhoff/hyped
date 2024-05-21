@@ -35,25 +35,12 @@ from hyped.data.flow.refs.ref import FeatureRef
 class Const(BaseModel):
     """Constant Value Wrapper.
 
-    This wrapper is used to specify constant values in feature descriptions.
-
-    Consider the following example:
-
-    .. code-block: python
-
-        feature = Feature(
-            {
-                "const": Const("This is a constant value"),
-                "lookup": "feature"
-            }
-        )
-
-    Arguments:
-        value (str | int | float):
-            value
+    This wrapper is used to internally mark constant values in
+    feature descriptions.
     """
 
     value: str | int | float
+    """The value wrapped by the constant wrapper"""
 
     def __str__(self) -> str:
         """String representation of the constant feature value."""
@@ -72,9 +59,16 @@ class Const(BaseModel):
 class FeatureCollection(BaseModel):
     """Represents a collection of features.
 
-    This class provides a structure for a collection of features.
-    It can be infinitely nested dictionaries or lists. The leaves
-    of this nested structure must be FeatureRef instances.
+    This class represents a collection of features that can be structured
+    as nested dictionaries or lists. The leaves of this nested structure
+    can be either :class:`FeatureRef` instances or primitive values.
+
+    - `FeatureRef` instances represent references to features within the data flow.
+    - Primitive values are treated as constant features, which will be
+    propagated to all collected samples.
+
+    This flexibility allows for the inclusion of both dynamic feature references
+    and static constant values within the same feature collection.
     """
 
     collection: Annotated[
@@ -333,8 +327,33 @@ class CollectFeatures(
     """Data processor for collecting features into a new (nested) feature.
 
     This processor collects features from a nested structure defined by a
-    FeatureCollection object. It traverses the nested structure and gathers
-    the features, maintaining the structure defined by the FeatureCollection.
+    `FeatureCollection` object. It traverses the nested structure and gathers
+    the features, maintaining the structure defined by the `FeatureCollection`.
+
+    - `FeatureRef` instances in the structure represent references to dynamic features
+    within the data flow.
+    - Primitive values in the structure are treated as constant features and are
+    propagated to all collected samples.
+
+    This allows the processor to combine both dynamic feature references and static
+    constant values into a single nested feature collection.
+
+    Example:
+        The following example collects a set of features and induces a constant feature:
+
+        .. code-block:: python
+
+            # assume ref is a feature reference to an existing feature
+            ref = ...
+            # collect features
+            features = CollectFeatures().call(
+                a=[ref, ref],
+                b={"x": ref}
+                c="constant feature"
+            )
+            # features.a == [value, value]
+            # features.b == {"x": value}
+            # features.c == "constant feature"
     """
 
     def __init__(self) -> None:

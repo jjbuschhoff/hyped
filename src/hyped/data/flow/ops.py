@@ -49,8 +49,8 @@ def collect(collection: None | dict | list = None, **kwargs) -> FeatureRef:
     """Collect features from a given collection.
 
     This function provides a high-level operator for collecting features from a given collection,
-    such as a dictionary or a list. It delegates the collection process to the `CollectFeatures`
-    class and returns a FeatureRef instance representing the collected features.
+    such as a dictionary or a list. It delegates the collection process to the :class:`CollectFeatures`
+    class and returns a :class:`FeatureRef` instance representing the collected features.
 
     Args:
         collection (None | dict | list, optional): The collection from which to collect features.
