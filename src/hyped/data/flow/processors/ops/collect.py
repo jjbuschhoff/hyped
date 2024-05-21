@@ -16,7 +16,7 @@ from __future__ import annotations
 import typing
 
 from datasets import Dataset
-from datasets.features.features import Features, FeatureType, Sequence
+from datasets.features.features import Features, FeatureType, Sequence, Value
 from pydantic import BaseModel, BeforeValidator, Field
 from pydantic._internal._model_construction import ModelMetaclass
 from typing_extensions import Annotated
@@ -31,16 +31,37 @@ from hyped.data.flow.refs.inputs import InputRefs
 from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
 from hyped.data.flow.refs.ref import FeatureRef
 
+T = typing.TypeVar("T", str, int, float)
+
 
 class Const(BaseModel):
     """Constant Value Wrapper.
 
-    This wrapper is used to internally mark constant values in
-    feature descriptions.
+    This wrapper is used to internally mark constant values in feature descriptions.
+    It allows for the inclusion of constant values within feature collections,
+    ensuring that these constants are properly handled and propagated within
+    the data flow.
     """
 
-    value: str | int | float
+    value: T
     """The value wrapped by the constant wrapper"""
+
+    ftype: Value = None
+    """HuggingFace Datasets Feature Type of the constant value."""
+
+    def __init__(self, value: T, ftype: Value = None) -> None:
+        """Initialize the Const object.
+
+        Args:
+            value (T): The constant value to be wrapped.
+            ftype (Value, optional): The feature type of the constant value. If not provided,
+                it will be inferred from the value.
+        """
+        # infer the feature type from the value
+        if ftype is None:
+            ftype = Dataset.from_dict({"feature": [value]}).features["feature"]
+        # initialize model
+        super(Const, self).__init__(value=value, ftype=ftype)
 
     def __str__(self) -> str:
         """String representation of the constant feature value."""
@@ -50,11 +71,6 @@ class Const(BaseModel):
         """String representation of the constant feature value."""
         return str(self)
 
-    @property
-    def ftype(self) -> Value:
-        """HuggingFace Datasets Feature Type of the constant value."""
-        return Dataset.from_dict({"feature": [self.value]}).features["feature"]
-
 
 class FeatureCollection(BaseModel):
     """Represents a collection of features.
@@ -63,9 +79,12 @@ class FeatureCollection(BaseModel):
     as nested dictionaries or lists. The leaves of this nested structure
     can be either :class:`FeatureRef` instances or primitive values.
 
-    - `FeatureRef` instances represent references to features within the data flow.
-    - Primitive values are treated as constant features, which will be
-    propagated to all collected samples.
+    - :class:`FeatureRef` instances represent references to features within
+      the data flow.
+    - :class:`Const` instances represent constant feature values, which will
+      be propagated to all collected samples
+    - Primitive values are converted to :class:`Const` instances
+      with inferred feature type.
 
     This flexibility allows for the inclusion of both dynamic feature references
     and static constant values within the same feature collection.
@@ -84,7 +103,9 @@ class FeatureCollection(BaseModel):
                 {
                     k: (
                         v
-                        if isinstance(v, FeatureRef)
+                        if isinstance(
+                            v, (FeatureRef, FeatureCollection, Const)
+                        )
                         else FeatureCollection(collection=v)
                         if isinstance(v, (typing.Mapping, list, tuple))
                         else Const(value=v)
@@ -95,7 +116,9 @@ class FeatureCollection(BaseModel):
                 else [
                     (
                         v
-                        if isinstance(v, FeatureRef)
+                        if isinstance(
+                            v, (FeatureRef, FeatureCollection, Const)
+                        )
                         else FeatureCollection(collection=v)
                         if isinstance(v, (typing.Mapping, list, tuple))
                         else Const(value=v)
@@ -330,10 +353,12 @@ class CollectFeatures(
     `FeatureCollection` object. It traverses the nested structure and gathers
     the features, maintaining the structure defined by the `FeatureCollection`.
 
-    - `FeatureRef` instances in the structure represent references to dynamic features
-    within the data flow.
-    - Primitive values in the structure are treated as constant features and are
-    propagated to all collected samples.
+    - :class:`FeatureRef` instances represent references to dynamic features
+      within the data flow.
+    - :class:`Const` instances represent constant feature values, which will
+      be propagated to all collected samples
+    - Primitive values are converted to :class:`Const` instances with inferred
+      feature type.
 
     This allows the processor to combine both dynamic feature references and static
     constant values into a single nested feature collection.
@@ -349,11 +374,13 @@ class CollectFeatures(
             features = CollectFeatures().call(
                 a=[ref, ref],
                 b={"x": ref}
-                c="constant feature"
+                c="constant feature",
+                d=Const(132, Value("int32"))  # manually specify the feature type
             )
             # features.a == [value, value]
             # features.b == {"x": value}
             # features.c == "constant feature"
+            # features.d == 132
     """
 
     def __init__(self) -> None:

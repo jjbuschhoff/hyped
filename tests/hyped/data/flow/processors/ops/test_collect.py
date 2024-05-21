@@ -8,6 +8,7 @@ from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
     CollectFeaturesConfig,
     CollectFeaturesInputRefs,
+    Const,
     FeatureCollection,
 )
 from hyped.data.flow.refs.ref import FeatureRef
@@ -49,6 +50,16 @@ class TestFeatureCollection(object):
                 FeatureCollection(collection=[int_ref, int_ref]),
                 Sequence(Value("int32"), length=2),
             ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                Sequence(Value("string"), length=3),
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
+                Sequence(Value("int32"), length=3),
+            ),
         ],
     )
     def test_feature(self, collection, feature):
@@ -64,6 +75,16 @@ class TestFeatureCollection(object):
             ),
             (
                 FeatureCollection(collection=[int_ref, int_ref]),
+                (int_ref, int_ref),
+            ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                (str_ref, str_ref),
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
                 (int_ref, int_ref),
             ),
         ],
@@ -85,10 +106,25 @@ class TestFeatureCollection(object):
                 {str(hash(int_ref)): [1]},
                 [[1, 1]],
             ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                {str(hash(str_ref)): ["var"]},
+                [["var", "var", "const"]],
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
+                {str(hash(int_ref)): [1]},
+                [[1, 1, 0]],
+            ),
         ],
     )
     def test_collect_values(self, collection, inputs, expected_output):
-        collected = collection._collect_values(inputs)
+        batch_size = (
+            0 if len(inputs) == 0 else len(next(iter(inputs.values())))
+        )
+        collected = collection._collect_values(inputs, batch_size)
         assert collected == expected_output
 
 
