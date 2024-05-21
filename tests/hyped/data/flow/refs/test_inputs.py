@@ -12,7 +12,7 @@ from hyped.data.flow.refs.inputs import (
 )
 
 # import hyped.data.processors.base
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.refs.ref import NONE_REF, FeatureRef
 
 
 def test_feature_validator():
@@ -90,7 +90,7 @@ def test_check_feature_is_sequence():
         CustomInputRefs(x=x_ref, y=x_ref)
 
 
-def test_input_refs():
+def test_required_input_refs():
     class CustomInputRefs(InputRefs):
         x: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
         y: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
@@ -103,7 +103,68 @@ def test_input_refs():
     input_refs = CustomInputRefs(x=x_ref, y=y_ref)
 
     # check properties
-    assert input_refs.keys == {"x", "y"}
+    assert input_refs.required_keys == {"x", "y"}
     assert input_refs.refs == {x_ref, y_ref}
     assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert input_refs.flow == f
+
+
+def test_optional_input_refs():
+    k, n, f = tuple(), -1, MagicMock
+    # create dummy input refs
+    x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
+    y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("string"))
+
+    class CustomInputRefs(InputRefs):
+        x: Annotated[
+            FeatureRef, FeatureValidator(lambda r, f: None)
+        ] = NONE_REF
+        y: Annotated[
+            FeatureRef, FeatureValidator(lambda r, f: None)
+        ] = NONE_REF
+
+    # create input refs instance
+    input_refs = CustomInputRefs(x=x_ref, y=y_ref)
+    # check properties
+    assert input_refs.required_keys == set()
+    assert input_refs.refs == {x_ref, y_ref}
+    assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert input_refs.flow == f
+
+    # create input refs instance
+    input_refs = CustomInputRefs(x=x_ref)
+    # check properties
+    assert input_refs.required_keys == set()
+    assert input_refs.refs == {x_ref}
+    assert input_refs.named_refs == {"x": x_ref}
+    assert input_refs.flow == f
+
+    # create input refs instance
+    input_refs = CustomInputRefs(y=y_ref)
+    # check properties
+    assert input_refs.required_keys == set()
+    assert input_refs.refs == {y_ref}
+    assert input_refs.named_refs == {"y": y_ref}
+    assert input_refs.flow == f
+
+    class CustomInputRefs(InputRefs):
+        x: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
+        y: Annotated[
+            FeatureRef, FeatureValidator(lambda r, f: None)
+        ] = NONE_REF
+
+    # create input refs instance
+    input_refs = CustomInputRefs(x=x_ref, y=y_ref)
+    # check properties
+    assert input_refs.required_keys == {"x"}
+    assert input_refs.refs == {x_ref, y_ref}
+    assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert input_refs.flow == f
+
+    # create input refs instance
+    input_refs = CustomInputRefs(x=x_ref)
+    # check properties
+    assert input_refs.required_keys == {"x"}
+    assert input_refs.refs == {x_ref}
+    assert input_refs.named_refs == {"x": x_ref}
     assert input_refs.flow == f

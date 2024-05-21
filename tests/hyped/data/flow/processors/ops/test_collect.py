@@ -161,7 +161,7 @@ class BaseCollectFeaturesTest(BaseDataProcessorTest):
         return processor
 
     def test_input_refs_properties(self, input_refs):
-        assert type(input_refs).keys == set()
+        assert type(input_refs).required_keys == set()
         assert input_refs.flow == mock_flow
 
 

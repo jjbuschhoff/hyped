@@ -53,7 +53,7 @@ class BaseDataProcessorTest:
         cls = type(self)
         # check input data
         input_keys = set(cls.input_data.keys())
-        assert processor.input_keys.issubset(input_keys)
+        assert processor.required_input_keys.issubset(input_keys)
         assert check_object_matches_feature(
             cls.input_data,
             {k: Sequence(v) for k, v in cls.input_features.items()},

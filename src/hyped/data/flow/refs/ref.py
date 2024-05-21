@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 
-from datasets.features.features import Features, FeatureType, Sequence
+from datasets.features.features import Features, FeatureType, Sequence, Value
 from pydantic import BaseModel, BeforeValidator, ConfigDict, PlainSerializer
 from typing_extensions import Annotated
 
@@ -59,8 +59,23 @@ class FeatureRef(BaseModel):
     The key is used to locate and access the feature within the outputs
     of a node in the data flow.
     """
+    node_id_: int
+    """
+    The identifier of the node within the data flow graph.
 
-    feature_: None | Annotated[
+    This attribute represents the identifier of the node within the data flow
+    graph to which the referenced feature belongs.
+    """
+
+    flow_: object
+    """
+    The data flow graph to which the feature reference belongs.
+
+    This attribute represents the data flow graph to which the feature reference belongs.
+    It provides context for the feature reference within the overall data processing flow.
+    """
+
+    feature_: Annotated[
         Features | FeatureType,
         # custom serialization
         PlainSerializer(
@@ -85,22 +100,6 @@ class FeatureRef(BaseModel):
     ]
     """
     The type of the feature referenced by this instance.
-    """
-
-    node_id_: int
-    """
-    The identifier of the node within the data flow graph.
-
-    This attribute represents the identifier of the node within the data flow
-    graph to which the referenced feature belongs.
-    """
-
-    flow_: object
-    """
-    The data flow graph to which the feature reference belongs.
-
-    This attribute represents the data flow graph to which the feature reference belongs.
-    It provides context for the feature reference within the overall data processing flow.
     """
 
     def __hash__(self) -> str:
@@ -148,3 +147,11 @@ class FeatureRef(BaseModel):
             node_id_=self.node_id_,
             flow_=self.flow_,
         )
+
+
+# feature ref instance used to mark none
+# used by output feature refs to mark conditional output features
+# used by input feature refs to mark optional input features
+NONE_REF = FeatureRef(
+    key_="__NONE__", node_id_=-1, flow_=None, feature_=Value("int32")
+)

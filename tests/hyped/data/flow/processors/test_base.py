@@ -37,7 +37,7 @@ class TestBaseDataProcessor:
         proc = MockProcessor.from_config(MockProcessorConfig())
         # check config and input keys property
         assert isinstance(proc.config, MockProcessorConfig)
-        assert proc.input_keys == {"x"}
+        assert proc.required_input_keys == {"x"}
 
     def test_call(self):
         # create processor instance
