@@ -32,6 +32,7 @@ from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
+from hyped.common.lazy import LazyInstance
 
 from .processors.base import BaseDataProcessor
 from .refs.inputs import InputRefs
@@ -530,6 +531,19 @@ class DataFlowExecutor(object):
         return state.collect_value(self.collect)
 
 
+def patch_asyncio() -> None:
+    """Patch asyncio if running in an async environment, such as jupyter notebook. This fixes #26."""
+    try:
+        nest_asyncio._patch_asyncio()
+        loop = asyncio.get_event_loop()
+        nest_asyncio.apply(loop)
+    except ValueError:
+        # TODO: log warning
+        pass
+
+        return object()
+
+
 class DataFlow(object):
     """High-level interface for defining and executing data processing workflows.
 
@@ -555,6 +569,7 @@ class DataFlow(object):
         self._graph = DataFlowGraph()
         self._src_features = self._graph.add_source_node(features=features)
         self._out_features: None | FeatureRef = None
+        self._async_patch = LazyInstance(patch_asyncio)
 
     @property
     def depth(self) -> int:
@@ -656,6 +671,10 @@ class DataFlow(object):
             # try to get multiprocessing rank from pytorch worker info
             worker_info = get_worker_info()
             rank = 0 if worker_info is None else worker_info.id
+
+        # patch asyncio if running in an async environment, such as jupyter notebook
+        # this fixes #26
+        self._async_patch._callback()
 
         # create a data flow executor
         executor = DataFlowExecutor(self._graph, self._out_features)
