@@ -67,15 +67,15 @@ class Jinja2(
 ):
     """Jinja2 Processor."""
 
-    def __init__(self, config: Jinja2Config) -> None:
+    def __init__(self, config: None | Jinja2Config = None, **kwargs) -> None:
         """Instantiate a new Jinja2 Template Data Processor.
 
-        Arguments:
-            config (Jinja2Config):
-                config of the data processor
+        Args:
+            config (Jinja2Config): Config of the Jinja2 processor.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
-        super(Jinja2, self).__init__(config)
-        # setup the jinja environment
+        super(Jinja2, self).__init__(config, **kwargs)
         self._setup_jinja_env()
 
     def _setup_jinja_env(self) -> None:
