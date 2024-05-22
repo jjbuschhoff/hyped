@@ -260,7 +260,9 @@ class TestJsonParser_CatchWithError(BaseJsonParserTest):
 
         # check output matches expectation
         assert output["parsed"] == cls.expected_output_data["parsed"]
-        assert [
-            output["error"][i] != ""
-            for i in range(len(cls.expected_output_data["error"]))
-        ]
+        assert all(
+            [
+                output["error"][i] != ""
+                for i in range(len(cls.expected_output_data["error"]))
+            ]
+        )
