@@ -8,6 +8,7 @@ from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
     CollectFeaturesConfig,
     CollectFeaturesInputRefs,
+    Const,
     FeatureCollection,
 )
 from hyped.data.flow.refs.ref import FeatureRef
@@ -49,6 +50,16 @@ class TestFeatureCollection(object):
                 FeatureCollection(collection=[int_ref, int_ref]),
                 Sequence(Value("int32"), length=2),
             ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                Sequence(Value("string"), length=3),
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
+                Sequence(Value("int32"), length=3),
+            ),
         ],
     )
     def test_feature(self, collection, feature):
@@ -57,19 +68,78 @@ class TestFeatureCollection(object):
     @pytest.mark.parametrize(
         "collection,refs",
         [
-            (FeatureCollection(collection={}), set()),
+            (FeatureCollection(collection={}), {}),
             (
                 FeatureCollection(collection={"a": str_ref, "b": int_ref}),
-                (str_ref, int_ref),
+                {"a": str_ref, "b": int_ref},
             ),
             (
                 FeatureCollection(collection=[int_ref, int_ref]),
-                (int_ref, int_ref),
+                {"[0]": int_ref, "[1]": int_ref},
+            ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                {"[0]": str_ref, "[1]": str_ref},
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
+                {"[0]": int_ref, "[1]": int_ref},
+            ),
+            (
+                FeatureCollection(
+                    collection={
+                        "a": [int_ref, int_ref],
+                        "b": {"x": [str_ref, str_ref]},
+                    }
+                ),
+                {
+                    "a[0]": int_ref,
+                    "a[1]": int_ref,
+                    "b.x[0]": str_ref,
+                    "b.x[1]": str_ref,
+                },
             ),
         ],
     )
-    def test_refs(self, collection, refs):
-        assert collection.refs == set(refs)
+    def test_named_refs(self, collection, refs):
+        assert collection.named_refs == refs
+
+    @pytest.mark.parametrize(
+        "collection,inputs,expected_output",
+        [
+            (FeatureCollection(collection={}), {}, []),
+            (
+                FeatureCollection(collection={"a": str_ref, "b": int_ref}),
+                {"a": ["A"], "b": [1]},
+                [{"a": "A", "b": 1}],
+            ),
+            (
+                FeatureCollection(collection=[int_ref, int_ref]),
+                {"[0]": [1], "[1]": [1]},
+                [[1, 1]],
+            ),
+            (
+                FeatureCollection(collection=[str_ref, str_ref, "const"]),
+                {"[0]": ["var"], "[1]": ["var"]},
+                [["var", "var", "const"]],
+            ),
+            (
+                FeatureCollection(
+                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
+                ),
+                {"[0]": [1], "[1]": [1]},
+                [[1, 1, 0]],
+            ),
+        ],
+    )
+    def test_collect_values(self, collection, inputs, expected_output):
+        batch_size = (
+            0 if len(inputs) == 0 else len(next(iter(inputs.values())))
+        )
+        collected = collection._collect_values(inputs, batch_size)
+        assert collected == expected_output
 
 
 class BaseCollectFeaturesTest(BaseDataProcessorTest):
@@ -91,8 +161,7 @@ class BaseCollectFeaturesTest(BaseDataProcessorTest):
         return processor
 
     def test_input_refs_properties(self, input_refs):
-        assert type(input_refs).keys == set()
-        assert all(k == str(hash(r)) for k, r in input_refs.named_refs.items())
+        assert type(input_refs).required_keys == set()
         assert input_refs.flow == mock_flow
 
 
@@ -101,16 +170,16 @@ class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
     collection = FeatureCollection(collection={"a": int_ref, "b": str_ref})
     # inputs
     input_features = {
-        str(hash(int_ref)): int_ref.feature_,
-        str(hash(str_ref)): str_ref.feature_,
+        "a": int_ref.feature_,
+        "b": str_ref.feature_,
     }
     input_data = {
-        str(hash(int_ref)): [i for i in range(100)],
-        str(hash(str_ref)): [str(i) for i in range(100)],
+        "a": [i for i in range(100)],
+        "b": [str(i) for i in range(100)],
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {
+    expected_output_data = {
         "collected": [{"a": i, "b": str(i)} for i in range(100)]
     }
 
@@ -133,14 +202,16 @@ class TestCollectFeatures_sequence(BaseCollectFeaturesTest):
     collection = FeatureCollection(collection=[int_ref, int_ref])
     # inputs
     input_features = {
-        str(hash(int_ref)): int_ref.feature_,
+        "[0]": int_ref.feature_,
+        "[1]": int_ref.feature_,
     }
     input_data = {
-        str(hash(int_ref)): [i for i in range(100)],
+        "[0]": [i for i in range(100)],
+        "[1]": [i for i in range(100)],
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {"collected": [[i, i] for i in range(100)]}
+    expected_output_data = {"collected": [[i, i] for i in range(100)]}
 
 
 class TestCollectFeatures_nested(BaseCollectFeaturesTest):
@@ -158,16 +229,22 @@ class TestCollectFeatures_nested(BaseCollectFeaturesTest):
     )
     # inputs
     input_features = {
-        str(hash(int_ref)): int_ref.feature_,
-        str(hash(str_ref)): str_ref.feature_,
+        "a.b": int_ref.feature_,
+        "a.c[0].x": str_ref.feature_,
+        "a.c[0].y": str_ref.feature_,
+        "a.c[1].x": str_ref.feature_,
+        "a.c[1].y": str_ref.feature_,
     }
     input_data = {
-        str(hash(int_ref)): [i for i in range(100)],
-        str(hash(str_ref)): [str(i) for i in range(100)],
+        "a.b": [i for i in range(100)],
+        "a.c[0].x": [str(i) for i in range(100)],
+        "a.c[0].y": [str(i) for i in range(100)],
+        "a.c[1].x": [str(i) for i in range(100)],
+        "a.c[1].y": [str(i) for i in range(100)],
     }
     input_index = list(range(100))
     # expected output
-    expected_output = {
+    expected_output_data = {
         "collected": [
             {
                 "a": {

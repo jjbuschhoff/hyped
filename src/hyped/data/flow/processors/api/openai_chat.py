@@ -348,17 +348,25 @@ class OpenAIChatCompletion(
     This processor handles interactions with the OpenAI Chat Completion API.
     """
 
-    def __init__(self, config: OpenAIChatCompletionConfig) -> None:
+    def __init__(
+        self, config: None | OpenAIChatCompletionConfig = None, **kwargs
+    ) -> None:
         """Initialize the OpenAIChatCompletion processor.
 
         Args:
-            config (OpenAIChatCompletionConfig): Configuration for the processor.
+            config (OpenAIChatCompletionConfig, optional): Configuration for the processor.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
-        super(OpenAIChatCompletion, self).__init__(config)
+        super(OpenAIChatCompletion, self).__init__(config, **kwargs)
         # create semaphore object to control the maximum
         # number of concurrent calls to the api
         self.sem = (
-            asyncio.Semaphore(value=self.config.max_concurrent_calls)
+            LazyInstance(
+                partial(
+                    asyncio.Semaphore, value=self.config.max_concurrent_calls
+                )
+            )
             if self.config.max_concurrent_calls is not None
             else nullcontext()
         )
@@ -459,7 +467,7 @@ class OpenAIChatCompletion(
             Exception: If the maximum number of retries for rate limiting is exceeded.
         """
         # TODO: outsource this logic into a base api data processor
-        with self.sem:
+        async with self.sem:
             for i in range(0, 1 + self.config.rate_limit_max_retries):
                 try:
                     return await self.api_call(inputs, index, rank)

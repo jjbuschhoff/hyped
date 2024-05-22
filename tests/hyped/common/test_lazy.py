@@ -1,19 +1,43 @@
+import asyncio
 import multiprocessing as mp
 import os
+import pickle
+from contextlib import nullcontext
 
 import pytest
 
-from hyped.common.lazy import LazyInstance, LazySharedInstance
+from hyped.common.lazy import (
+    LazyInstance,
+    LazySharedInstance,
+    LazyStaticInstance,
+)
 
 
 def factory(pid=None):
     return "INSTANCE(%s)" % (pid or os.getpid())
 
 
-class TestLazyInstance(object):
+def test_getitem():
+    assert LazyStaticInstance(factory)[:4] == "INST"
+
+
+@pytest.mark.asyncio
+async def test_context_manager():
+    with LazyStaticInstance(nullcontext):
+        pass
+    async with LazyStaticInstance(nullcontext):
+        pass
+
+
+class TestStaticLazyInstance(object):
     @pytest.fixture
     def obj(self):
-        return LazyInstance[str](factory)
+        return LazyStaticInstance[str](factory)
+
+    def test_pickel(self, obj):
+        val = obj.lower()
+        reconstructed = pickle.loads(pickle.dumps(obj))
+        assert val == reconstructed.lower()
 
     def test_case(self, obj):
         assert not obj._is_instantiated()
@@ -22,7 +46,47 @@ class TestLazyInstance(object):
         assert obj._is_instantiated()
 
 
-class TestLazySharedInstance(TestLazyInstance):
+class TestLazyInstance(TestStaticLazyInstance):
+    @pytest.fixture
+    def obj(self):
+        return LazyInstance[str](factory)
+
+    def _mp_worker(self, obj, value):
+        # should have a different pid since the obj instance
+        # is created within the worker process and the value
+        # is coming from outside
+        assert obj.lower() != value.lower()
+
+    def test_case_mp(self, obj):
+        p = mp.Process(
+            target=self._mp_worker,
+            args=(
+                obj,
+                factory(),
+            ),
+        )
+        p.start()
+        p.join()
+        # check error in process
+        assert p.exitcode == 0
+
+    def test_case_new_loop(self, obj):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        # create instance
+        obj.lower()
+        loop_hash_A = object.__getattribute__(obj, "_loop_hash")
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        # create instance
+        obj.lower()
+        loop_hash_B = object.__getattribute__(obj, "_loop_hash")
+
+        assert loop_hash_A != loop_hash_B
+
+
+class TestLazySharedInstance(TestStaticLazyInstance):
     def obj_factory(self):
         return LazySharedInstance[str]("test_shared_instance", factory)
 

@@ -86,13 +86,17 @@ class JsonParser(
     validated in a single operation, improving efficiency and performance.
     """
 
-    def __init__(self, config: JsonParserConfig) -> None:
+    def __init__(
+        self, config: None | JsonParserConfig = None, **kwargs
+    ) -> None:
         """Initialize the JsonParser with the given configuration.
 
         Args:
             config (JsonParserConfig): Configuration for the JSON parser.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
-        super(JsonParser, self).__init__(config)
+        super(JsonParser, self).__init__(config, **kwargs)
         self._feature_model = self._build_feature_model()
 
     def _build_feature_model(self) -> BaseModel:

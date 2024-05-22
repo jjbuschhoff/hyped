@@ -93,12 +93,24 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         _out_refs_type (Type[O]): The type of output references produced by the processor.
     """
 
-    def __init__(self, config: C) -> None:
-        """Initializes the data processor with the provided configuration.
+    def __init__(self, config: None | C = None, **kwargs) -> None:
+        """Initialize the data processor.
+
+        Initializes the data processor with the given configuration. If no configuration is provided,
+        a new configuration is created using the provided keyword arguments.
 
         Args:
-            config (C): The configuration object for the data processor.
+            config (C, optional): The configuration object for the data processor. If not provided,
+                a configuration is created based on the given keyword arguments.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
+        # build final configuration from given arguments
+        if config is None:
+            config = self.config_type(**kwargs)
+        elif len(kwargs) is not None:
+            config = config.model_copy(update=kwargs)
+
         self._config = config
         # check whether the process function is a coroutine
         self._is_process_async = inspect.iscoroutinefunction(self.process)
@@ -128,13 +140,13 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         return self._config
 
     @property
-    def input_keys(self) -> set[str]:
-        """Retrieves the set of input keys expected by the processor.
+    def required_input_keys(self) -> set[str]:
+        """Retrieves the set of input keys required by the processor.
 
         Returns:
             set[str]: The set of input keys.
         """
-        return self._in_refs_type.keys
+        return self._in_refs_type.required_keys
 
     def call(self, inputs: None | I = None, **kwargs) -> O:
         """Calls the data processor with the provided inputs and returns the output reference.
