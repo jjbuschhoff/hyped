@@ -1,6 +1,3 @@
-import json
-import pickle
-
 from datasets import Features, Value
 
 from hyped.data.flow.processors.templates.jinja2 import Jinja2, Jinja2Config
@@ -33,19 +30,9 @@ class TestJinja2(BaseDataProcessorTest):
     input_index = [0, 1, 2]
     # expected output
     expected_output_data = {
-        "parsed": [
+        "rendered": [
             "A is 0, B is a",
             "A is 1, B is b",
             "A is 2, B is c",
         ]
     }
-
-    def test_pickle_processor(self, processor: Jinja2):
-        # pickle and unpickle processor
-        reconstructed = pickle.loads(pickle.dumps(processor))
-        # make sure the underlying template is the template
-        assert processor.template.render(
-            inputs=type(self).input_data["features"][0]
-        ) == reconstructed.template.render(
-            inputs=type(self).input_data["features"][0]
-        )

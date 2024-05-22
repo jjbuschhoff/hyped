@@ -159,12 +159,12 @@ class JsonParser(
             rank (int): The rank of the processor in a distributed setting.
 
         Returns:
-            Sample: The processed output sample. If `config.catch_validation_errors` is True, the output
+            Sample: The processed output sample. If :code:`config.catch_validation_errors` is True, the output
                     includes the parsed data or a default model and an error message. If not,
                     the output only includes the parsed data.
 
         Raises:
-            ValidationError: If validation of the JSON string fails and `config.catch_validation_errors` is False.
+            ValidationError: If validation of the JSON string fails and :code:`config.catch_validation_errors` is False.
         """
         json_string = f"""{{"parsed": {inputs["json_str"]}}}"""
         if self.config.catch_validation_errors:
@@ -176,11 +176,6 @@ class JsonParser(
             except ValidationError as e:
                 parsed = self._feature_model()
                 error = str(e)
-                # warnings.warn(
-                #     "JsonParser: Pydantic model validation failed.",
-                #     UserWarning,
-                #     source=e,
-                # )
 
             return Sample(
                 parsed=parsed.model_dump()["parsed"],

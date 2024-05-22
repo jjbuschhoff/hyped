@@ -144,6 +144,7 @@ data
 docs/source/api/*
 !docs/source/api/.gitkeep
 src/hyped/__version__.py
+**/*.lock
 
 # explicitly unignore data directory
 !src/hyped/data
