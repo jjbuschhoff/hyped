@@ -202,8 +202,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
 
         # pack output samples to batch format
         return {
-            key: [d[key] for d in outputs]
-            for key in self._out_refs_type._feature_names
+            key: [d[key] for d in outputs] for key in outputs[0].keys()
         }, index
 
     async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
