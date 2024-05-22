@@ -164,7 +164,6 @@ class JsonParser(
         """
         json_string = f"""{{"parsed": {inputs["json_str"]}}}"""
         if self.config.catch_validation_errors:
-            print("With catch")
             # try parsing json, return default model (Nones) + failed otherwise
             try:
                 parsed = self._feature_model.model_validate_json(json_string)
@@ -185,7 +184,6 @@ class JsonParser(
             )
 
         else:
-            print("Without catch")
             # parse the json string and return
             parsed = self._feature_model.model_validate_json(json_string)
             return Sample(

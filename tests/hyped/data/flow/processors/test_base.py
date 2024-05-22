@@ -9,12 +9,20 @@ from hyped.data.flow.processors.base import (
     BaseDataProcessorConfig,
 )
 from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import OutputFeature, OutputRefs
+from hyped.data.flow.refs.outputs import (
+    ConditionalOutputFeature,
+    OutputFeature,
+    OutputRefs,
+)
 from hyped.data.flow.refs.ref import FeatureRef
 
 
 class MockOutputRefs(OutputRefs):
     out: Annotated[FeatureRef, OutputFeature(Value("int32"))]
+    out_cond: Annotated[
+        FeatureRef,
+        ConditionalOutputFeature(Value("int32"), lambda c, _: c.output_cond),
+    ]
 
 
 class MockInputRefs(InputRefs):
@@ -22,7 +30,7 @@ class MockInputRefs(InputRefs):
 
 
 class MockProcessorConfig(BaseDataProcessorConfig):
-    pass
+    output_cond: bool
 
 
 class MockProcessor(
@@ -31,17 +39,22 @@ class MockProcessor(
     process = MagicMock(return_value={"out": 0})
 
 
+@pytest.mark.parametrize("output_cond", [False, True])
 class TestBaseDataProcessor:
-    def test_properties(self):
+    def test_properties(self, output_cond):
         # create mock processor
-        proc = MockProcessor.from_config(MockProcessorConfig())
+        proc = MockProcessor.from_config(
+            MockProcessorConfig(output_cond=output_cond)
+        )
         # check config and input keys property
         assert isinstance(proc.config, MockProcessorConfig)
         assert proc.required_input_keys == {"x"}
 
-    def test_call(self):
+    def test_call(self, output_cond):
         # create processor instance
-        proc = MockProcessor.from_config(MockProcessorConfig())
+        proc = MockProcessor.from_config(
+            MockProcessorConfig(output_cond=output_cond)
+        )
         # create mock inputs
         mock_inputs = InputRefs()
 
@@ -62,9 +75,11 @@ class TestBaseDataProcessor:
             proc.call(inputs=mock_inputs, x=None)
 
     @pytest.mark.asyncio
-    async def test_batch_process(self):
+    async def test_batch_process(self, output_cond):
         # create mock instance
-        proc = MockProcessor.from_config(MockProcessorConfig())
+        proc = MockProcessor.from_config(
+            MockProcessorConfig(output_cond=output_cond)
+        )
         # create dummy inputs
         rank = 0
         index = list(range(10))
