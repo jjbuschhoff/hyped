@@ -358,7 +358,11 @@ class OpenAIChatCompletion(
         # create semaphore object to control the maximum
         # number of concurrent calls to the api
         self.sem = (
-            asyncio.Semaphore(value=self.config.max_concurrent_calls)
+            LazyInstance(
+                partial(
+                    asyncio.Semaphore, value=self.config.max_concurrent_calls
+                )
+            )
             if self.config.max_concurrent_calls is not None
             else nullcontext()
         )
@@ -459,7 +463,7 @@ class OpenAIChatCompletion(
             Exception: If the maximum number of retries for rate limiting is exceeded.
         """
         # TODO: outsource this logic into a base api data processor
-        with self.sem:
+        async with self.sem:
             for i in range(0, 1 + self.config.rate_limit_max_retries):
                 try:
                     return await self.api_call(inputs, index, rank)
