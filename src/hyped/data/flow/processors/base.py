@@ -189,8 +189,9 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             outputs = await asyncio.gather(*outputs)
 
         # pack output samples to batch format
-        feature_names = outputs[0].keys()
-        return {key: [d[key] for d in outputs] for key in feature_names}, index
+        return {
+            key: [d[key] for d in outputs] for key in outputs[0].keys()
+        }, index
 
     async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
         """Processes a single input sample asynchronously and returns the corresponding output sample.
