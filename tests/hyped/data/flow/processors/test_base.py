@@ -22,7 +22,7 @@ class MockInputRefs(InputRefs):
 
 
 class MockProcessorConfig(BaseDataProcessorConfig):
-    pass
+    c: float = 0.0
 
 
 class MockProcessor(
@@ -32,6 +32,17 @@ class MockProcessor(
 
 
 class TestBaseDataProcessor:
+    def test_init(self):
+        a = MockProcessor()
+        b = MockProcessor(MockProcessorConfig())
+        # test default values
+        assert a.config.c == b.config.c == 0.0
+
+        a = MockProcessor(c=1.0)
+        b = MockProcessor(MockProcessorConfig(c=1.0))
+        # test setting value
+        assert a.config.c == b.config.c == 1.0
+
     def test_properties(self):
         # create mock processor
         proc = MockProcessor.from_config(MockProcessorConfig())

@@ -348,13 +348,17 @@ class OpenAIChatCompletion(
     This processor handles interactions with the OpenAI Chat Completion API.
     """
 
-    def __init__(self, config: OpenAIChatCompletionConfig) -> None:
+    def __init__(
+        self, config: None | OpenAIChatCompletionConfig = None, **kwargs
+    ) -> None:
         """Initialize the OpenAIChatCompletion processor.
 
         Args:
-            config (OpenAIChatCompletionConfig): Configuration for the processor.
+            config (OpenAIChatCompletionConfig, optional): Configuration for the processor.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
-        super(OpenAIChatCompletion, self).__init__(config)
+        super(OpenAIChatCompletion, self).__init__(config, **kwargs)
         # create semaphore object to control the maximum
         # number of concurrent calls to the api
         self.sem = (
