@@ -176,10 +176,10 @@ class LazyInstance(LazyStaticInstance[T]):
 
     def _callback(self) -> None:
         """Instantiate the object if it has not been created or the event loop has changed."""
-        # DeprecationWarning: There is no current event loop
-        with warnings.catch_warnings(
-            category=DeprecationWarning, action="ignore"
-        ):
+        with warnings.catch_warnings():
+            # DeprecationWarning: There is no current event loop
+            warnings.simplefilter("ignore", category=DeprecationWarning)
+
             loop = asyncio.get_event_loop()
             loop_hash = hash(loop)
 
