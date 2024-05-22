@@ -7,12 +7,15 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict
 from pydantic._internal._model_construction import ModelMetaclass
+from pydantic.fields import Field
+from typing_extensions import dataclass_transform
 
 from .auto import BaseAutoClass
 from .generic import solve_typevar
 from .registry import RegisterTypes, Registrable, register_meta_mixin
 
 
+@dataclass_transform(kw_only_default=True, field_specifiers=(Field,))
 class _register_model_meta(register_meta_mixin, ModelMetaclass):
     """metaclass for registrable pydantic model."""
 

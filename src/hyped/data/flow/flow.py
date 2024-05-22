@@ -51,7 +51,13 @@ SRC_NODE_ID = 0
 
 # patch asyncio if running in an async environment, such as jupyter notebook
 # this fixes #26
-nest_asyncio.apply()
+try:
+    nest_asyncio._patch_asyncio()
+    loop = asyncio.get_event_loop()
+    nest_asyncio.apply(loop)
+except ValueError:
+    # TODO: log warning
+    pass
 
 
 class DataFlowGraph(nx.MultiDiGraph):
@@ -656,7 +662,11 @@ class DataFlow(object):
         future = executor.execute(batch, index, rank)
         # schedule the execution for the current batch
         loop = asyncio.new_event_loop()
-        return loop.run_until_complete(future)
+        out = loop.run_until_complete(future)
+        # close the event loop
+        loop.close()
+
+        return out
 
     def _batch_process_to_pyarrow(
         self,
