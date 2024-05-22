@@ -381,7 +381,9 @@ class OpenAIChatCompletion(
                 base_url=self.config.base_url,
                 timeout=self.config.timeout,
                 max_retries=self.config.max_retries,
-                default_headers=self.config.default_headers,
+                # temporary fix: see https://github.com/encode/httpx/discussions/2959
+                default_headers=(self.config.default_headers or {})
+                | {"Connection": "close"},
                 default_query=self.config.default_query,
             )
         )
