@@ -153,6 +153,7 @@ class OpenAIChatCompletionOutputRefs(OutputRefs):
     FeatureType:
 
     .. code-block:: python
+
         Sequence(
             {
                 "type": Value("string"),
