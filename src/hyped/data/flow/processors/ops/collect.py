@@ -307,8 +307,8 @@ class CollectFeaturesInputRefs(InputRefs):
 
     @classmethod
     @property
-    def keys(cls) -> set[str]:
-        """Get the keys corresponding to the input reference fields.
+    def required_keys(cls) -> set[str]:
+        """Get the required keys.
 
         Since the input references are dynamic and based on the collection,
         this method returns an empty set.

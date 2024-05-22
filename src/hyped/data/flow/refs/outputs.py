@@ -29,7 +29,7 @@ Usage Example:
     In this example, :class:`CustomOutputRefs` extends :class:`OutputRefs` to define a collection
     of output feature references with specified output types.
 """
-from typing import Callable, ClassVar
+from typing import Any, Callable, ClassVar
 
 from datasets.features.features import Features, FeatureType
 
@@ -37,7 +37,7 @@ from hyped.base.config import BaseConfig
 from hyped.common.pydantic import BaseModelWithTypeValidation
 
 from .inputs import InputRefs
-from .ref import FeatureRef
+from .ref import NONE_REF, FeatureRef
 
 
 class LambdaOutputFeature(object):
@@ -45,15 +45,13 @@ class LambdaOutputFeature(object):
 
     This class encapsulates a lambda function that generates an output
     feature type based on the provided data processor configuration and
-    input references.
-
-    Attributes:
-        build_feature_type (Callable[[BaseConfig, InputRefs], FeatureType]):
-            The lambda function for generating the output feature type.
+    input references. If the lambda function returns None, it indicates
+    that the feature isn't populated and cannot be used. Accessing such
+    a feature will raise an AttributeError.
     """
 
     def __init__(
-        self, f: Callable[[BaseConfig, InputRefs], FeatureType]
+        self, f: Callable[[BaseConfig, InputRefs], None | FeatureType]
     ) -> None:
         """Initialize the LambdaOutputFeature instance.
 
@@ -61,9 +59,37 @@ class LambdaOutputFeature(object):
             f (Callable[[BaseConfig, InputRefs], FeatureType]):
                 The lambda function for generating the output feature type.
                 Receives the configuration of the processor or augmenter and
-                the input refs instance corresponding to the call.
+                the input refs instance corresponding to the call. If the
+                lambda function returns None, it indicates that the feature
+                isn't populated and cannot be used.
         """
         self.build_feature_type = f
+
+
+class ConditionalOutputFeature(LambdaOutputFeature):
+    """Represents a conditionally generated output feature type.
+
+    This class extends LambdaOutputFeature to include a condition that
+    determines whether the output feature type should be generated.
+    """
+
+    def __init__(
+        self,
+        feature_type: FeatureType,
+        cond: Callable[[BaseConfig, InputRefs], bool],
+    ) -> None:
+        """Initialize the ConditionalOutputFeature instance.
+
+        Args:
+            feature_type (FeatureType):
+                The feature type to be generated if the condition is met.
+            cond (Callable[[BaseConfig, InputRefs], bool]):
+                A lambda function that determines whether the feature type
+                should be generated based on the configuration and input refs.
+        """
+        super(ConditionalOutputFeature, self).__init__(
+            lambda c, i: feature_type if cond(c, i) else None
+        )
 
 
 class OutputFeature(LambdaOutputFeature):
@@ -72,9 +98,6 @@ class OutputFeature(LambdaOutputFeature):
     This class defines an output feature with a predefined feature
     type. It inherits from LambdaOutputFeature and initializes the
     lambda function to return the specified feature type.
-
-    Parameters:
-        feature_type (FeatureType): The predefined feature type for the output feature.
     """
 
     def __init__(self, feature_type: FeatureType) -> None:
@@ -96,7 +119,6 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
 
     _feature_generators: ClassVar[dict[str, LambdaOutputFeature]]
     _feature_names: ClassVar[set[str]]
-    __getattr__ = None  #  Disabling dynamic FeatureRef getattr function
 
     @classmethod
     def type_validator(cls) -> None:
@@ -123,8 +145,9 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
                 and len(field.metadata) == 1
                 and isinstance(field.metadata[0], LambdaOutputFeature)
             ):
-                raise TypeError(name)
-
+                raise TypeError(
+                    f"Field '{name}' must be a FeatureRef annotated with a 'LambdaOutputFeature'."
+                )
             # add field to feature names and extract generator
             cls._feature_names.add(name)
             cls._feature_generators[name] = field.metadata[0]
@@ -142,11 +165,13 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
             inputs (InputRefs): The input references used by the data processor.
             node_id (int): The identifier of the data processor node.
         """
+        features = {
+            key: gen.build_feature_type(config, inputs)
+            for key, gen in type(self)._feature_generators.items()
+        }
+
         features = Features(
-            {
-                key: gen.build_feature_type(config, inputs)
-                for key, gen in type(self)._feature_generators.items()
-            }
+            {k: f for k, f in features.items() if f is not None}
         )
 
         flow = inputs.flow
@@ -157,10 +182,75 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
             flow_=flow,
             **{
                 key: FeatureRef(
-                    key_=key, feature_=feature, node_id_=node_id, flow_=flow
+                    key_=key,
+                    feature_=features[key],
+                    node_id_=node_id,
+                    flow_=flow,
                 )
-                for key, feature in features.items()
+                if key in features
+                else NONE_REF
+                for key in type(self)._feature_names
             },
+        )
+
+    def __getattribute__(self, name: str) -> Any:
+        """Retrieve the attribute with the specified name.
+
+        If the requested attribute is a conditional feature reference and
+        the condition is not met, an AttributeError is raised.
+
+        Parameters:
+            name (str): The name of the attribute to retrieve.
+
+        Returns:
+            Any: The attribute value.
+
+        Raises:
+            AttributeError: If the attribute is a conditional feature reference
+                            and the condition is not met.
+        """
+        obj = super(OutputRefs, self).__getattribute__(name)
+        # check if the requested attribute is a conditional
+        # feature ref with the condition not met
+        if (
+            isinstance(obj, FeatureRef)
+            and (name in type(self)._feature_names)
+            and obj == NONE_REF
+        ):
+            # forward the request to getattr
+            raise AttributeError()
+
+        # return the attribute
+        return obj
+
+    def __getattr__(self, name: str) -> Any:
+        """Handle the case where an attribute is not found.
+
+        This method is called when an attribute is not found in the usual places
+        (i.e., it is not an instance attribute nor is it found in the class tree
+        for self). It raises an AttributeError if the attribute does not exist or
+        if the attribute is a conditional feature reference and the condition is
+        not met.
+
+        Parameters:
+            name (str): The name of the attribute to retrieve.
+
+        Returns:
+            Any: The attribute value.
+
+        Raises:
+            AttributeError: If the attribute does not exist or is a conditional
+                            feature reference and the condition is not met.
+        """
+        if name in type(self)._feature_names:
+            raise AttributeError(
+                f"'{type(self).__name__}' has no attribute '{name}': "
+                "A condition output feature with the name exists but "
+                "its output condition is not met."
+            )
+
+        raise AttributeError(
+            f"'{type(self).__name__}' has no attribute '{name}'"
         )
 
     @property

@@ -13,7 +13,7 @@ class TestNoOp_Value(BaseDataProcessorTest):
     input_data = {"x": list(range(100))}
     input_index = list(range(100))
     # expected output
-    expected_output = {"y": list(range(100))}
+    expected_output_data = {"y": list(range(100))}
 
 
 class TestNoOp_Sequence(BaseDataProcessorTest):
@@ -25,7 +25,7 @@ class TestNoOp_Sequence(BaseDataProcessorTest):
     input_data = {"x": [[i, i] for i in range(100)]}
     input_index = list(range(100))
     # expected output
-    expected_output = {"y": [[i, i] for i in range(100)]}
+    expected_output_data = {"y": [[i, i] for i in range(100)]}
 
 
 class TestNoOp_Features(BaseDataProcessorTest):
@@ -39,4 +39,4 @@ class TestNoOp_Features(BaseDataProcessorTest):
     input_data = {"x": [{"a": i, "b": str(i)} for i in range(100)]}
     input_index = list(range(100))
     # expected output
-    expected_output = {"y": [{"a": i, "b": str(i)} for i in range(100)]}
+    expected_output_data = {"y": [{"a": i, "b": str(i)} for i in range(100)]}

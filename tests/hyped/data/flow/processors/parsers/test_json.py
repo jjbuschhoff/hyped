@@ -40,7 +40,7 @@ class TestJsonParser_Value(BaseJsonParserTest):
     }
     input_index = [0, 1, 2]
     # expected output
-    expected_output = {
+    expected_output_data = {
         "parsed": [
             {"value": 0},
             {"value": 1},
@@ -66,7 +66,7 @@ class TestJsonParser_Sequence(BaseJsonParserTest):
     }
     input_index = [0, 1, 2]
     # expected output
-    expected_output = {
+    expected_output_data = {
         "parsed": [
             [0, 0, 0],
             [1, 2, 3],
@@ -118,7 +118,7 @@ class TestJsonParser_Nested(BaseJsonParserTest):
     }
     input_index = [0, 1]
     # expected output
-    expected_output = {
+    expected_output_data = {
         "parsed": [
             {
                 "a": 0,

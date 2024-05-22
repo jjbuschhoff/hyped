@@ -17,7 +17,7 @@ Usage Example:
 
         # Import necessary classes from the module
         from hyped.data.processors.inputs import InputRefs, CheckFeatureEquals, CheckFeatureIsSequence
-        from hyped.data.ref import FeatureRef
+        from hyped.data.ref import FeatureRef, NONE_REF
         from datasets.features.features import Value
         from typing_extensions import Annotated
         
@@ -29,13 +29,17 @@ Usage Example:
             ]
             # Integer sequence input feature with validation
             y: Annotated[
-                FeatureRef, CheckFeatureIsSequence(Value("int"), length=4)
+                FeatureRef, CheckFeatureIsSequence(Value("int32"), length=4)
             ]
+            # optional input argument
+            z: Annotated[
+                FeatureRef, CheckFeatureEquals(Value("int32"))
+            ] = NONE_REF
 
     In this example, :class:`CustomInputRefs` extends :class:`InputRefs` to define a collection of input
     references with specified validators for feature type checking.
 """
-from typing import Callable
+from typing import Callable, Optional
 
 from datasets.features.features import FeatureType
 from pydantic import AfterValidator
@@ -47,7 +51,7 @@ from hyped.common.feature_checks import (
 )
 from hyped.common.pydantic import BaseModelWithTypeValidation
 
-from .ref import FeatureRef
+from .ref import NONE_REF, FeatureRef
 
 
 class FeatureValidator(AfterValidator):
@@ -89,6 +93,9 @@ class FeatureValidator(AfterValidator):
             """
             if not isinstance(ref, FeatureRef):
                 raise TypeError("Expected a FeatureRef instance.")
+
+            if ref == NONE_REF:
+                return ref
 
             try:
                 f(ref, ref.feature_)
@@ -188,8 +195,11 @@ class InputRefs(BaseModelWithTypeValidation):
     """A collection of input references used by data processors.
 
     This class represents a collection of input references used by
-    data processors. It ensures that all input references adhere
-    to specified feature types using pydantic validators.
+    data processors. It ensures that all input references adhere to
+    specified feature types using pydantic validators. It also supports
+    optional input arguments, which can be specified by setting the field
+    to the `NONE_REF` instance. Optional input arguments are not required
+    to be present in the input data.
 
     Raises:
         TypeError: If any input reference does not conform to the
@@ -219,13 +229,14 @@ class InputRefs(BaseModelWithTypeValidation):
 
     @classmethod
     @property
-    def keys(cls) -> set[str]:
-        """Get the keys of the input reference fields.
+    def required_keys(cls) -> set[str]:
+        """Get the required keys.
 
         Returns:
-            set[str]: A set of keys corresponding to the input reference fields.
+            set[str]: A set of keys corresponding to the required
+            input reference fields.
         """
-        return set(cls.model_fields.keys())
+        return set(k for k, f in cls.model_fields.items() if f.is_required())
 
     @property
     def refs(self) -> set[FeatureRef]:
@@ -244,7 +255,13 @@ class InputRefs(BaseModelWithTypeValidation):
             dict[str, FeatureRef]: A dictionary mapping input reference field names
             to their corresponding instances.
         """
-        return {key: getattr(self, key) for key in self.model_fields.keys()}
+        named_refs = {
+            key: getattr(self, key) for key in self.model_fields.keys()
+        }
+        named_refs = {
+            key: ref for key, ref in named_refs.items() if ref != NONE_REF
+        }
+        return named_refs
 
     @property
     def flow(self) -> object:
@@ -255,4 +272,4 @@ class InputRefs(BaseModelWithTypeValidation):
         """
         # assumes that all feature refs refer to the same flow
         # this is checked later when a processor is added to the flow
-        return getattr(self, next(iter(self.model_fields.keys()))).flow_
+        return next(iter(self.refs)).flow_

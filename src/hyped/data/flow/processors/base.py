@@ -128,13 +128,13 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         return self._config
 
     @property
-    def input_keys(self) -> set[str]:
-        """Retrieves the set of input keys expected by the processor.
+    def required_input_keys(self) -> set[str]:
+        """Retrieves the set of input keys required by the processor.
 
         Returns:
             set[str]: The set of input keys.
         """
-        return self._in_refs_type.keys
+        return self._in_refs_type.required_keys
 
     def call(self, inputs: None | I = None, **kwargs) -> O:
         """Calls the data processor with the provided inputs and returns the output reference.
