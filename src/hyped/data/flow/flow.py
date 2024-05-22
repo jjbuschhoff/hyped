@@ -51,9 +51,13 @@ SRC_NODE_ID = 0
 
 # patch asyncio if running in an async environment, such as jupyter notebook
 # this fixes #26
-nest_asyncio._patch_asyncio()
-loop = asyncio.get_event_loop()
-nest_asyncio.apply(loop)
+try:
+    nest_asyncio._patch_asyncio()
+    loop = asyncio.get_event_loop()
+    nest_asyncio.apply(loop)
+except ValueError:
+    # TODO: log warning
+    pass
 
 
 class DataFlowGraph(nx.MultiDiGraph):

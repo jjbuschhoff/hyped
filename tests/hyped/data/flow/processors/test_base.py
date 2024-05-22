@@ -30,6 +30,7 @@ class MockInputRefs(InputRefs):
 
 
 class MockProcessorConfig(BaseDataProcessorConfig):
+    c: float = 0.0
     output_cond: bool
 
 
@@ -41,6 +42,17 @@ class MockProcessor(
 
 @pytest.mark.parametrize("output_cond", [False, True])
 class TestBaseDataProcessor:
+    def test_init(self):
+        a = MockProcessor()
+        b = MockProcessor(MockProcessorConfig())
+        # test default values
+        assert a.config.c == b.config.c == 0.0
+
+        a = MockProcessor(c=1.0)
+        b = MockProcessor(MockProcessorConfig(c=1.0))
+        # test setting value
+        assert a.config.c == b.config.c == 1.0
+
     def test_properties(self, output_cond):
         # create mock processor
         proc = MockProcessor.from_config(

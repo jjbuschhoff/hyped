@@ -245,13 +245,17 @@ class TransformersTokenizer(
     This processor tokenizes input text using a specified tokenizer.
     """
 
-    def __init__(self, config: TransformersTokenizerConfig) -> None:
+    def __init__(
+        self, config: None | TransformersTokenizerConfig = None, **kwargs
+    ) -> None:
         """Initialize the Transformers Tokenizer processor.
 
         Args:
             config (TransformersTokenizerConfig): Processor configuration.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
         """
-        super(TransformersTokenizer, self).__init__(config)
+        super(TransformersTokenizer, self).__init__(config, **kwargs)
         # load the tokenizer instance
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config.tokenizer, use_fast=True, add_prefix_space=True
