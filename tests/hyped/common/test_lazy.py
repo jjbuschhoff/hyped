@@ -57,6 +57,11 @@ class TestLazyInstance(TestStaticLazyInstance):
         # is coming from outside
         assert obj.lower() != value.lower()
 
+    def test_same_instance(self):
+        # check instance is not recreated when not needed to
+        obj = LazyInstance(object)
+        assert obj._get_instance() == obj._get_instance()
+
     def test_case_mp(self, obj):
         p = mp.Process(
             target=self._mp_worker,

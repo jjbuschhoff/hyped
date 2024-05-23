@@ -143,9 +143,12 @@ class LazyInstance(LazyStaticInstance[T]):
     and whenever a new event loop is active.
     """
 
-    __slots__ = ("_loop_hash",)
+    __slots__ = ("_loop_hash", "_on_new_event_loop", "_on_new_process")
 
-    def __init__(self, factory: Callable[[], T]) -> None:
+    def __init__(
+        self,
+        factory: Callable[[], T],
+    ) -> None:
         """Initialize a LazyInstance.
 
         Args:
@@ -183,7 +186,7 @@ class LazyInstance(LazyStaticInstance[T]):
             loop = asyncio.get_event_loop()
             loop_hash = hash(loop)
 
-        if (object.__getattribute__(self, "_instance")) or (
+        if (object.__getattribute__(self, "_instance") is None) or (
             object.__getattribute__(self, "_loop_hash") != loop_hash
         ):
             self._instance = self._factory()
