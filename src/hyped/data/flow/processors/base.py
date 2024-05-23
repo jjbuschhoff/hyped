@@ -178,7 +178,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int
-    ) -> tuple[Batch, list[int]]:
+    ) -> Batch:
         """Processes a batch of inputs and returns the corresponding batch of outputs.
 
         Args:
@@ -187,7 +187,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             rank (int): The rank of the processor in a distributed setting.
 
         Returns:
-            tuple[Batch, list[int]]: The batch of output samples and the corresponding indices.
+            Batch: The batch of output samples, must keep the order of the input batch.
         """
         # apply process function to each sample in the input batch
         keys = inputs.keys()
@@ -201,9 +201,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             outputs = await asyncio.gather(*outputs)
 
         # pack output samples to batch format
-        return {
-            key: [d[key] for d in outputs] for key in outputs[0].keys()
-        }, index
+        return {key: [d[key] for d in outputs] for key in outputs[0].keys()}
 
     @overload
     async def process(self, inputs: Sample, index: int, rank: int) -> Sample:

@@ -319,11 +319,8 @@ class ExecutionState(object):
             index (list[int]): The index of the batch.
             rank (int): The rank of the process in a distributed setting.
         """
-        src_index_hash = hash(tuple(index))
-
+        self.index = index
         self.outputs = {SRC_NODE_ID: batch}
-        self.index_hash = {SRC_NODE_ID: src_index_hash}
-        self.index_lookup = {src_index_hash: index}
 
         self.rank = rank
         self.ready = {
@@ -381,15 +378,13 @@ class ExecutionState(object):
             node_id (int): The ID of the node for which to collect inputs.
 
         Returns:
-            tuple[Batch, list[int]]: A tuple containing the collected inputs
-                and the corresponding index.
+            Batch: The collected inputs to the processor
 
         Raises:
             AssertionError: If inputs are collected from a node that is not ready.
             AssertionError: If the collected values are not of the expected type.
-            AssertionError: If the collected inputs have different indexes.
         """
-        inputs, index = dict(), set()
+        inputs = dict()
         for u, _, name, data in self.graph.in_edges(
             node_id, keys=True, data=True
         ):
@@ -415,43 +410,24 @@ class ExecutionState(object):
             ), f"Expected values to be a list, but got {type(values)}"
             # store the values in inputs and add keep track of the index hash
             inputs[name] = values
-            index.add(self.index_hash[u])
 
-        # make sure that all collected inputs have the same index
-        assert len(index) == 1, "Collected inputs have different indexes."
-        index = next(iter(index))
+        return inputs
 
-        return inputs, self.index_lookup[index]
-
-    def capture_output(
-        self, node_id: int, output: Batch, new_index: list[int]
-    ) -> None:
+    def capture_output(self, node_id: int, output: Batch) -> None:
         """Capture the output of a node.
 
         Args:
             node_id (int): The ID of the node producing the output.
             output (Batch): The output batch of data.
-            new_index (list[int]): The new index of the output data.
 
         Raises:
             AssertionError: If the node is already set
-            AssertionError: If the length of output values do not match
-                the length of the new index.
         """
         assert not self.ready[
             node_id
         ].is_set(), f"Node {node_id} is already set."
-        assert all(
-            len(vals) == len(new_index) for vals in output.values()
-        ), "Output values length does not match new index length."
 
         self.outputs[node_id] = output
-
-        new_index_hash = hash(tuple(new_index))
-        self.index_hash[node_id] = new_index_hash
-        if new_index_hash not in self.index_lookup:
-            self.index_lookup[new_index_hash] = new_index
-
         self.ready[node_id].set()
 
 
@@ -487,6 +463,10 @@ class DataFlowExecutor(object):
         Args:
             node_id (int): The ID of the node to execute.
             state (ExecutionState): The current execution state.
+
+        Raises:
+            AssertionError: If the output batch size doesn't match
+                the input batch size.
         """
         if self.graph.in_degree(node_id) > 0:
             # wait for all dependencies of the current node
@@ -495,13 +475,15 @@ class DataFlowExecutor(object):
             await asyncio.gather(*futures)
 
         # collect inputs for processor execution
-        inputs, index = state.collect_inputs(node_id)
+        inputs = state.collect_inputs(node_id)
         processor = self.graph.nodes[node_id]["processor"]
-        # run processor and capture output in execution state
-        out, out_index = await processor.batch_process(
-            inputs, index, state.rank
-        )
-        state.capture_output(node_id, out, out_index)
+        # run processor and check the output batch size
+        out = await processor.batch_process(inputs, state.index, state.rank)
+        assert all(
+            len(vals) == len(state.index) for vals in out.values()
+        ), "Output values length does not match index length."
+        # capture output in execution state
+        state.capture_output(node_id, out)
 
     async def execute(
         self, batch: Batch, index: list[int], rank: int

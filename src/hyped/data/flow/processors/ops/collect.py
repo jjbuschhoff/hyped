@@ -498,7 +498,7 @@ class CollectFeatures(
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int
-    ) -> tuple[Batch, list[int]]:
+    ) -> Batch:
         """Processes a batch of inputs and collects the features.
 
         This method processes a batch of input samples and collects the
@@ -510,8 +510,7 @@ class CollectFeatures(
             rank (int): The rank of the processor in a distributed setting.
 
         Returns:
-            tuple[Batch, list[int]]: The batch of output samples and the
-            corresponding indices.
+            Batch: The batch of the collected output features.
         """
         # collect values
         out = Batch(
@@ -520,4 +519,4 @@ class CollectFeatures(
             )
         )
         # return collected values and index
-        return out, index
+        return out

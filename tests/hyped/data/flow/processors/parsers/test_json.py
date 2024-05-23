@@ -243,7 +243,7 @@ class TestJsonParser_CatchWithError(BaseJsonParserTest):
         assert len(cls.input_index) == len(next(iter(cls.input_data.values())))
 
         # apply processor
-        output, output_index = await processor.batch_process(
+        output = await processor.batch_process(
             cls.input_data, cls.input_index, cls.rank
         )
 
@@ -251,7 +251,7 @@ class TestJsonParser_CatchWithError(BaseJsonParserTest):
         assert isinstance(output, dict)
         for key, val in output.items():
             assert isinstance(val, list)
-            assert len(val) == len(output_index)
+            assert len(val) == len(cls.input_index)
 
         # check output matches features
         assert check_object_matches_feature(

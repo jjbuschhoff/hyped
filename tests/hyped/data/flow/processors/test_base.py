@@ -97,9 +97,8 @@ class TestBaseDataProcessor:
         index = list(range(10))
         batch = {"x": index}
         # run batch process
-        out_batch, out_index = await proc.batch_process(batch, index, rank)
+        out_batch = await proc.batch_process(batch, index, rank)
         # check output
-        assert out_index == index
         assert out_batch == {"out": [0] * 10}
         # make sure the process function was called for each input sample
         calls = [call({"x": i}, i, rank) for i in index]

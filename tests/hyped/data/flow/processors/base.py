@@ -28,7 +28,6 @@ class BaseDataProcessorTest:
     # expected output
     expected_output_features: None | Features = None
     expected_output_data: None | Batch = None
-    expected_output_index: None | list[int] = None
     # others
     rank: int = 0
 
@@ -72,7 +71,7 @@ class BaseDataProcessorTest:
         assert len(input_index) == len(next(iter(cls.input_data.values())))
 
         # apply processor
-        output, output_index = await processor.batch_process(
+        output = await processor.batch_process(
             cls.input_data, input_index, cls.rank
         )
 
@@ -80,7 +79,7 @@ class BaseDataProcessorTest:
         assert isinstance(output, dict)
         for key, val in output.items():
             assert isinstance(val, list)
-            assert len(val) == len(output_index)
+            assert len(val) == len(input_index)
 
         # check output features
         if cls.expected_output_features is not None:
@@ -96,5 +95,3 @@ class BaseDataProcessorTest:
         # check output matches expectation
         if cls.expected_output_data is not None:
             assert output == cls.expected_output_data
-        if cls.expected_output_index is not None:
-            assert output_index == cls.expected_output_index

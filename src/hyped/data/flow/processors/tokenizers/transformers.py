@@ -272,7 +272,7 @@ class TransformersTokenizer(
             rank (int): Rank of the processor.
 
         Returns:
-            Batch: Tokenized output batch.
+            Batch: The batch of tokenizer outputs.
         """
         # apply tokenizer
         enc = self.tokenizer(
@@ -327,4 +327,4 @@ class TransformersTokenizer(
             out["length"] = enc["length"]
 
         # return output and index
-        return out, index
+        return out

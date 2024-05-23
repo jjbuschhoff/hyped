@@ -283,14 +283,12 @@ class TestExecutionState:
 
         # add processor and collect inputs for it
         out = graph.add_processor_node(NoOp(), NoOpInputRefs(x=src))
-        collected, index = state.collect_inputs(out.node_id_)
-        assert index == index
+        collected = state.collect_inputs(out.node_id_)
         assert collected == {"x": [{"val": "a"}, {"val": "b"}, {"val": "c"}]}
 
         # add processor and collect inputs for it
         out = graph.add_processor_node(NoOp(), NoOpInputRefs(x=src.val))
-        collected, index = state.collect_inputs(out.node_id_)
-        assert index == index
+        collected = state.collect_inputs(out.node_id_)
         assert collected == {"x": ["a", "b", "c"]}
 
     def test_collect_inputs_parent_not_ready(self, setup_state):
@@ -308,13 +306,9 @@ class TestExecutionState:
         node_id1, node_id2 = out1.node_id_, out2.node_id_
 
         output = {"x": [1, 2, 3]}
-        new_index = [4, 5, 6]
-
-        state.capture_output(node_id2, output, new_index)
+        state.capture_output(node_id2, output)
 
         assert state.outputs[node_id2] == output
-        assert state.index_hash[node_id2] == hash(tuple(new_index))
-        assert state.index_lookup[hash(tuple(new_index))] == new_index
         assert state.ready[node_id2].is_set()
 
 
