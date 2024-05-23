@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import re
 from enum import Enum
+from functools import partial
 from itertools import groupby
 from typing import Any, TypeVar
 
@@ -32,6 +33,7 @@ from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
+from hyped.common.lazy import LazyInstance
 
 from .processors.base import BaseDataProcessor
 from .refs.inputs import InputRefs
@@ -536,7 +538,10 @@ class DataFlow(object):
         # create graph
         self._graph = DataFlowGraph()
         self._src_features = self._graph.add_source_node(features=features)
-        self._out_features: None | FeatureRef = None
+        # lazy executor instance, created in build
+        self._executor: None | LazyInstance[DataFlowExecutor] = None
+
+        print("EXECUTOR INIT")
 
     @property
     def depth(self) -> int:
@@ -581,11 +586,11 @@ class DataFlow(object):
             FeatureRef: The reference to the output features.
 
         Raises:
-            RuntimeError: If the output features have not been set.
+            RuntimeError: If the flow hasn't been build yet.
         """
-        if self._out_features is None:
-            raise RuntimeError("Output features have not been set.")
-        return self._out_features
+        if self._executor is None:
+            raise RuntimeError("Flow has not been build yet.")
+        return self._executor.collect
 
     def build(self, collect: FeatureRef) -> DataFlow:
         """Build a sub-data flow to compute the requested output features.
@@ -611,8 +616,10 @@ class DataFlow(object):
         # TODO: restrict input features to only the
         #       ones required by the sub-graph
         flow = DataFlow(self.src_features.feature_)
-        flow._out_features = collect
         flow._graph = sub_graph
+        flow._executor = LazyInstance(
+            partial(DataFlowExecutor, graph=sub_graph, collect=collect),
+        )
 
         return flow
 
@@ -630,20 +637,19 @@ class DataFlow(object):
             Batch: The processed batch of data.
 
         Raises:
-            AssertionError: If the output features have not been set.
+            AssertionError: If the flow has not been build yet.
         """
-        assert self._out_features is not None
+        assert self._executor is not None, "Flow has not been build yet."
 
         if rank is None:
             # try to get multiprocessing rank from pytorch worker info
             worker_info = get_worker_info()
             rank = 0 if worker_info is None else worker_info.id
 
-        # create a data flow executor
-        executor = DataFlowExecutor(self._graph, self._out_features)
-        future = executor.execute(batch, index, rank)
-        # schedule the execution for the current batch
+        # create a new event loop to execute the flow in
         loop = asyncio.new_event_loop()
+        # schedule the execution for the current batch
+        future = self._executor.execute(batch, index, rank)
         out = loop.run_until_complete(future)
         # close the event loop
         loop.close()
@@ -671,7 +677,7 @@ class DataFlow(object):
         return pa.table(
             data=self.batch_process(batch, index, rank),
             schema=convert_features_to_arrow_schema(
-                self._out_features.feature_
+                self._executor.collect.feature_
             ),
         )
 
@@ -718,7 +724,7 @@ class DataFlow(object):
         # build the sub data flow required to compute the requested output features
         flow = self if collect is None else self.build(collect=collect)
 
-        if flow._out_features is None:
+        if flow._executor is None:
             raise ValueError("Output features have not been set.")
 
         # run data flow
@@ -729,10 +735,10 @@ class DataFlow(object):
         ):
             # set output features for lazy datasets manually
             if isinstance(ds, datasets.IterableDataset):
-                ds.info.features = flow._out_features.feature_
+                ds.info.features = flow._executor.collect.feature_
             elif isinstance(ds, datasets.IterableDatasetDict):
                 for split in ds.values():
-                    split.info.features = flow._out_features.feature_
+                    split.info.features = flow._executor.collect.feature_
 
         return ds
 
@@ -770,7 +776,7 @@ class DataFlow(object):
             return ds.map(
                 self.batch_process,
                 remove_columns=set(self.src_features.feature_.keys())
-                - set(self._out_features.feature_.keys()),
+                - set(self._executor.collect.feature_.keys()),
                 **kwargs,
             )
 
