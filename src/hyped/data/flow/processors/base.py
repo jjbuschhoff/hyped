@@ -51,7 +51,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from abc import ABC
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, overload
 
 from typing_extensions import TypeAlias
 
@@ -205,19 +205,8 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             key: [d[key] for d in outputs] for key in outputs[0].keys()
         }, index
 
+    @overload
     async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
-        """Processes a single input sample asynchronously and returns the corresponding output sample.
-
-        This method should be overridden by subclasses to define the processing logic.
-
-        Args:
-            inputs (Sample): The input sample to be processed.
-            index (int): The index associated with the input sample.
-            rank (int): The rank of the processor in a distributed setting.
-
-        Returns:
-            Sample: The processed output sample.
-        """
         ...
 
     def process(self, inputs: Sample, index: int, rank: int) -> Sample:
