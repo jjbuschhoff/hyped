@@ -121,16 +121,15 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         """
         return self._in_refs_type.required_keys
 
-    def call(self, inputs: None | I = None, **kwargs) -> O:
+    def call(self, **kwargs) -> O:
         """Calls the data processor with the provided inputs and returns the output reference.
 
-        This method prepares the inputs, either from the provided argument or from the
-        keyword arguments, then adds the processor to the data flow and returns a feature
-        reference to the output features of the processor.
+        This method first prepares the inputs, then adds the processor to the data
+        flow and returns a feature reference to the output features of the processor.
 
         Args:
-            inputs (None | I, optional): The input references to the processor. Defaults to None.
-            **kwargs: Keyword arguments to be passed as inputs instead of the `inputs` argument.
+            **kwargs: Keyword arguments specifying feature references to be passed
+                as inputs to the processor.
 
         Returns:
             O: The output references produced by the processor.
@@ -138,16 +137,13 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         Raises:
             TypeError: If both `inputs` and keyword arguments are specified.
         """
-        if inputs is not None and len(kwargs) != 0:
-            raise TypeError(
-                "Please specify either 'inputs' or keyword arguments, but not "
-                "both."
-            )
-
         # build inputs from keyword arguments if needed
-        inputs = inputs if inputs is not None else self._in_refs_type(**kwargs)
-        # add new node to flow and return the output refs
-        return inputs.flow.add_processor_node(self, inputs)
+        inputs = self._in_refs_type(**kwargs)
+        # compute output features and add the processor to the data flow
+        out_features = self._out_refs_type.build_features(self.config, inputs)
+        node_id = inputs.flow.add_processor_node(self, inputs, out_features)
+        # return the output feature refs
+        return self._out_refs_type(inputs.flow, node_id, out_features)
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int

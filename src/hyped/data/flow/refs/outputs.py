@@ -152,29 +152,42 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
             cls._feature_names.add(name)
             cls._feature_generators[name] = field.metadata[0]
 
-    def __init__(
-        self,
-        config: BaseConfig,
-        inputs: InputRefs,
-        node_id: int,
-    ) -> None:
-        """Initialize the OutputRefs instance.
+    @classmethod
+    def build_features(cls, config: BaseConfig, inputs: InputRefs) -> Features:
+        """Build output features based on the given configuration and input references.
 
-        Parameters:
-            config (BaseConfig): The configuration of the data processor or augmenter.
-            inputs (InputRefs): The input references used by the data processor.
-            node_id (int): The identifier of the data processor node.
+        This method constructs the output features from the feature annotations of the
+        class. Conditional Output Features (i.e. annotations that evaluate to None) are
+        filtered out.
+
+        Args:
+            config (BaseConfig): The configuration object..
+            inputs (InputRefs): The input references that define the input features
+                to be processed.
+
+        Returns:
+            Features: The constructed features.
         """
         features = {
             key: gen.build_feature_type(config, inputs)
-            for key, gen in type(self)._feature_generators.items()
+            for key, gen in cls._feature_generators.items()
         }
 
-        features = Features(
-            {k: f for k, f in features.items() if f is not None}
-        )
+        return Features({k: f for k, f in features.items() if f is not None})
 
-        flow = inputs.flow
+    def __init__(
+        self,
+        flow: object,
+        node_id: int,
+        features: Features,
+    ) -> None:
+        """Initialize the OutputRefs instance.
+
+        Args:
+            flow (DataFlowGraph): The data flow graph.
+            node_id (int): The node id of the node generating the ouput.
+            features (Features): The output features, typically build by the :class:`build_features` method.
+        """
         super(OutputRefs, self).__init__(
             key_=tuple(),
             feature_=features,
@@ -199,7 +212,7 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
         If the requested attribute is a conditional feature reference and
         the condition is not met, an AttributeError is raised.
 
-        Parameters:
+        Args:
             name (str): The name of the attribute to retrieve.
 
         Returns:
@@ -232,7 +245,7 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
         if the attribute is a conditional feature reference and the condition is
         not met.
 
-        Parameters:
+        Args:
             name (str): The name of the attribute to retrieve.
 
         Returns:

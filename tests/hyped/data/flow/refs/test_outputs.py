@@ -25,10 +25,15 @@ def test_lambda_output_feature():
     config = MagicMock()
     inputs = MagicMock()
     # create output refs instance
-    CustomOutputRefs(config, inputs, -1)
+    features = CustomOutputRefs.build_features(config, inputs)
     # make sure the feature generators were called with the correct inputs
     x_feature.assert_called_with(config, inputs)
     y_feature.assert_called_with(config, inputs)
+    # create instance
+    inst = CustomOutputRefs(MagicMock(), -1, features)
+    # check features
+    assert inst.x.feature_ == Value("string")
+    assert inst.y.feature_ == Value("int32")
 
 
 def test_conditional_output_feature():
@@ -45,8 +50,10 @@ def test_conditional_output_feature():
     # create config and inputs mock
     config = MagicMock()
     inputs = MagicMock()
-    # create output refs instance
-    inst = CustomOutputRefs(config, inputs, -1)
+
+    # build output features and create output refs instance
+    features = CustomOutputRefs.build_features(config, inputs)
+    inst = CustomOutputRefs(inputs.flow, -1, features)
 
     # x should be propagated, y should not be propagated
     assert hasattr(inst, "x")
@@ -81,7 +88,8 @@ def test_output_refs():
     assert CustomOutputRefs._feature_names == {"x", "y"}
 
     # create output refs instance
-    inst = CustomOutputRefs(MagicMock(), MagicMock(), -1)
+    features = CustomOutputRefs.build_features(MagicMock(), MagicMock())
+    inst = CustomOutputRefs(MagicMock(), -1, features)
 
     # check feature type
     assert inst.x.feature_ == Value("int32")

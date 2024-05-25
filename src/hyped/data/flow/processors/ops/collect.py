@@ -433,8 +433,7 @@ class CollectFeatures(
 
     def call(
         self,
-        inputs: None | CollectFeaturesInputRefs = None,
-        collection: None | FeatureCollection = None,
+        collection: None | FeatureCollection | dict | list = None,
         **kwargs,
     ) -> CollectFeaturesOutputRefs:
         """Calls the CollectFeatures processor with specified inputs.
@@ -446,12 +445,12 @@ class CollectFeatures(
         and an output reference is returned.
 
         Args:
-            inputs (None | CollectFeaturesInputRefs, optional): The input
-                references for the processor. Defaults to None.
-            collection (None | FeatureCollection, optional): The feature
-                collection defining the structure of the features to be
-                collected. Defaults to None.
-            **kwargs: Additional keyword arguments to be passed as inputs.
+            collection (None | FeatureCollection | dict | list, optional):
+                The feature collection defining the structure of the features
+                to be collected. Can also be a nested structure from which the
+                feature collection will be constructed. Defaults to None.
+            **kwargs: Alternatively the collection can also be specified by
+                keyword arguments.
 
         Returns:
             CollectFeaturesOutputRefs: The output of the CollectFeatures processor.
@@ -462,19 +461,11 @@ class CollectFeatures(
         if self.collection is not None:
             # feature collector is already in use
             # create a new one for this call
-            return CollectFeatures().call(
-                inputs=inputs, collection=collection, **kwargs
-            )
+            return CollectFeatures().call(collection=collection, **kwargs)
 
         # check inputs
-        if (
-            sum([inputs is not None, collection is not None, len(kwargs) > 0])
-            > 1
-        ):
-            raise ValueError(
-                "Please specify either 'inputs', 'collection' or keyword "
-                "arguments, but not multiple."
-            )
+        if (collection is not None) and len(kwargs) > 0:
+            raise ValueError()
 
         if collection is not None:
             # build collection from collection argument
@@ -487,14 +478,9 @@ class CollectFeatures(
             # build collection from keyword arguments
             collection = FeatureCollection(collection=kwargs)
 
-        if inputs is None:
-            # build input refs from collection
-            inputs = CollectFeaturesInputRefs(collection=collection)
-
-        # save collection
-        self.collection = inputs.collection
-        # call the processor
-        return super(CollectFeatures, self).call(inputs=inputs)
+        # save the collection and call the base processor
+        self.collection = collection
+        return super(CollectFeatures, self).call(collection=collection)
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int

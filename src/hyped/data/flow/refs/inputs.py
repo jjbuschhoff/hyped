@@ -61,7 +61,7 @@ class FeatureValidator(AfterValidator):
     conforms to a specific feature type by invoking the given validation
     function.
 
-    Parameters:
+    Args:
         f (Callable[[FeatureRef, FeatureType], None]): The validation function
             to be applied to the FeatureRef.
 
@@ -73,7 +73,7 @@ class FeatureValidator(AfterValidator):
     def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
         """Initialize the FeatureValidator instance.
 
-        Parameters:
+        Args:
             f (Callable[[FeatureRef, FeatureType], None]): The validation function
                 to be applied to the FeatureRef.
         """
@@ -81,7 +81,7 @@ class FeatureValidator(AfterValidator):
         def check(ref: FeatureRef) -> FeatureRef:
             """Check if the provided reference conforms to the expected feature type.
 
-            Parameters:
+            Args:
                 ref (FeatureRef): The FeatureRef instance to be validated.
 
             Returns:
@@ -115,7 +115,7 @@ class CheckFeatureEquals(FeatureValidator):
     This validator checks whether the feature type of the provided FeatureRef
     matches the specified feature type or a list of feature types.
 
-    Parameters:
+    Args:
         feature_type (FeatureType | list[FeatureType]): The feature type or
             list of feature types to match.
 
@@ -149,7 +149,7 @@ class CheckFeatureIsSequence(FeatureValidator):
     FeatureRef is a sequence, and optionally checks if the sequence
     has the expected length.
 
-    Parameters:
+    Args:
         value_type (None | FeatureType | list[FeatureType]): The expected
             type or types of the elements in the sequence.
         length (int, optional): The expected length of the sequence.

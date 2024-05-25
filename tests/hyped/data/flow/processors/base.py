@@ -49,7 +49,13 @@ class BaseDataProcessorTest:
 
     @pytest.fixture
     def output_refs(self, processor, input_refs) -> OutputRefs:
-        return processor._out_refs_type(processor.config, input_refs, -1)
+        return processor._out_refs_type(
+            input_refs.flow,
+            -1,
+            processor._out_refs_type.build_features(
+                processor.config, input_refs
+            ),
+        )
 
     @pytest.mark.asyncio
     async def test_case(self, processor, input_refs, output_refs):

@@ -15,7 +15,7 @@ from hyped.data.flow.refs.ref import FeatureRef
 from tests.hyped.data.flow.processors.base import BaseDataProcessorTest
 
 mock_flow = MagicMock()
-mock_flow.add_processor = MagicMock()
+mock_flow.add_processor_node = MagicMock(return_value=-1)
 # create feature refs with different feature types
 int_ref = FeatureRef(
     key_="int", feature_=Value("int32"), node_id_=0, flow_=mock_flow
@@ -193,7 +193,7 @@ class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
         # this should end up being two different
         # processor instances in the flow
         calls = mock_flow.add_processor_node.mock_calls
-        assert len(calls) == 2
+        assert mock_flow.add_processor_node.call_count == 2
         assert calls[0].args[0] != calls[1].args[0]
 
 

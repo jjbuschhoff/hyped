@@ -1,7 +1,7 @@
-from unittest.mock import MagicMock, PropertyMock, call, patch
+from unittest.mock import MagicMock, call
 
 import pytest
-from datasets import Value
+from datasets import Features, Value
 from typing_extensions import Annotated
 
 from hyped.data.flow.processors.base import (
@@ -63,28 +63,44 @@ class TestBaseDataProcessor:
         assert proc.required_input_keys == {"x"}
 
     def test_call(self, output_cond):
+        # build expected output features
+        out_features = Features(
+            {"out": Value("int32")}
+            if not output_cond
+            else {"out": Value("int32"), "out_cond": Value("int32")}
+        )
+
+        # mock flow instance
+        mock_flow = MagicMock()
         # create processor instance
         proc = MockProcessor.from_config(
             MockProcessorConfig(output_cond=output_cond)
         )
         # create mock inputs
-        mock_inputs = InputRefs()
-
-        # patch flow property of input refs
-        with patch(
-            "hyped.data.flow.refs.inputs.InputRefs.flow",
-            callable=PropertyMock,
-        ):
-            # this should add the processor to the mock flow
-            out = proc.call(inputs=mock_inputs)
-            # check output and make sure processor was added
-            mock_inputs.flow.add_processor_node.assert_called_with(
-                proc, mock_inputs
+        mock_inputs = MockInputRefs(
+            x=FeatureRef(
+                key_=tuple(),
+                node_id_=-1,
+                flow_=mock_flow,
+                feature_=Value("int32"),
             )
+        )
 
-        # test error on to many inputs
-        with pytest.raises(TypeError):
-            proc.call(inputs=mock_inputs, x=None)
+        # this should add the processor to the mock flow
+        out = proc.call(x=mock_inputs.x)
+        # check the output features
+        assert out.feature_ == out_features
+
+        # make sure the call for adding the processor was made with the correct values
+        assert mock_flow.add_processor_node.call_count == 1
+        (
+            call_proc,
+            call_input_refs,
+            call_out_features,
+        ) = mock_flow.add_processor_node.call_args.args
+        assert call_proc == proc
+        assert call_input_refs == mock_inputs
+        assert call_out_features == out_features
 
     @pytest.mark.asyncio
     async def test_batch_process(self, output_cond):
