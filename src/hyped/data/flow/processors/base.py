@@ -105,39 +105,12 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
             **kwargs: Additional keyword arguments that update the provided configuration
                 or create a new configuration if none is provided.
         """
-        # build final configuration from given arguments
-        if config is None:
-            config = self.config_type(**kwargs)
-        elif len(kwargs) is not None:
-            config = config.model_copy(update=kwargs)
-
-        self._config = config
+        super(BaseDataProcessor, self).__init__(config, **kwargs)
         # check whether the process function is a coroutine
         self._is_process_async = inspect.iscoroutinefunction(self.process)
 
         self._in_refs_type = solve_typevar(type(self), I)
         self._out_refs_type = solve_typevar(type(self), O)
-
-    @classmethod
-    def from_config(cls, config: C) -> BaseDataProcessor:
-        """Creates a data processor instance from the provided configuration.
-
-        Args:
-            config (C): The configuration object for the data processor.
-
-        Returns:
-            BaseDataProcessor: An instance of the data processor.
-        """
-        return cls(config)
-
-    @property
-    def config(self) -> C:
-        """Retrieves the configuration object for the data processor.
-
-        Returns:
-            C: The configuration object.
-        """
-        return self._config
 
     @property
     def required_input_keys(self) -> set[str]:

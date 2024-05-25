@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict
@@ -18,8 +18,6 @@ from .registry import RegisterTypes, Registrable, register_meta_mixin
 @dataclass_transform(kw_only_default=True, field_specifiers=(Field,))
 class _register_model_meta(register_meta_mixin, ModelMetaclass):
     """metaclass for registrable pydantic model."""
-
-    pass
 
 
 class BaseConfig(Registrable, BaseModel, metaclass=_register_model_meta):
@@ -152,13 +150,49 @@ U = TypeVar("U", bound=BaseConfig)
 
 
 class BaseConfigurable(Generic[U], RegisterTypes, ABC):
-    """Base class for configurable types.
-
-    Configurable types define a `from_config` classmethod.
-    Sub-types must implement this function.
-    """
+    """Base class for configurable types."""
 
     CONFIG_TYPE: None | type[U] = None
+
+    def __init__(self, config: None | U = None, **kwargs) -> None:
+        """Initialize the configurable.
+
+        Args:
+            config (C, optional): The configuration. If not provided, a configuration
+                is created based on the given keyword arguments.
+            **kwargs: Additional keyword arguments that update the provided configuration
+                or create a new configuration if none is provided.
+        """
+        if config is None:
+            config = self.config_type(**kwargs)
+        elif len(kwargs) is not None:
+            config = config.model_copy(update=kwargs)
+
+        if not isinstance(config, self.config_type):
+            raise TypeError()
+
+        self._config = config
+
+    @property
+    def config(self) -> C:
+        """Retrieves the configuration of the object.
+
+        Returns:
+            C: The configuration object.
+        """
+        return self._config
+
+    @classmethod
+    def from_config(cls, config: U) -> BaseConfigurable:
+        """Abstract construction method, must be implemented by sub-types.
+
+        Arguments:
+            config (T): configuration to construct the instance from
+
+        Returns:
+            inst (Configurable): instance
+        """
+        return cls(config)
 
     @classmethod
     @property
@@ -216,19 +250,6 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
         # specify registry type identifier based on config type identifier
         return "%s.impl" % cls.config_type.type_id
 
-    @classmethod
-    @abstractmethod
-    def from_config(self, config: U) -> BaseConfigurable:
-        """Abstract construction method, must be implemented by sub-types.
-
-        Arguments:
-            config (T): configuration to construct the instance from
-
-        Returns:
-            inst (Configurable): instance
-        """
-        ...
-
 
 V = TypeVar("V", bound=BaseConfigurable)
 
@@ -252,44 +273,3 @@ class BaseAutoConfigurable(BaseAutoClass[V]):
         T = cls.type_registry.get_type_by_t(t)
         # create instance
         return T.from_config(config)
-
-
-V = TypeVar("V", bound=BaseConfigurable)
-
-
-# TODO: write tests for factory class
-class Factory(BaseAutoConfigurable[V]):
-    """(Parameterized) Factory for configurables."""
-
-    def __init__(self, config: BaseConfig | None = None) -> None:
-        """Initialize new factory.
-
-        Arguments:
-            config (BaseConfig): configuration to create new instances from
-        """
-        self._config = config
-
-    @property
-    def config(self) -> BaseConfig | None:
-        """Configuration used to initialize new instances."""
-        return self._config
-
-    @config.setter
-    def config(self, other: BaseConfig) -> None:
-        # get expected config type from the type variable
-        config_type = solve_typevar(type(self), V).config_type
-        # check the config type
-        if not isinstance(other, config_type):
-            raise TypeError()
-        # set the config type
-        self._config = other
-
-    def create(self) -> V:
-        """Factor function.
-
-        Returns:
-            inst (V): new instance
-        """
-        if self.config is None:
-            return None
-        return type(self).from_config(self.config)

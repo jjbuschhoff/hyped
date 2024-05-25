@@ -15,17 +15,6 @@ from hyped.base.registry import default_registry
 T = TypeVar("T")
 
 
-class Configurable(BaseConfigurable[T]):
-    """Non-abstract configurable type for easier testing."""
-
-    def __init__(self, config):
-        self.c = config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(config)
-
-
 @pytest.fixture(autouse=True)
 def _reset_registry():
     # get registry state before test execution
@@ -111,6 +100,26 @@ class TestBaseConfig:
 
 
 class TestBaseConfigurable:
+    def test_init(self):
+        class MockConfig(BaseConfig):
+            x: int
+
+        class MockConfigurable(BaseConfigurable[MockConfig]):
+            pass
+
+        # invalid config type
+        with pytest.raises(TypeError):
+            MockConfigurable(BaseConfig())
+
+        obj = MockConfigurable(MockConfig(x=3))
+        assert obj.config.x == 3
+
+        obj = MockConfigurable(MockConfig(x=3), x=4)
+        assert obj.config.x == 4
+
+        obj = MockConfigurable(x=5)
+        assert obj.config.x == 5
+
     def test_config_type(self):
         class aConfig(BaseConfig):
             pass
@@ -124,10 +133,10 @@ class TestBaseConfigurable:
         class dConfig(bConfig):
             pass
 
-        class A(Configurable[aConfig]):
+        class A(BaseConfigurable[aConfig]):
             pass
 
-        class B(Configurable[bConfig]):
+        class B(BaseConfigurable[bConfig]):
             pass
 
         class C(B):
@@ -154,7 +163,7 @@ class TestBaseConfigurable:
         class bConfig(BaseConfig):
             pass
 
-        class A(Configurable[aConfig]):
+        class A(BaseConfigurable[aConfig]):
             pass
 
         # should raise type-error because config doesn't
@@ -171,13 +180,13 @@ class TestBaseConfigurable:
         class bConfig(BaseConfig):
             pass
 
-        class A(Configurable[aConfig]):
+        class A(BaseConfigurable[aConfig]):
             pass
 
-        class B(Configurable[bConfig]):
+        class B(BaseConfigurable[bConfig]):
             pass
 
-        class AutoConfigurable(BaseAutoConfigurable[Configurable]):
+        class AutoConfigurable(BaseAutoConfigurable[BaseConfigurable]):
             pass
 
         class AutoA(BaseAutoConfigurable[A]):

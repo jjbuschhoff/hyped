@@ -541,8 +541,6 @@ class DataFlow(object):
         # lazy executor instance, created in build
         self._executor: None | LazyInstance[DataFlowExecutor] = None
 
-        print("EXECUTOR INIT")
-
     @property
     def depth(self) -> int:
         """Computes the total depth of the data flow graph.
