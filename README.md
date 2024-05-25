@@ -6,7 +6,7 @@
 [![PyPi version](https://badgen.net/pypi/v/hyped/)](https://pypi.org/project/hyped)
 [![PyPi license](https://badgen.net/pypi/license/hyped/)](https://pypi.org/project/hyped/)
 
-Hyped is a versatile framework built on top of [HuggingFace Datasets](https://huggingface.co/docs/datasets/en/index), designed to simplify the management and execution of data pipelines. With Hyped, you can define data pipelines as a Directed Acyclic Graph (DAG) of data processors, leveraging the rich ecosystem of the datasets library while also providing the flexibility to implement custom processors when needed.
+Hyped is a versatile framework built on top of [HuggingFace Datasets](https://huggingface.co/docs/datasets/en/index), designed to simplify the management and execution of data pipelines. With Hyped, you can define data pipelines as Directed Acyclic Graphs (DAG) of data processors, leveraging the rich ecosystem of the datasets library while also providing the flexibility to implement custom processors when needed.
 
 Hyped aims to offer an intuitive high-level interface for defining and executing data pipelines, all while being flexible and scalable.
 
