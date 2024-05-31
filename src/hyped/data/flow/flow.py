@@ -39,6 +39,7 @@ from .processors.base import BaseDataProcessor
 from .refs.inputs import InputRefs
 from .refs.outputs import OutputRefs
 from .refs.ref import FeatureRef
+from .statistics.base import BaseDataStatistic, StatisticRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 D = TypeVar(
@@ -77,7 +78,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the data processor associated with the node.
 
-        Type: :class:`BaseDataProcessor`
+        Type: :code:`BaseDataProcessor | BaseDataStatistic`
 
         This property holds a reference to the data processor instance that the node
         represents within the data flow graph.
@@ -98,7 +99,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the depth of the node within the data flow graph.
 
-        Type: :class:`int`
+        Type: :code:`int`
 
         This property indicates the level of the node in the graph, with the root
         node having a depth of 0. It is used to understand the hierarchical position
@@ -112,7 +113,7 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the name of the edge.
 
-        Type: :class:`str`
+        Type: :code:`str`
 
         This property corresponds to the keyword of the argument used as an input
         to the processor, linking the edge to a specific input parameter.
@@ -169,6 +170,30 @@ class DataFlowGraph(nx.MultiDiGraph):
         # find larges layer in graph
         return max(len(list(layer)) for _, layer in layers)
 
+    def get_processor(
+        self, node_id: int
+    ) -> BaseDataProcessor | BaseDataStatistic:
+        """Retrieve the processor associated with a specific node in the data flow graph.
+
+        Args:
+            node_id (int): The unique identifier of the node whose processor is to be retrieved.
+
+        Returns:
+            BaseDataProcessor | BaseDataStatistic: The processor or statistic associated
+            with the specified node.
+
+        Raises:
+            ValueError: If the specified `node_id` is the source node.
+            KeyError: If the specified `node_id` does not exist in the graph.
+        """
+        # source node has no processor assigned to it
+        if node_id == SRC_NODE_ID:
+            raise ValueError(
+                "The source node is not associated with a processor."
+            )
+        # get the processor from the given node id
+        return self.nodes[node_id][DataFlowGraph.NodeProperty.PROCESSOR]
+
     def add_source_node(self, features: datasets.Features) -> int:
         """Add a the source node to the graph.
 
@@ -196,9 +221,12 @@ class DataFlowGraph(nx.MultiDiGraph):
         )
         return SRC_NODE_ID
 
+    # TODO: should probably rename this to be used
+    #       for statistics and augmentators
+    # TODO: same for the node property "processor"
     def add_processor_node(
         self,
-        processor: BaseDataProcessor,
+        processor: BaseDataProcessor | BaseDataStatistic,
         inputs: InputRefs,
         output_features: datasets.Features,
     ) -> int:
@@ -277,20 +305,20 @@ class DataFlowGraph(nx.MultiDiGraph):
 
         return node_id
 
-    def dependency_graph(self, node: int) -> DataFlowGraph:
+    def dependency_graph(self, nodes: set[int]) -> DataFlowGraph:
         """Generate the dependency subgraph for a given node.
 
         This method generates a subgraph containing all nodes that the given
         node depends on directly or indirectly.
 
         Args:
-            node (int): The node ID for which to generate the dependency graph.
+            nodes (set[int]): The node IDs for which to generate the dependency graph.
 
         Returns:
             DataFlowGraph: A subgraph representing the dependencies.
         """
         visited = set()
-        nodes = set([node])
+        nodes = nodes.copy()
         # search through dependency graph
         while len(nodes) > 0:
             node = nodes.pop()
@@ -325,7 +353,12 @@ class ExecutionState(object):
         self.ready = {
             node_id: asyncio.Event()
             for node_id in graph.nodes()
-            if node_id != SRC_NODE_ID
+            if (
+                (node_id != SRC_NODE_ID)
+                and not isinstance(
+                    graph.get_processor(node_id), BaseDataStatistic
+                )
+            )
         }
 
         self.graph = graph
@@ -336,7 +369,7 @@ class ExecutionState(object):
         Args:
             node_id (int): The ID of the node to wait for.
         """
-        if node_id != SRC_NODE_ID:
+        if node_id in self.ready:
             await self.ready[node_id].wait()
 
     def collect_value(self, ref: FeatureRef) -> Batch:
@@ -475,17 +508,30 @@ class DataFlowExecutor(object):
 
         # collect inputs for processor execution
         inputs = state.collect_inputs(node_id)
-        processor = self.graph.nodes[node_id]["processor"]
-        # run processor and check the output batch size
-        out = await processor.batch_process(inputs, state.index, state.rank)
-        assert all(
-            len(vals) == len(state.index) for vals in out.values()
-        ), "Output values length does not match index length."
-        # capture output in execution state
-        state.capture_output(node_id, out)
+        processor = self.graph.get_processor(node_id)
+
+        if isinstance(processor, BaseDataProcessor):
+            # run processor and check the output batch size
+            out = await processor.batch_process(
+                inputs, state.index, state.rank
+            )
+            assert all(
+                len(vals) == len(state.index) for vals in out.values()
+            ), "Output values length does not match index length."
+            # capture output in execution state
+            state.capture_output(node_id, out)
+
+        if isinstance(processor, BaseDataStatistic):
+            # compute the statistic
+            # Note: statistics are always leaf nodes in the flow graph
+            #       i.e. they have no output that needs to be captured
+            await processor.batch_process(inputs, state.index, state.rank)
 
     async def execute(
-        self, batch: Batch, index: list[int], rank: int
+        self,
+        batch: Batch,
+        index: list[int],
+        rank: int,
     ) -> Batch:
         """Execute the entire data flow graph.
 
@@ -613,14 +659,32 @@ class DataFlow(object):
                 f"but got {type(collect.feature_)}"
             )
 
-        sub_graph = self._graph.dependency_graph(collect.node_id_)
+        # collect nodes requested to be evaluated
+        nodes = set([collect.node_id_])
+
+        # add all tracked statistics as leaf nodes
+        for node_id in self._graph.nodes:
+            if (
+                node_id != SRC_NODE_ID
+                and isinstance(
+                    self._graph.get_processor(node_id), BaseDataStatistic
+                )
+                and self._graph.get_processor(node_id).is_tracked
+            ):
+                nodes.add(node_id)
+
+        sub_graph = self._graph.dependency_graph(nodes)
         # build sub_flow
         # TODO: restrict input features to only the
         #       ones required by the sub-graph
         flow = DataFlow(self.src_features.feature_)
         flow._graph = sub_graph
         flow._executor = LazyInstance(
-            partial(DataFlowExecutor, graph=sub_graph, collect=collect),
+            partial(
+                DataFlowExecutor,
+                graph=sub_graph,
+                collect=collect,
+            ),
         )
 
         return flow
@@ -675,6 +739,8 @@ class DataFlow(object):
         Returns:
             pa.Table: The processed data as a PyArrow table.
         """
+        # convert batch to dict, might be a datasets lazy dict object
+        batch = batch if isinstance(batch, dict) else dict(batch)
         # convert to pyarrow table with correct schema
         return pa.table(
             data=self.batch_process(batch, index, rank),
@@ -683,7 +749,12 @@ class DataFlow(object):
             ),
         )
 
-    def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
+    def apply(
+        self,
+        ds: D,
+        collect: None | FeatureRef = None,
+        **kwargs,
+    ) -> D:
         """Apply the data flow to a dataset.
 
         Args:
@@ -723,11 +794,11 @@ class DataFlow(object):
             #       i.e. they should be a subset and don't need to match exactly
             raise TypeError("Dataset features do not match source features.")
 
-        # build the sub data flow required to compute the requested output features
-        flow = self if collect is None else self.build(collect=collect)
+        # build sub-flow
+        flow = self if collect is None else self.build(collect)
 
         if flow._executor is None:
-            raise ValueError("Output features have not been set.")
+            raise RuntimeError("Flow has not been built yet.")
 
         # run data flow
         ds = flow._internal_apply(ds, **kwargs)

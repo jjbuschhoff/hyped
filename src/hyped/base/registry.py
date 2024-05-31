@@ -37,7 +37,7 @@ class Registrable(ABC):
             # TODO: include base class in hash computation
             src = inspect.getsource(cls)
             src_lines = src.splitlines()
-        except OSError:
+        except (OSError, TypeError):
             src_lines = [cls.__module__, cls.__name__]
         return _hash_python_lines(src_lines)
 

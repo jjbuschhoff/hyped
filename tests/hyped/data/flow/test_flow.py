@@ -285,9 +285,9 @@ class TestDataFlowGraph:
         graph, src, out1, out2 = setup_graph
         node_id1, node_id2 = out1.node_id_, out2.node_id_
 
-        subgraph = graph.dependency_graph(node_id2)
+        subgraph = graph.dependency_graph({node_id2})
         assert set(subgraph.nodes) == {SRC_NODE_ID, node_id1, node_id2}
-        subgraph = graph.dependency_graph(node_id1)
+        subgraph = graph.dependency_graph({node_id1})
         assert set(subgraph.nodes) == {SRC_NODE_ID, node_id1}
 
 

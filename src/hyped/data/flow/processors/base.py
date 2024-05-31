@@ -1,4 +1,4 @@
-"""Provides base classe for data processors in a data flow graph.
+"""Provides base classes for data processors in a data flow graph.
 
 This module defines the base class for data processors, which represent
 nodes in a data flow graph. It includes generic classes for defining
@@ -93,7 +93,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         _out_refs_type (Type[O]): The type of output references produced by the processor.
     """
 
-    def __init__(self, config: None | C = None, **kwargs) -> None:
+    def __init__(self, config: None | C = None, **kwargs: Any) -> None:
         """Initialize the data processor.
 
         Initializes the data processor with the given configuration. If no configuration is provided,
@@ -102,7 +102,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         Args:
             config (C, optional): The configuration object for the data processor. If not provided,
                 a configuration is created based on the given keyword arguments.
-            **kwargs: Additional keyword arguments that update the provided configuration
+            **kwargs (Any): Additional keyword arguments that update the provided configuration
                 or create a new configuration if none is provided.
         """
         super(BaseDataProcessor, self).__init__(config, **kwargs)
@@ -121,14 +121,14 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         """
         return self._in_refs_type.required_keys
 
-    def call(self, **kwargs) -> O:
+    def call(self, **kwargs: FeatureRef) -> O:
         """Calls the data processor with the provided inputs and returns the output reference.
 
         This method first prepares the inputs, then adds the processor to the data
         flow and returns a feature reference to the output features of the processor.
 
         Args:
-            **kwargs: Keyword arguments specifying feature references to be passed
+            **kwargs (FeatureRef): Keyword arguments specifying feature references to be passed
                 as inputs to the processor.
 
         Returns:
