@@ -75,7 +75,7 @@ flow = DataFlow(features=ds.features)
 Now we can add processing steps by calling data processors on the features. In this example we add a tokenizer processor to tokenize the text input feature using a BERT tokenizer:
 
 ```python
-tokenizer = TransformersTokenizer(model_name="bert-base-uncased")
+tokenizer = TransformersTokenizer(tokenizer="bert-base-uncased")
 tokenized_features = tokenizer.call(text=flow.src_features.text)
 ```
 
