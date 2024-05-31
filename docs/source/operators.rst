@@ -1,2 +1,78 @@
 Operators
 =========
+
+Operators play a crucial role in data processing pipelines by providing high-level functions for performing common operations on feature references. These functions streamline the process of adding processors to the data flow graph, abstracting away the underlying complexities and allowing users to focus on defining the desired transformations.
+
+For more information about operators and a list of available operators, please refer to the :doc:`operator api documentation <api/data.flow.ops>`.
+
+**Example: Using the `collect` Operator**
+
+One such widely used operator is the `collect` operator, which allows users to gather features from various nodes in the data flow and consolidate them into a single feature. It's particularly handy for defining the output structure of a data flow.
+
+To illustrate the `collect` operator, let's consider a scenario where we have a data flow that applies two different tokenizers to the text feature of the IMDb dataset.
+
+.. code-block:: python
+
+    import datasets
+    from hyped.data.flow import DataFlow
+    from hyped.data.flow.ops import collect
+    from hyped.data.flow.processors.tokenizers.transformers import TransformersTokenizer
+
+    # load the imdb dataset
+    ds = datasets("imdb", split="train")
+    
+    # initialize the data flow
+    flow = DataFlow(ds.features)
+
+    # create two tokenizers
+    tokenizerA = TransformersTokenizer(tokenizer="bert-base-uncased")
+    tokenizerB = TransformersTokenizer(tokenizer="roberta-base")
+    # call the tokenizer to the text features
+    featuresA = tokenizerA.call(text=flow.src_features.text)
+    featuresB = tokenizerB.call(text=flow.src_features.text)
+
+Now, suppose we want to collect the token IDs produced by each tokenizer into a single output dataset. Since the features originate from different nodes in the data flow, we need to collect them before using them as the output.
+
+.. code-block:: python
+
+    # Collect token IDs from both tokenizers
+    combined = collect(
+        {
+            "input_ids_A": featuresA.input_ids,
+            "input_ids_B": featuresB.input_ids
+        }
+    )
+
+With the features collected, we can now proceed to use them as the output for our data flow.
+
+.. code-block:: python
+
+    # Apply the collected features as the output for the data flow
+    out_ds = flow.apply(ds, collect=combined)
+
+In this example, the `collect` operator enables us to efficiently consolidate features from distinct processing paths within the data flow, streamlining the output specification process.
+
+
+Magic Operators
+---------------
+
+Magic Operators in Hyped serve as convenient shortcuts, providing syntactic sugar for common operations on feature references. These operators enable users to perform various transformations or manipulations effortlessly. Let's explore a simple example to illustrate the functionality of magic operators.
+
+.. code-block:: python
+
+    import datasets
+    from hyped.data.flow import DataFlow
+
+    # load the wiki-qa dataset
+    ds = datasets("wiki_qa", split="train")
+
+    # initialize the data flow
+    flow = DataFlow(ds.features)
+
+    # combine the question and answer features into a single text feature
+    prompt = (
+        "Question: " + flow.src_features.question
+        + "\nAnswer: " + flow.src_features.answer
+    )
+
+In this example, the prompt variable demonstrates the use of magic operators to concatenate the question and answer features, streamlining the data processing workflow.
