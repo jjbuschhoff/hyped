@@ -174,7 +174,7 @@ class BaseConfigurable(Generic[U], RegisterTypes, ABC):
         self._config = config
 
     @property
-    def config(self) -> C:
+    def config(self) -> U:
         """Retrieves the configuration of the object.
 
         Returns:
