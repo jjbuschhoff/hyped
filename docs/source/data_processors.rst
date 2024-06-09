@@ -26,11 +26,7 @@ Data processors in the Hyped library are highly configurable, allowing users to 
 
 **Configuration Options**
 
-Each data processor comes with a set of configuration options that define its behavior. These options are encapsulated within a :class:`Pydantic` model, providing a structured and type-safe way to specify the processor's parameters. Common configuration options may include:
-
-- **Model Selection**: Specify the pre-trained model or algorithm to be used by the processor.
-- **Parameter Settings**: Define parameters such as maximum sequence length, padding strategy, truncation strategy, etc., depending on the processor's functionality.
-- **Other Customization Options**: Additional options specific to each processor, allowing fine-grained control over its behavior.
+Each data processor comes with a set of configuration options that define its behavior. These options are encapsulated within a :class:`Pydantic` model, providing a structured and type-safe way to specify the processor's parameters.
 
 **Example: Configuring a Transformers Tokenizer**
 
@@ -164,9 +160,15 @@ Create a custom processor class (:code:`CustomProcessor`) inheriting from :class
             # Custom process function combining index and input feature
             return Sample(y=f"Index {index} has content {inputs['x']}")
 
+**Best Practices:**
+
+- **Standard Processing**: Use the :code:`process` method for standard processing tasks where each input sample can be processed independently. This method is suitable for scenarios where processing a sample has no idle times and cannot be vectorized.
+- **Asynchronous Processing**: Utilize the :code:`async process` method for IO-bound tasks or operations involving waiting for external resources. Asynchronous processing allows the processor to execute other tasks while waiting, thus improving overall efficiency. This approach is particularly beneficial for tasks that involve waiting, such as network requests or file I/O operations.
+- **Batch Processing**: Implement the :code:`batch_process` method for batch processing tasks, especially for operations that can be vectorized. Batch processing can significantly improve the efficiency of data processing tasks by processing multiple samples simultaneously. This method is suitable for tasks where processing can be parallelized across multiple samples, leading to faster execution times.
+
 **Asynchronous Processing Example:**
 
-Asynchronous processing is particularly useful for IO-bound tasks or operations that involve waiting for external resources. It allows the processor to execute other tasks while waiting, thus improving overall efficiency. Hyped supports asynchronous processing, enabling seamless integration of asynchronous operations into your data processing pipeline.
+Hyped supports asynchronous processing, enabling seamless integration of asynchronous operations into your data processing pipeline.
 
 .. code-block:: python
 
@@ -181,7 +183,7 @@ Asynchronous processing is particularly useful for IO-bound tasks or operations 
 
 **Batch Processing Example:**
 
-Implementing the :code:`batch_process` function allows for batch processing, which can significantly improve the efficiency of data processing tasks, especially for operations that can be vectorized. By overriding this function, you can define custom batch processing logic tailored to your specific requirements.
+By implementing the :code:`batch_process` function you can define custom batch processing logic tailored to your specific requirements.
 
 .. code-block:: python
 

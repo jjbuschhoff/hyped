@@ -42,7 +42,7 @@ Example:
 
         # Apply the data flow to a dataset
         dataset = datasets.load(...)
-        processed_dataset = flow.apply(dataset)
+        processed_dataset, _ = flow.apply(dataset)
 """
 
 from . import ops

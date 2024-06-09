@@ -9,7 +9,7 @@ Classes:
     - :class:`BaseDataProcessor`: Base class for data processors in a data flow graph.
 
 Usage Example:
-    Define a custom data processor by subclassing `BaseDataProcessor`:
+    Define a custom data processor by subclassing :code:`BaseDataProcessor`:
 
     .. code-block:: python
 
@@ -137,7 +137,7 @@ class BaseDataProcessor(BaseConfigurable[C], Generic[C, I, O], ABC):
         Raises:
             TypeError: If both `inputs` and keyword arguments are specified.
         """
-        # build inputs from keyword arguments if needed
+        # build inputs from keyword arguments
         inputs = self._in_refs_type(**kwargs)
         # compute output features and add the processor to the data flow
         out_features = self._out_refs_type.build_features(self.config, inputs)

@@ -64,7 +64,7 @@ Finally, we can apply the data pipeline to your dataset using the `apply` method
 
 .. code-block:: python
 
-    ds = flow.apply(ds, collect=tokenized_features)
+    ds, _ = flow.apply(ds, collect=tokenized_features)
 
 For more examples and advanced usage scenarios, check out the `Hyped examples <https://github.com/open-hyped/examples>`_ repository.
 
@@ -94,7 +94,7 @@ Hyped supports data parallel multiprocessing to utilize multiple CPU cores for f
 
 .. code-block:: python
 
-    ds = flow.apply(ds, num_proc=4, batch_size=32)
+    ds, _ = flow.apply(ds, num_proc=4, batch_size=32)
 
 Data Streaming
 ~~~~~~~~~~~~~~
@@ -109,7 +109,7 @@ Hyped supports streaming data directly from and to disk, enabling efficient proc
     ds = datasets.load_dataset("imdb", split="train", streaming=True)
 
     # Apply data pipeline (lazy processing for streamed datasets)
-    ds = flow.apply(ds)
+    ds, _ = flow.apply(ds)
 
     # Write processed examples to disk using 4 worker processes
     JsonDatasetWriter("dump/", num_proc=4).consume(ds)

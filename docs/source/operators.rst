@@ -48,7 +48,7 @@ With the features collected, we can now proceed to use them as the output for ou
 .. code-block:: python
 
     # Apply the collected features as the output for the data flow
-    out_ds = flow.apply(ds, collect=combined)
+    out_ds, _ = flow.apply(ds, collect=combined)
 
 In this example, the `collect` operator enables us to efficiently consolidate features from distinct processing paths within the data flow, streamlining the output specification process.
 

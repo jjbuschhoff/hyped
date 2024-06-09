@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from datasets import Sequence, Value
+from datasets import Features, Sequence, Value
 from typing_extensions import Annotated
 
 from hyped.data.flow.refs.inputs import (
@@ -13,6 +13,34 @@ from hyped.data.flow.refs.inputs import (
 
 # import hyped.data.processors.base
 from hyped.data.flow.refs.ref import NONE_REF, FeatureRef
+
+
+def test_error_on_invalid_annotation():
+    with pytest.raises(TypeError):
+
+        class CustomInputRefs(InputRefs):
+            x: FeatureRef
+
+    with pytest.raises(TypeError):
+
+        class CustomInputRefs(InputRefs):
+            x: Annotated[FeatureRef, object]
+
+    with pytest.raises(TypeError):
+
+        class CustomInputRefs(InputRefs):
+            x: Annotated[object, FeatureValidator(MagicMock())]
+
+    class CustomInputRefs(InputRefs):
+        x: Annotated[FeatureRef, FeatureValidator(MagicMock())]
+
+
+def test_error_on_invalid_value():
+    class CustomInputRefs(InputRefs):
+        x: Annotated[FeatureRef, FeatureValidator(MagicMock)]
+
+    with pytest.raises(ValueError):
+        CustomInputRefs(x=int)
 
 
 def test_feature_validator():
@@ -69,6 +97,12 @@ def test_check_feature_is_sequence():
         flow_=f,
         feature_=Sequence(Value("string"), length=2),
     )
+    z_ref = FeatureRef(
+        key_=k,
+        node_id_=n,
+        flow_=f,
+        feature_=Sequence(Value("string"), length=4),
+    )
     # create input refs, all types match
     CustomInputRefs(x=x_ref, y=y_ref)
 
@@ -88,6 +122,9 @@ def test_check_feature_is_sequence():
     # create input refs but one type doesn't match the expectation
     with pytest.raises(TypeError):
         CustomInputRefs(x=x_ref, y=x_ref)
+    # create input refs but sequence length doesn't match the expectation
+    with pytest.raises(TypeError):
+        CustomInputRefs(x=x_ref, y=z_ref)
 
 
 def test_required_input_refs():
@@ -107,6 +144,9 @@ def test_required_input_refs():
     assert input_refs.refs == {x_ref, y_ref}
     assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
     assert input_refs.flow == f
+    assert input_refs.features_ == Features(
+        {"x": x_ref.feature_, "y": y_ref.feature_}
+    )
 
 
 def test_optional_input_refs():

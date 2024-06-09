@@ -20,7 +20,8 @@ import re
 from enum import Enum
 from functools import partial
 from itertools import groupby
-from typing import Any, TypeVar, override
+from types import MappingProxyType
+from typing import Any, Literal, TypeVar
 
 import datasets
 import matplotlib.pyplot as plt
@@ -28,13 +29,20 @@ import nest_asyncio
 import networkx as nx
 import numpy as np
 import pyarrow as pa
+from matplotlib import colormaps
 from torch.utils.data import get_worker_info
 from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
+from hyped.common.feature_key import FeatureKey
 from hyped.common.lazy import LazyInstance
 
+from .aggregators.base import (
+    BaseDataAggregator,
+    DataAggregationManager,
+    DataAggregationRef,
+)
 from .processors.base import BaseDataProcessor
 from .refs.inputs import InputRefs
 from .refs.outputs import OutputRefs
@@ -57,7 +65,7 @@ try:
     nest_asyncio._patch_asyncio()
     loop = asyncio.get_event_loop()
     nest_asyncio.apply(loop)
-except ValueError:
+except ValueError:  # pragma: not covered
     # TODO: log warning
     pass
 
@@ -70,6 +78,36 @@ class DataFlowGraph(nx.MultiDiGraph):
     edges define the data flow between these processors.
     """
 
+    class NodeType(Enum):
+        """Enum representing types of nodes in the data flow graph."""
+
+        SOURCE = "SOURCE_NODE"
+        """
+        Represents a source node in the data flow graph.
+
+        This type of node acts as the starting point of the data flow graph,
+        typically representing raw input data sources.
+        """
+
+        DATA_PROCESSOR = "DATA_PROCESSOR_NODE"
+        """
+        Represents a data processor node in the data flow graph.
+
+        This type of node represents a data processing component within the
+        data flow graph. Data processors perform specific transformations
+        on input data and produce output data based on defined processing logic.
+        """
+
+        DATA_AGGREGATOR = "DATA_AGGREGATOR_NODE"
+        """
+        Represents a data aggregator node in the data flow graph.
+
+        This type of node is responsible for aggregating data from multiple
+        sources or processing stages within the data flow graph. Aggregator
+        nodes typically perform dataset-wide computations or combine data
+        from different sources into a unified representation.
+        """
+
     class NodeProperty(str, Enum):
         """Enum representing properties of a node in the data flow graph."""
 
@@ -77,13 +115,35 @@ class DataFlowGraph(nx.MultiDiGraph):
         """
         Represents the data processor associated with the node.
 
-        Type: :class:`BaseDataProcessor`
+        Type: :code:`None`| :class:`BaseDataProcessor` | :class:`BaseDataAugmentor`
 
         This property holds a reference to the data processor instance that the node
-        represents within the data flow graph.
+        represents within the data flow graph. Set to :code:`None` for the source node.
         """
 
-        FEATURES = "features"
+        # TODO: rename this property to NODE_TYPE
+        PROCESSOR_TYPE = "processor_type"
+        """
+        Represents the type of the data processor associated with the node.
+
+        Type: :class:`NodeType`
+
+        This property indicates the type of data processor. It helps in categorizing
+        and identifying the nature of the processor in the data flow graph.
+        """
+
+        IN_FEATURES = "in_features"
+        """
+        Represents the input features associated with the node.
+
+        Type: :class:`datasets.Features`
+
+        This property contains the input features required by the data processor,
+        encapsulated in a HuggingFace `datasets.Features` instance. It defines the
+        structure and types of data that is expected by this node.
+        """
+
+        OUT_FEATURES = "out_features"
         """
         Represents the output features associated with the node.
 
@@ -190,7 +250,9 @@ class DataFlowGraph(nx.MultiDiGraph):
             SRC_NODE_ID,
             **{
                 DataFlowGraph.NodeProperty.PROCESSOR: None,
-                DataFlowGraph.NodeProperty.FEATURES: features,
+                DataFlowGraph.NodeProperty.PROCESSOR_TYPE: DataFlowGraph.NodeType.SOURCE,
+                DataFlowGraph.NodeProperty.IN_FEATURES: features,
+                DataFlowGraph.NodeProperty.OUT_FEATURES: features,
                 DataFlowGraph.NodeProperty.DEPTH: 0,
             },
         )
@@ -198,9 +260,9 @@ class DataFlowGraph(nx.MultiDiGraph):
 
     def add_processor_node(
         self,
-        processor: BaseDataProcessor,
+        processor: BaseDataProcessor | BaseDataAggregator,
         inputs: InputRefs,
-        output_features: datasets.Features,
+        output_features: None | datasets.Features,
     ) -> int:
         """Add a processor node to the graph.
 
@@ -209,9 +271,10 @@ class DataFlowGraph(nx.MultiDiGraph):
         processor.
 
         Args:
-            processor (BaseDataProcessor): The processor to add.
+            processor (BaseDataProcessor | BaseDataAggregator): The processor or aggregator to add.
             inputs (InputRefs): The input references for the processor.
-            output_features (datasets.Features): The output features generated by the processor.
+            output_features (None | datasets.Features):
+                The output features generated by the processor. Must be None for aggregator nodes.
 
         Returns:
             int: The node id of the processor within the graph.
@@ -229,6 +292,21 @@ class DataFlowGraph(nx.MultiDiGraph):
             f"Expected input references of type {processor._in_refs_type}, "
             f"but got {type(inputs)}"
         )
+        # aggregators have no output features
+        if isinstance(processor, BaseDataAggregator):
+            assert output_features is None
+
+        # get processor type
+        processor_type = (
+            DataFlowGraph.NodeType.DATA_PROCESSOR
+            if isinstance(processor, BaseDataProcessor)
+            else DataFlowGraph.NodeType.DATA_AGGREGATOR
+            if isinstance(processor, BaseDataAggregator)
+            else None
+        )
+        assert (
+            processor_type is not None
+        ), f"Invalid processor type {type(processor)}."
 
         # add processor to graph
         depth = -1
@@ -237,7 +315,9 @@ class DataFlowGraph(nx.MultiDiGraph):
             node_id,
             **{
                 DataFlowGraph.NodeProperty.PROCESSOR: processor,
-                DataFlowGraph.NodeProperty.FEATURES: output_features,
+                DataFlowGraph.NodeProperty.PROCESSOR_TYPE: processor_type,
+                DataFlowGraph.NodeProperty.IN_FEATURES: inputs.features_,
+                DataFlowGraph.NodeProperty.OUT_FEATURES: output_features,
                 DataFlowGraph.NodeProperty.DEPTH: -1,  # placeholder
             },
         )
@@ -251,7 +331,11 @@ class DataFlowGraph(nx.MultiDiGraph):
             # make sure the input is a valid output of the referred node
             assert ref.node_id_ in self
             assert (
-                ref.key_.index_features(self.nodes[ref.node_id_]["features"])
+                ref.key_.index_features(
+                    self.nodes[ref.node_id_][
+                        DataFlowGraph.NodeProperty.OUT_FEATURES
+                    ]
+                )
                 is not None
             )
             # add edge to other nodes
@@ -277,20 +361,80 @@ class DataFlowGraph(nx.MultiDiGraph):
 
         return node_id
 
-    def dependency_graph(self, node: int) -> DataFlowGraph:
+    def get_node_output_ref(
+        self, node_id: int
+    ) -> FeatureRef | OutputRefs | DataAggregationRef:
+        """Retrieves the output reference for a given node in the data flow graph.
+
+        This method returns an appropriate output reference based on the type of the node specified by the
+        given node ID. The method constructs the appropriate reference object based on the node type:
+
+            - For source nodes, this method builds a feature reference using the output features of the node.
+            - For data processor nodes, it retrieves the processor's output references type and constructs the full output reference.
+            - For data aggregator nodes, it builds a data aggregation reference using the node's value type.
+
+        Args:
+            node_id (int): The ID of the node for which to retrieve the output reference.
+
+        Returns:
+            FeatureRef | OutputRefs | DataAggregationRef: The output reference associated with the specified node.
+
+        Raises:
+            KeyError: If the node ID does not exist in the data flow graph.
+            TypeError: If the node type is not recognized.
+        """
+        if node_id not in self:
+            raise KeyError(
+                f"Node ID {node_id} does not exist in the data flow graph."
+            )
+
+        # get node
+        node = self.nodes[node_id]
+        node_type = node[DataFlowGraph.NodeProperty.PROCESSOR_TYPE]
+
+        if node_type == DataFlowGraph.NodeType.SOURCE:
+            features = node[DataFlowGraph.NodeProperty.OUT_FEATURES]
+            # build feature reference
+            return FeatureRef(
+                key_=FeatureKey(),
+                node_id_=node_id,
+                flow_=self,
+                feature_=features,
+            )
+
+        elif node_type == DataFlowGraph.NodeType.DATA_PROCESSOR:
+            # get processor and output features
+            proc = node[DataFlowGraph.NodeProperty.PROCESSOR]
+            features = node[DataFlowGraph.NodeProperty.OUT_FEATURES]
+            # build the full output reference
+            return proc._out_refs_type(self, node_id, features)
+
+        elif node_type == DataFlowGraph.NodeType.DATA_AGGREGATOR:
+            # get aggregator and build reference
+            proc = node[DataFlowGraph.NodeProperty.PROCESSOR]
+            return DataAggregationRef(
+                node_id_=node_id, flow_=self, type_=proc._value_type
+            )
+
+        else:
+            raise TypeError(
+                f"Unrecognized node type {node_type} for node ID {node_id}."
+            )
+
+    def dependency_graph(self, nodes: set[int]) -> DataFlowGraph:
         """Generate the dependency subgraph for a given node.
 
         This method generates a subgraph containing all nodes that the given
-        node depends on directly or indirectly.
+        set of nodes depend on directly or indirectly.
 
         Args:
-            node (int): The node ID for which to generate the dependency graph.
+            nodes (set[int]): The node IDs for which to generate the dependency graph.
 
         Returns:
             DataFlowGraph: A subgraph representing the dependencies.
         """
         visited = set()
-        nodes = set([node])
+        nodes = nodes.copy()
         # search through dependency graph
         while len(nodes) > 0:
             node = nodes.pop()
@@ -325,7 +469,13 @@ class ExecutionState(object):
         self.ready = {
             node_id: asyncio.Event()
             for node_id in graph.nodes()
-            if node_id != SRC_NODE_ID
+            if (
+                (node_id != SRC_NODE_ID)
+                and not isinstance(
+                    graph.nodes[node_id][DataFlowGraph.NodeProperty.PROCESSOR],
+                    BaseDataAggregator,
+                )
+            )
         }
 
         self.graph = graph
@@ -336,7 +486,7 @@ class ExecutionState(object):
         Args:
             node_id (int): The ID of the node to wait for.
         """
-        if node_id != SRC_NODE_ID:
+        if node_id in self.ready:
             await self.ready[node_id].wait()
 
     def collect_value(self, ref: FeatureRef) -> Batch:
@@ -437,12 +587,21 @@ class DataFlowExecutor(object):
     graph, managing the execution of each node and collecting results.
     """
 
-    def __init__(self, graph: DataFlowGraph, collect: FeatureRef) -> None:
+    def __init__(
+        self,
+        graph: DataFlowGraph,
+        collect: FeatureRef,
+        aggregation_manager: None | DataAggregationManager,
+    ) -> None:
         """Initialize the executor.
 
         Args:
             graph (DataFlowGraph): The data flow graph to execute.
             collect (FeatureRef): The feature reference to collect results.
+            aggregation_manager (None | DataAggregationManager):
+                The manager responsible for handling data aggregation. Can be
+                None if the graph has no aggregator nodes.
+
 
         Raises:
             TypeError: If the collect feature is not of type datasets.Features.
@@ -455,6 +614,7 @@ class DataFlowExecutor(object):
 
         self.graph = graph
         self.collect = collect
+        self.aggregation_manager = aggregation_manager
 
     async def execute_node(self, node_id: int, state: ExecutionState):
         """Execute a single node in the data flow graph.
@@ -475,14 +635,29 @@ class DataFlowExecutor(object):
 
         # collect inputs for processor execution
         inputs = state.collect_inputs(node_id)
-        processor = self.graph.nodes[node_id]["processor"]
-        # run processor and check the output batch size
-        out = await processor.batch_process(inputs, state.index, state.rank)
-        assert all(
-            len(vals) == len(state.index) for vals in out.values()
-        ), "Output values length does not match index length."
-        # capture output in execution state
-        state.capture_output(node_id, out)
+        processor = self.graph.nodes[node_id][
+            DataFlowGraph.NodeProperty.PROCESSOR
+        ]
+        processor_type = self.graph.nodes[node_id][
+            DataFlowGraph.NodeProperty.PROCESSOR_TYPE
+        ]
+
+        if processor_type == DataFlowGraph.NodeType.DATA_PROCESSOR:
+            # run processor and check the output batch size
+            out = await processor.batch_process(
+                inputs, state.index, state.rank
+            )
+            assert all(
+                len(vals) == len(state.index) for vals in out.values()
+            ), "Output values length does not match index length."
+            # capture output in execution state
+            state.capture_output(node_id, out)
+
+        elif processor_type == DataFlowGraph.NodeType.DATA_AGGREGATOR:
+            # run aggregator
+            await self.aggregation_manager.aggregate(
+                processor, inputs, state.index, state.rank
+            )
 
     async def execute(
         self, batch: Batch, index: list[int], rank: int
@@ -594,18 +769,54 @@ class DataFlow(object):
             raise RuntimeError("Flow has not been build yet.")
         return self._executor.collect
 
-    def build(self, collect: FeatureRef) -> DataFlow:
+    @property
+    def aggregates(self) -> None | MappingProxyType[str, Any]:
+        """Access the aggregated values computed by data aggregators.
+
+        This property provides access to the aggregated values computed by data
+        aggregators during the execution of the data flow. These aggregated values
+        represent dataset-wide metrics or summary statistics calculated based on the
+        input data.
+
+        Returns:
+            None | MappingProxyType[str, Any]: A read-only view of the aggregated
+            values as a mapping from aggregation names to their respective values.
+
+        Raises:
+            RuntimeError: If the flow has not been built yet.
+        """
+        if self._executor is None:
+            raise RuntimeError("Flow has not been build yet.")
+
+        return (
+            None
+            if (self._executor.aggregation_manager is None)
+            else self._executor.aggregation_manager.values_proxy
+        )
+
+    def build(
+        self,
+        collect: FeatureRef,
+        aggregators: None | dict[str, DataAggregationRef] = None,
+    ) -> tuple[DataFlow, None | MappingProxyType[str, Any]]:
         """Build a sub-data flow to compute the requested output features.
+
+        This method constructs a sub-graph of the data flow to compute the specified
+        output features and optionally includes aggregators for dataset-wide computations.
 
         Args:
             collect (FeatureRef): The feature reference to collect.
+            aggregators (None | dict[str, DataAggregationRef]): Optional dictionary of
+                aggregators for computing dataset-wide values. Defaults to None.
 
         Returns:
-            DataFlow: The sub-data flow.
+            tuple[DataFlow, None | MappingProxyType[str, Any]]: The sub-data flow and a proxy
+            object of the aggregated values. The aggregated values object is None in case
+            no aggregators were provided.
 
         Raises:
-            TypeError: If the collect feature is not of type
-                `datasets.Features` or `dict`.
+            TypeError: If the collect feature is not of type `datasets.Features` or `dict`.
+            TypeError: If aggregators are provided but are not of the expected type.
         """
         if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError(
@@ -613,17 +824,56 @@ class DataFlow(object):
                 f"but got {type(collect.feature_)}"
             )
 
-        sub_graph = self._graph.dependency_graph(collect.node_id_)
-        # build sub_flow
+        if (aggregators is not None) and not (
+            isinstance(aggregators, dict)
+            and all(
+                isinstance(ref, DataAggregationRef)
+                for ref in aggregators.values()
+            )
+        ):
+            raise TypeError(
+                f"Expected aggregators to be a dictionary with values of type "
+                f"`DataAggregationRef`, but got {type(aggregators)} with "
+                f"values {aggregators.values()}"
+            )
+
+        # collect all requested leaf nodes
+        leaf_nodes = set([collect.node_id_])
+        if aggregators is not None:
+            leaf_nodes.update([ref.node_id_ for ref in aggregators.values()])
+
+        # build dependency graph for the given set of nodes
+        sub_graph = self._graph.dependency_graph(leaf_nodes)
+
+        aggregation_manager = None
+        # create the aggregation manager
+        if aggregators is not None:
+            aggregators = {
+                name: self._graph.nodes[ref.node_id_][
+                    DataFlowGraph.NodeProperty.PROCESSOR
+                ]
+                for name, ref in aggregators.items()
+            }
+            in_features = {name: None for name in aggregators.keys()}  # TODO
+            aggregation_manager = DataAggregationManager(
+                aggregators, in_features
+            )
+
+        # build the sub-flow
         # TODO: restrict input features to only the
         #       ones required by the sub-graph
         flow = DataFlow(self.src_features.feature_)
         flow._graph = sub_graph
         flow._executor = LazyInstance(
-            partial(DataFlowExecutor, graph=sub_graph, collect=collect),
+            partial(
+                DataFlowExecutor,
+                graph=sub_graph,
+                collect=collect,
+                aggregation_manager=aggregation_manager,
+            )
         )
 
-        return flow
+        return flow, flow.aggregates
 
     def batch_process(
         self, batch: Batch, index: list[int], rank: None | int = None
@@ -675,6 +925,8 @@ class DataFlow(object):
         Returns:
             pa.Table: The processed data as a PyArrow table.
         """
+        if isinstance(batch, datasets.formatting.formatting.LazyBatch):
+            batch = dict(batch)
         # convert to pyarrow table with correct schema
         return pa.table(
             data=self.batch_process(batch, index, rank),
@@ -683,24 +935,35 @@ class DataFlow(object):
             ),
         )
 
-    def apply(self, ds: D, collect: None | FeatureRef = None, **kwargs) -> D:
+    def apply(
+        self,
+        ds: D,
+        collect: None | FeatureRef = None,
+        aggregators: None | dict[str, DataAggregationRef] = None,
+        **kwargs,
+    ) -> tuple[D, None | dict[str, Any] | MappingProxyType[str, Any]]:
         """Apply the data flow to a dataset.
+
+        This method applies the data flow to the given dataset, processing the data according to the defined
+        processors and optionally including aggregators for dataset-wide computations.
 
         Args:
             ds (D): The dataset to process.
-            collect (None | FeatureRef): The feature reference to collect.
-                If None, uses current output features.
-            **kwargs: Additional arguments for dataset mapping. For more
-                information please refer to the HuggingFace documentation
-                of the Datasets.map function for the respective dataset type.
+            collect (None | FeatureRef): The feature reference to collect. If None, uses current output features.
+            aggregators (None | dict[str, DataAggregationRef]): Optional dictionary of aggregators for computing
+                dataset-wide values. Defaults to None.
+            **kwargs: Additional arguments for dataset mapping. Refer to the HuggingFace documentation for the
+                Datasets.map function for the respective dataset type.
 
         Returns:
-            D: The processed dataset.
+            tuple[D, None | dict[str, Any] | MappingProxyType[str, Any]]: The processed dataset and a snapshot
+            of the aggregated values after processing the dataset. In case of iterable datasets, the aggregated
+            values proxy object is returned instead of a snapshot.
 
         Raises:
             ValueError: If the dataset type is not supported.
             TypeError: If the dataset features do not match the source features.
-            ValueError: If the output features have not been set.
+            RuntimeError: If the flow has not been built yet.
         """
         # get the dataset features
         if isinstance(ds, (datasets.Dataset, datasets.IterableDataset)):
@@ -724,10 +987,21 @@ class DataFlow(object):
             raise TypeError("Dataset features do not match source features.")
 
         # build the sub data flow required to compute the requested output features
-        flow = self if collect is None else self.build(collect=collect)
+        if (collect is None) and (aggregators is None):
+            flow = self
+        else:
+            # default to output features of self
+            if (collect is None) and (self._executor is not None):
+                collect = self.out_features
+            # build the flow
+            flow, _ = self.build(collect=collect, aggregators=aggregators)
 
         if flow._executor is None:
-            raise ValueError("Output features have not been set.")
+            raise RuntimeError(
+                "Flow has not been built yet. Please either build the flow "
+                "manually using `.build()` or provide appropriate keyword "
+                "arguments to the `.apply` call."
+            )
 
         # run data flow
         ds = flow._internal_apply(ds, **kwargs)
@@ -742,7 +1016,14 @@ class DataFlow(object):
                 for split in ds.values():
                     split.info.features = flow._executor.collect.feature_
 
-        return ds
+        # return the processed dataset and a snapshot of the aggregated values
+        return ds, (
+            None
+            if flow.aggregates is None
+            else flow.aggregates.copy()
+            if isinstance(ds, (datasets.Dataset, datasets.DatasetDict))
+            else flow.aggregates
+        )
 
     def _internal_apply(self, ds: D, **kwargs) -> D:
         """(Internal) Apply the data flow to a dataset.
@@ -791,6 +1072,14 @@ class DataFlow(object):
         node_font_size: int = 6,
         node_size: int = 5_000,
         arrowsize: int = 25,
+        color_map: dict[
+            Literal[
+                DataFlowGraph.NodeType.SOURCE,
+                DataFlowGraph.NodeType.DATA_PROCESSOR,
+                DataFlowGraph.NodeType.DATA_AGGREGATOR,
+            ],
+            str,
+        ] = {},
         ax: None | plt.Axes = None,
     ) -> plt.Axes:
         """Plot the data flow graph.
@@ -803,6 +1092,8 @@ class DataFlow(object):
             node_font_size (int): The font size for node labels. Defaults to 6.
             node_size (int): The size of the nodes. Defaults to 5_000.
             arrowsize (int): The size of the arrows on the edges. Defaults to 25.
+            color_map (dict[None | type, str]): indicate custom color scheme based on the processor
+                type. `None` refers to the source node.
             ax (Optional[plt.Axes]): Matplotlib axes object to draw the plot on. Defaults to None.
 
         Returns:
@@ -819,12 +1110,28 @@ class DataFlow(object):
             self._graph, subset_key=DataFlowGraph.NodeProperty.DEPTH
         )
 
+        # build color map
+        cmap = colormaps.get_cmap("Pastel1")
+        default_color_map = {
+            DataFlowGraph.NodeType.SOURCE: cmap.colors[0],
+            DataFlowGraph.NodeType.DATA_PROCESSOR: cmap.colors[1],
+            DataFlowGraph.NodeType.DATA_AGGREGATOR: cmap.colors[2],
+        }
+        color_map = default_color_map | color_map
+
+        # apply color map
+        node_colors = [
+            color_map[data[DataFlowGraph.NodeProperty.PROCESSOR_TYPE]]
+            for _, data in self._graph.nodes(data=True)
+        ]
+
         # plot the raw graph
         nx.draw(
             self._graph,
             pos,
             with_labels=False,
             node_size=node_size,
+            node_color=node_colors,
             arrowsize=arrowsize,
             ax=ax,
         )

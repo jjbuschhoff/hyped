@@ -61,6 +61,10 @@ exclude_also = [
 
     # Don't complain about abstract methods, they aren't run:
     "@(abc\\.)?abstractmethod",
+
+    # Don't complain about overloaded functions
+    "@(typing\\.)?overload",
+    "pragma: not covered"
 ]
 
 [tool.setuptools_scm]

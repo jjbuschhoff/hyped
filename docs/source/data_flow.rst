@@ -28,8 +28,8 @@ Types of Nodes
 Nodes in a data flow can be of various types, each performing a specific function:
 
 - **Source Node**: A Data Flow always has exactly one source node, representing the entry points of data into the flow. The data going into this node is provided from the dataset to be processed.
-- **Data Processor Nodes**: These nodes apply transformations to the features of an example in the dataset. This might include tokenization or normalization.
-- **Data Statistic Nodes**: Coming Soon
+- **Data Processor Nodes**: Processor nodes apply transformations to the features of an isolated example in the dataset. This might include tokenization or normalization.
+- **Data Aggregator Nodes**: Aggregator nodes perform dataset-wide statistical operations on the features. This might include summation or averaging.
 - **Data Augmentation Nodes**: Coming Soon
 
 
@@ -141,9 +141,11 @@ To build a data flow, you can use the build method of the DataFlow class:
 .. code-block:: python
 
    # Build a sub-data flow to compute the requested output features
-   sub_flow = flow.build(collect=tokenized_features)
+   sub_flow, aggregates = flow.build(collect=tokenized_features, aggregators={...})
 
 The :code:`build` method takes the desired output features as the collect argument and returns a new :class:`DataFlow` instance containing only the nodes necessary to compute these features. This new flow represents a subset of the original data flow, tailored specifically to the computation of the specified outputs.
+
+In addition, the build function takes an optional argument :code:`aggregators` specifying all the aggregator nodes to be computed and returns a proxy object to the aggregate values (:code:`aggregates`). This proxy object is a dictionary mirroring the given :code:`aggregators` argument but contains the up-to-date aggregate values instead of the aggregator nodes. 
 
 Executing Data Processing Tasks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,11 +167,15 @@ Afterwards, you can apply the data flow to your dataset for processing. The appl
 .. code-block:: python
 
    # Apply the data flow to the dataset
-   processed_dataset = flow.apply(ds, collect=tokenized_features)
+   processed_dataset, aggregates = flow.apply(ds, collect=tokenized_features, aggreagtes={...})
 
-The apply method takes the dataset (:code:`ds`) as input and an optional :code:`collect` argument. The :code:`collect` argument specifies which features the output dataset should contain. If the data flow has not been built before the collect argument becomes crucial. In such cases, the apply function internally builds the flow with this argument. This means that only the sub-flow required to compute the output features will be executed, and any unnecessary nodes will be pruned before execution.
+The apply method takes the dataset (:code:`ds`) as input and optional arguments such as the :code:`collect` argument. The :code:`collect` argument specifies which features the output dataset should contain. If the data flow has not been built before the collect argument becomes crucial. In such cases, the apply function internally builds the flow with this argument. This means that only the sub-flow required to compute the output features will be executed, and any unnecessary nodes will be pruned before execution.
 
-By providing the :code:`collect` argument, you can control which features are included in the output dataset, allowing for flexibility and customization in the data processing workflow.
+The :code:`apply` method returns a tuple containing the processed dataset (:code:`processed_dataset`) and a snapshot of the aggregated values after processing the dataset (:code:`aggregates`). The :code:`aggregates` output of the function has the following edge-cases:
+
+ - If the data flow doesn't contain any aggregator nodes, then :code:`aggregates` output is :code:`None`.
+ - If the dataset is not an iterable dataset, the :code:`aggregates` output is a snapshot of the aggregated values.
+ - If the dataset is iterable, the :code:`aggregates` output is a proxy object of the aggregated values instead of a snapshot. This proxy always links to up-to-date aggregate values.
 
 **Batch Processing**
 
@@ -178,7 +184,7 @@ Batch processing optimizes data flow execution by processing data in batches rat
 .. code-block:: python
 
    # Process data in batches
-   processed_dataset = flow.apply(ds, collect=tokenized_features, batch_size=32)
+   processed_dataset, _ = flow.apply(ds, collect=tokenized_features, batch_size=32)
 
 The :code:`batch_size` parameter specifies the number of instances to process in each batch. Adjusting this parameter allows fine-tuning of processing efficiency based on memory constraints and computational resources.
 
@@ -189,7 +195,7 @@ Data parallelism enhances data processing throughput by concurrently processing 
 .. code-block:: python
 
    # Apply the data flow with data parallelism
-   processed_dataset = flow.apply(ds, collect=tokenized_features, num_proc=4)
+   processed_dataset, _ = flow.apply(ds, collect=tokenized_features, num_proc=4)
 
 Adjust the :code:`num_proc` parameter to optimize parallelism based on available resources and workload characteristics.
 

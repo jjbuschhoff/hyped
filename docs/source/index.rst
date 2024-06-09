@@ -48,6 +48,7 @@ Below is a list of key sections in this documentation, guiding you through insta
    getting_started
    data_flow
    data_processors
+   data_aggregators
    operators
    add_ons
 
