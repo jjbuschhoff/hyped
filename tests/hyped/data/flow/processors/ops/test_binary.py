@@ -257,8 +257,8 @@ class TestFloorDiv(BaseDataProcessorTest):
 
 
 class TestDiv(BaseDataProcessorTest):
-    processor_type = binary.Div
-    processor_config = binary.DivConfig()
+    processor_type = binary.TrueDiv
+    processor_config = binary.TrueDivConfig()
 
     input_features = Features({"a": Value("int32"), "b": Value("int32")})
     input_data = {"a": [4, 6, 9], "b": [2, 4, 4]}
