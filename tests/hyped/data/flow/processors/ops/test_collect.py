@@ -151,7 +151,9 @@ class BaseCollectFeaturesTest(BaseDataProcessorTest):
 
     @pytest.fixture
     def input_refs(self):
-        return CollectFeaturesInputRefs(collection=type(self).collection)
+        return CollectFeaturesInputRefs(
+            collection=type(self).collection, flow_=mock_flow
+        )
 
     @pytest.fixture
     def processor(self):
@@ -195,6 +197,59 @@ class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
         calls = mock_flow.add_processor_node.mock_calls
         assert mock_flow.add_processor_node.call_count == 2
         assert calls[0].args[0] != calls[1].args[0]
+
+
+class TestCollectFeatures_const(BaseCollectFeaturesTest):
+    # collection
+    collection = FeatureCollection(collection={"a": int_ref, "b": "constant"})
+    # inputs
+    input_features = {
+        "a": int_ref.feature_,
+    }
+    input_data = {
+        "a": [i for i in range(100)],
+    }
+    input_index = list(range(100))
+    # expected output
+    expected_output_data = {
+        "collected": [{"a": i, "b": "constant"} for i in range(100)]
+    }
+
+    def test_error_on_flow_mismatch(self):
+        cls = type(self)
+        processor = cls.processor_type.from_config(cls.processor_config)
+        # flow inferred from collection (mock_flow) does not match
+        # explicitly provided flow instance (object())
+        with pytest.raises(RuntimeError):
+            processor.call(collection=cls.collection, flow=object())
+
+
+class TestCollectFeatures_const_only(BaseCollectFeaturesTest):
+    # collection
+    collection = FeatureCollection(collection={"a": 0, "b": "constant"})
+    # inputs
+    input_features = {}
+    input_data = {}
+    input_index = list(range(100))
+    # expected output
+    expected_output_data = {
+        "collected": [{"a": 0, "b": "constant"} for i in range(100)]
+    }
+
+    @pytest.fixture
+    def processor(self):
+        cls = type(self)
+        processor = cls.processor_type.from_config(cls.processor_config)
+        processor.call(collection=cls.collection, flow=mock_flow)
+        return processor
+
+    def test_error_on_undefined_flow(self):
+        cls = type(self)
+        processor = cls.processor_type.from_config(cls.processor_config)
+        # flow cannot be inferred from constant collection
+        # and is not provided explicitly
+        with pytest.raises(RuntimeError):
+            processor.call(collection=cls.collection)
 
 
 class TestCollectFeatures_sequence(BaseCollectFeaturesTest):

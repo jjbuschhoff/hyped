@@ -90,7 +90,7 @@ class FeatureValidator(AfterValidator):
             Raises:
                 TypeError: If the feature does not conform to the expected feature type.
             """
-            if ref == NONE_REF:
+            if ref is NONE_REF:
                 return ref
 
             try:
@@ -237,13 +237,16 @@ class InputRefs(BaseModelWithTypeValidation):
         return set(k for k, f in cls.model_fields.items() if f.is_required())
 
     @property
-    def refs(self) -> set[FeatureRef]:
+    def refs(self) -> list[FeatureRef]:
         """Get the input reference instances.
 
         Returns:
-            set[FeatureRef]: A set of input reference instances.
+            list[FeatureRef]: A list of unique input reference instances.
         """
-        return set(self.named_refs.values())
+        # get all unique references, i.e. references with unique pointers
+        # as equality operator is overloaded
+        unique = {ref.ptr: ref for ref in self.named_refs.values()}
+        return list(unique.values())
 
     @property
     def named_refs(self) -> dict[str, FeatureRef]:
@@ -257,7 +260,7 @@ class InputRefs(BaseModelWithTypeValidation):
             key: getattr(self, key) for key in self.model_fields.keys()
         }
         named_refs = {
-            key: ref for key, ref in named_refs.items() if ref != NONE_REF
+            key: ref for key, ref in named_refs.items() if ref is not NONE_REF
         }
         return named_refs
 

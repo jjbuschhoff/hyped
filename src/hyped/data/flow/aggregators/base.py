@@ -5,7 +5,6 @@ of data within a data flow graph. It includes generic classes for defining data 
 with configurable input types and aggregation logic.
 
 Classes:
-    - :class:`DataAggregationRef`: Reference to a data aggregation node in the data flow.
     - :class:`DataAggregationManager`: Manager for handling data aggregation operations.
     - :class:`BaseDataAggregatorConfig`: Base class for data aggregator configurations.
     - :class:`BaseDataAggregator`: Base class for data aggregators.
@@ -57,12 +56,13 @@ from types import MappingProxyType
 from typing import Any, Generic, TypeAlias, TypeVar
 
 from datasets import Features
-from pydantic import BaseModel
 
 from hyped.base.config import BaseConfig, BaseConfigurable
 from hyped.base.generic import solve_typevar
 from hyped.common.lazy import LazyStaticInstance
 from hyped.data.flow.refs.inputs import InputRefs
+
+from .ref import DataAggregationRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 
@@ -80,25 +80,6 @@ def _sync_manager_factory() -> SyncManager:
 
 # create global sync manager
 _manager = LazyStaticInstance[SyncManager](_sync_manager_factory)
-
-
-class DataAggregationRef(BaseModel):
-    """Reference to a data aggregation node in the data flow.
-
-    Attributes:
-        node_id_ (int): The ID of the aggregation node.
-        flow_ (object): The data flow object.
-        type_ (type): The type of the aggregation value.
-    """
-
-    node_id_: int
-    """The ID of the aggregation node."""
-
-    flow_: object
-    """The data flow object."""
-
-    type_: type
-    """The type of the aggregation value."""
 
 
 class DataAggregationManager(object):

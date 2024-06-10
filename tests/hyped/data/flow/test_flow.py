@@ -339,20 +339,31 @@ class TestDataFlowGraph:
 
         # test feature reference to source features
         ref = graph.get_node_output_ref(src_node_id)
-        assert ref == FeatureRef(
-            node_id_=src_node_id,
-            key_=tuple(),
-            flow_=graph,
-            feature_=src_features,
+        assert (
+            ref.model_dump()
+            == FeatureRef(
+                node_id_=src_node_id,
+                key_=tuple(),
+                flow_=graph,
+                feature_=src_features,
+            ).model_dump()
         )
         # test feature reference to processor output
         ref = graph.get_node_output_ref(node_id_1)
-        assert ref == MockOutputRefs(graph, node_id_1, o)
+        assert isinstance(ref, MockOutputRefs)
+        assert (
+            ref.model_dump()
+            == MockOutputRefs(graph, node_id_1, o).model_dump()
+        )
 
         # test feature reference to processor output
         ref = graph.get_node_output_ref(node_id_2)
-        assert ref == DataAggregationRef(
-            node_id_=node_id_2, flow_=graph, type_=int
+        assert isinstance(ref, DataAggregationRef)
+        assert (
+            ref.model_dump()
+            == DataAggregationRef(
+                node_id_=node_id_2, flow_=graph, type_=int
+            ).model_dump()
         )
 
     def test_dependency_graph(self):
@@ -604,16 +615,16 @@ class TestDataFlow:
             collect=out_ref, aggregators={"val": agg_ref}
         )
         assert len(subflow._graph) == 3
-        assert subflow.out_features == out_ref
+        assert subflow.out_features is out_ref
         assert vals == mock_manager.values_proxy
         # build subflow with processor only
         subflow, _ = flow.build(collect=out_ref)
         assert len(subflow._graph) == 2
-        assert subflow.out_features == out_ref
+        assert subflow.out_features is out_ref
         # build subflow with no processors
         subflow, _ = flow.build(collect=src_ref)
         assert len(subflow._graph) == 1
-        assert subflow.out_features == src_ref
+        assert subflow.out_features is src_ref
 
     def test_batch_process(self, setup_flow, mock_manager):
         flow, graph, proc_node, agg_node = setup_flow

@@ -300,6 +300,13 @@ class CollectFeaturesInputRefs(InputRefs):
     Feature collection instance to be collected and packed into a new feature
     """
 
+    flow_: object = Field(hidden=True)
+    """
+    The associated flow object. This needs to be explicitly specified when the 
+    collection contains only constant features, as the flow cannot be inferred 
+    from such a collection.
+    """
+
     @classmethod
     def type_validator(cls) -> None:
         """Validate the type of input references."""
@@ -334,13 +341,7 @@ class CollectFeaturesInputRefs(InputRefs):
         Returns:
             object: The associated data flow graph.
         """
-        if len(self.collection.named_refs) == 0:
-            raise NotImplementedError(
-                "Constant Processors without any input references are not "
-                "supported yet."
-            )
-
-        return next(iter(self.collection.named_refs.values())).flow_
+        return self.flow_
 
 
 class CollectFeaturesOutputRefs(OutputRefs):
@@ -434,29 +435,37 @@ class CollectFeatures(
     def call(
         self,
         collection: None | FeatureCollection | dict | list = None,
+        flow: None | object = None,
         **kwargs,
     ) -> CollectFeaturesOutputRefs:
-        """Calls the CollectFeatures processor with specified inputs.
+        """Calls the :class:`CollectFeatures` processor with specified inputs.
 
-        This method calls the CollectFeatures processor with either the
-        specified input references or a FeatureCollection object. It checks
-        if the processor is already in use, and if so, creates a new instance
-        for this call. The processor is then added to the data flow graph,
-        and an output reference is returned.
+        This method invokes the :class:`CollectFeatures` processor with either the
+        specified input references or a :class:`FeatureCollection` object. It checks
+        if the processor is already in use, and if so, creates a new instance for
+        this call. The processor is then added to the data flow graph, and an output
+        reference is returned.
 
         Args:
-            collection (None | FeatureCollection | dict | list, optional):
-                The feature collection defining the structure of the features
-                to be collected. Can also be a nested structure from which the
-                feature collection will be constructed. Defaults to None.
-            **kwargs: Alternatively the collection can also be specified by
-                keyword arguments.
+            collection (None | FeatureCollection | dict | list, optional): The feature
+                collection defining the structure of the features to be collected.
+                Can also be a nested structure from which the feature collection will
+                be constructed. Defaults to None.
+            flow (None | object, optional): The flow object to which to add the processor.
+                This defaults to the flow object associated with the feature collection,
+                but is required if the collection only contains constant features, as
+                in that case the flow cannot be inferred.
+            **kwargs: Alternatively, the collection can also be specified implicitly
+                by keyword arguments.
 
         Returns:
             CollectFeaturesOutputRefs: The output of the CollectFeatures processor.
 
         Raises:
-            ValueError: If multiple input options are specified.
+            ValueError: If both `collection` and keyword arguments are specified.
+            RuntimeError: If the specified flow and the inferred flow do not match.
+            RuntimeError: If the flow cannot be inferred from a constant collection
+                and no flow is explicitly specified.
         """
         if self.collection is not None:
             # feature collector is already in use
@@ -478,9 +487,36 @@ class CollectFeatures(
             # build collection from keyword arguments
             collection = FeatureCollection(collection=kwargs)
 
+        named_refs = collection.named_refs
+        inferred_flow = (
+            None
+            if len(named_refs) == 0
+            else next(iter(collection.named_refs.values())).flow_
+        )
+
+        if (
+            (flow is not None)
+            and (inferred_flow is not None)
+            and (inferred_flow is not flow)
+        ):
+            raise RuntimeError(
+                "Specified flow and inferred flow do not match."
+            )
+
+        if (flow is None) and (inferred_flow is None):
+            raise RuntimeError(
+                "Could not infer flow from constant collection, please "
+                "specify the flow explicitly."
+            )
+
+        # get any of the not-none flows
+        flow = flow if flow is not None else inferred_flow
+
         # save the collection and call the base processor
         self.collection = collection
-        return super(CollectFeatures, self).call(collection=collection)
+        return super(CollectFeatures, self).call(
+            collection=collection, flow_=flow
+        )
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int

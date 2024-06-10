@@ -74,7 +74,8 @@ class BaseDataProcessorTest:
             if cls.input_index is not None
             else list(range(len(next(iter(cls.input_data.values())))))
         )
-        assert len(input_index) == len(next(iter(cls.input_data.values())))
+        if len(cls.input_data) > 0:
+            assert len(input_index) == len(next(iter(cls.input_data.values())))
 
         # apply processor
         output = await processor.batch_process(

@@ -1,3 +1,4 @@
+from typing import Any, Hashable, Iterable
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,7 +13,15 @@ from hyped.data.flow.refs.inputs import (
 )
 
 # import hyped.data.processors.base
-from hyped.data.flow.refs.ref import NONE_REF, FeatureRef
+from hyped.data.flow.refs.ref import NONE_REF, FeaturePointer, FeatureRef
+
+
+def ptr_set(refs: Iterable[FeatureRef]) -> set[FeaturePointer]:
+    return {r.ptr for r in refs}
+
+
+def ptr_dict(d: dict[Hashable, FeatureRef]) -> dict[Hashable, FeaturePointer]:
+    return {k: r.ptr for k, r in d.items()}
 
 
 def test_error_on_invalid_annotation():
@@ -141,8 +150,10 @@ def test_required_input_refs():
 
     # check properties
     assert input_refs.required_keys == {"x", "y"}
-    assert input_refs.refs == {x_ref, y_ref}
-    assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([x_ref, y_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict(
+        {"x": x_ref, "y": y_ref}
+    )
     assert input_refs.flow == f
     assert input_refs.features_ == Features(
         {"x": x_ref.feature_, "y": y_ref.feature_}
@@ -167,24 +178,26 @@ def test_optional_input_refs():
     input_refs = CustomInputRefs(x=x_ref, y=y_ref)
     # check properties
     assert input_refs.required_keys == set()
-    assert input_refs.refs == {x_ref, y_ref}
-    assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([x_ref, y_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict(
+        {"x": x_ref, "y": y_ref}
+    )
     assert input_refs.flow == f
 
     # create input refs instance
     input_refs = CustomInputRefs(x=x_ref)
     # check properties
     assert input_refs.required_keys == set()
-    assert input_refs.refs == {x_ref}
-    assert input_refs.named_refs == {"x": x_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([x_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict({"x": x_ref})
     assert input_refs.flow == f
 
     # create input refs instance
     input_refs = CustomInputRefs(y=y_ref)
     # check properties
     assert input_refs.required_keys == set()
-    assert input_refs.refs == {y_ref}
-    assert input_refs.named_refs == {"y": y_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([y_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict({"y": y_ref})
     assert input_refs.flow == f
 
     class CustomInputRefs(InputRefs):
@@ -197,14 +210,16 @@ def test_optional_input_refs():
     input_refs = CustomInputRefs(x=x_ref, y=y_ref)
     # check properties
     assert input_refs.required_keys == {"x"}
-    assert input_refs.refs == {x_ref, y_ref}
-    assert input_refs.named_refs == {"x": x_ref, "y": y_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([x_ref, y_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict(
+        {"x": x_ref, "y": y_ref}
+    )
     assert input_refs.flow == f
 
     # create input refs instance
     input_refs = CustomInputRefs(x=x_ref)
     # check properties
     assert input_refs.required_keys == {"x"}
-    assert input_refs.refs == {x_ref}
-    assert input_refs.named_refs == {"x": x_ref}
+    assert ptr_set(input_refs.refs) == ptr_set([x_ref])
+    assert ptr_dict(input_refs.named_refs) == ptr_dict({"x": x_ref})
     assert input_refs.flow == f

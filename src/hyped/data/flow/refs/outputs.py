@@ -228,7 +228,7 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
         if (
             isinstance(obj, FeatureRef)
             and (name in type(self)._feature_names)
-            and obj == NONE_REF
+            and obj is NONE_REF
         ):
             # forward the request to getattr
             raise AttributeError()
