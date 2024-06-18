@@ -51,7 +51,7 @@ class LambdaOutputFeature(object):
     """
 
     def __init__(
-        self, f: Callable[[BaseConfig, InputRefs], None | FeatureType]
+        self, f: Callable[[BaseConfig, None | InputRefs], None | FeatureType]
     ) -> None:
         """Initialize the LambdaOutputFeature instance.
 
@@ -76,7 +76,7 @@ class ConditionalOutputFeature(LambdaOutputFeature):
     def __init__(
         self,
         feature_type: FeatureType,
-        cond: Callable[[BaseConfig, InputRefs], bool],
+        cond: Callable[[BaseConfig, None | InputRefs], bool],
     ) -> None:
         """Initialize the ConditionalOutputFeature instance.
 
@@ -178,14 +178,14 @@ class OutputRefs(FeatureRef, BaseModelWithTypeValidation):
     def __init__(
         self,
         flow: object,
-        node_id: int,
+        node_id: str,
         features: Features,
     ) -> None:
         """Initialize the OutputRefs instance.
 
         Args:
             flow (DataFlowGraph): The data flow graph.
-            node_id (int): The node id of the node generating the ouput.
+            node_id (str): The node id of the node generating the ouput.
             features (Features): The output features, typically build by the :class:`build_features` method.
         """
         super(OutputRefs, self).__init__(

@@ -3,10 +3,6 @@
 This module defines the :class:`FeatureRef` class, which represents references to
 features within a data processing flow. These references are used to specify and
 retrieve nested features within the data flow graph.
-
-The :class:`FeatureRef` class supports both attribute-style and index-style access to
-sub-features, enabling convenient navigation and manipulation of complex data structures
-within the data flow.
 """
 
 from __future__ import annotations
@@ -19,7 +15,6 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, PlainSerializer
 from typing_extensions import Annotated
 
 from hyped.common.feature_key import FeatureKey
-from hyped.data.flow.aggregators.ref import DataAggregationRef
 
 FeaturePointer: TypeAlias = tuple[int, FeatureKey, object]
 
@@ -63,7 +58,8 @@ class FeatureRef(BaseModel):
     The key is used to locate and access the feature within the outputs
     of a node in the data flow.
     """
-    node_id_: int
+
+    node_id_: str
     """
     The identifier of the node within the data flow graph.
 
@@ -373,29 +369,51 @@ class FeatureRef(BaseModel):
 
         return xor_(self, other)
 
-    def sum_(self) -> DataAggregationRef:
+    def sum_(self) -> AggregationRef:
         """Calculate the sum of the referenced feature.
 
         Returns:
-            DataAggregationRef: Reference to the aggregated value.
+            AggregationRef: Reference to the aggregated value.
         """
         from hyped.data.flow.ops import sum_
 
         return sum_(self)
 
-    def mean_(self) -> DataAggregationRef:
+    def mean_(self) -> AggregationRef:
         """Calculate the mean of the referenced feature.
 
         Returns:
-            DataAggregationRef: Reference to the aggregated value.
+            AggregationRef: Reference to the aggregated value.
         """
         from hyped.data.flow.ops import mean
 
         return mean(self)
 
 
+class AggregationRef(BaseModel):
+    """Reference to a data aggregation node in the data flow.
+
+    Attributes:
+        node_id_ (int): The ID of the aggregation node.
+        flow_ (object): The data flow object.
+        type_ (type): The type of the aggregation value.
+    """
+
+    node_id_: str
+    """The ID of the aggregation node."""
+
+    flow_: object
+    """The data flow object."""
+
+    type_: type
+    """The type of the aggregation value."""
+
+
 NONE_REF = FeatureRef(
-    key_="__NONE__", node_id_=-1, flow_=None, feature_=Value("int32")
+    key_="__NONE__",
+    node_id_="__NONE_NODE_ID__",
+    flow_=None,
+    feature_=Value("int32"),
 )
 """A special instance of :class:`FeatureRef` used to mark :code:`None` features.
 

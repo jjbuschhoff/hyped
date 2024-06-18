@@ -5,6 +5,7 @@ import pytest
 from datasets import ClassLabel, Features, Sequence, Value
 
 from hyped.common.feature_checks import check_object_matches_feature
+from hyped.data.flow.core.nodes.processor import IOContext
 from hyped.data.flow.processors.parsers.json import (
     JsonParser,
     JsonParserConfig,
@@ -242,9 +243,18 @@ class TestJsonParser_CatchWithError(BaseJsonParserTest):
         # build default index if not specifically given
         assert len(cls.input_index) == len(next(iter(cls.input_data.values())))
 
+        # build the io context
+        io = IOContext(
+            _IOContext__node_id=-1,
+            inputs=cls.input_features,
+            outputs=processor._out_refs_type.build_features(
+                processor.config, input_refs
+            ),
+        )
+
         # apply processor
         output = await processor.batch_process(
-            cls.input_data, cls.input_index, cls.rank
+            cls.input_data, cls.input_index, cls.rank, io
         )
 
         # check output format

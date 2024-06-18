@@ -11,13 +11,13 @@ from typing import Annotated
 from datasets import Features, Value
 from pydantic import Field
 
-from hyped.data.flow.aggregators.base import (
+from hyped.data.flow.core.nodes.aggregator import (
     BaseDataAggregator,
     BaseDataAggregatorConfig,
     Batch,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class MeanAggregatorInputRefs(InputRefs):

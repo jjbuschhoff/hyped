@@ -46,10 +46,10 @@ from typing import Any, Callable
 
 from .aggregators.ops.mean import MeanAggregator
 from .aggregators.ops.sum import SumAggregator
-from .aggregators.ref import DataAggregationRef
+from .core.nodes.const import Const
+from .core.refs.ref import AggregationRef, FeatureRef
 from .processors.ops import binary
-from .processors.ops.collect import CollectFeatures, Const
-from .refs.ref import FeatureRef
+from .processors.ops.collect import CollectFeatures, NestedContainer
 
 
 def _handle_constant_inputs_for_binary_op(
@@ -76,7 +76,7 @@ def _handle_constant_inputs_for_binary_op(
 
     @wraps(binary_op)
     def wrapped_binary_op(
-        a: FeatureRef | Const | Any, b: FeatureRef | Const | Any
+        a: FeatureRef | Any, b: FeatureRef | Any
     ) -> FeatureRef:
         if not isinstance(a, FeatureRef) and not isinstance(b, FeatureRef):
             raise RuntimeError(
@@ -89,13 +89,11 @@ def _handle_constant_inputs_for_binary_op(
 
         # collect constant value a
         if not isinstance(a, FeatureRef):
-            name = str(a.value) if isinstance(a, Const) else str(a)
-            a = collect({name: a}, flow=flow)[name]
+            a = Const(value=a).to(flow).value
 
         # collect constant value b
         if not isinstance(b, FeatureRef):
-            name = str(b.value) if isinstance(b, Const) else str(b)
-            b = collect({name: b}, flow=flow)[name]
+            b = Const(value=b).to(flow).value
 
         # apply binary operation on feature refs
         return binary_op(a, b)
@@ -106,53 +104,84 @@ def _handle_constant_inputs_for_binary_op(
 def collect(
     collection: None | dict | list = None, flow: None | object = None, **kwargs
 ) -> FeatureRef:
-    """Collect features from a given collection.
+    """Collects features into a feature collection.
 
-    This function provides a high-level operator for collecting features from a given collection,
-    such as a dictionary or a list. It delegates the collection process to the :class:`CollectFeatures`
-    class and returns a :class:`FeatureRef` instance representing the collected features.
+    This function collects features into a feature collection, which can then be used as input
+    to other nodes in the data flow graph. It accepts either a collection (dict or list) or keyword
+    arguments representing feature values. If both collection and kwargs are provided, an error is raised.
+
+    If any non-reference values are present in the collection, they are added as constants to the data flow graph.
 
     Args:
-        collection (None | FeatureCollection | dict | list, optional): The feature
-            collection defining the structure of the features to be collected.
-            Can also be a nested structure from which the feature collection will
-            be constructed. Defaults to None.
-        flow (None | object, optional): The flow object to which to add the processor.
-            This defaults to the flow object associated with the feature collection,
-            but is required if the collection only contains constant features, as
-            in that case the flow cannot be inferred.
-        **kwargs: Additional keyword arguments to pass to the collection process.
+        collection (None | dict | list, optional): A collection (dict or list) containing features or
+            feature values. Defaults to None.
+        flow (None | object, optional): The data flow object. If not provided, the flow is inferred from
+            the feature references in the collection. Defaults to None.
+        **kwargs: Keyword arguments representing feature values.
 
     Returns:
-        FeatureRef: A FeatureRef instance representing the collected features.
+        FeatureRef: A feature reference to the collected features.
+
+    Raises:
+        ValueError: If both collection and keyword arguments are provided.
+        RuntimeError: If the flow cannot be inferred from the constant collection and no flow is provided explicitly.
     """
-    return (
-        CollectFeatures()
-        .call(collection=collection, flow=flow, **kwargs)
-        .collected
+    if (collection is not None) and len(kwargs) > 0:
+        raise ValueError()  # TODO: only one allowed
+
+    # create a nested container from the inputs
+    # this collection might contain constants of any type
+    container = NestedContainer[FeatureRef | Any](
+        data=collection if collection is not None else kwargs
     )
 
+    if flow is None:
+        # get the flow referenced in the collection in case it
+        # contains any feature reference
+        vals = container.flatten().values()
+        vals = [v for v in vals if isinstance(v, FeatureRef)]
 
-def sum_(a: FeatureRef) -> DataAggregationRef:
+        if len(vals) == 0:
+            raise RuntimeError(
+                "Could not infer flow from constant collection, please "
+                "specify the flow explicitly by setting the `flow` argument."
+            )
+
+        # get the flow from the first valid feature reference
+        # in the nested collection
+        flow = next(iter(vals)).flow_
+
+    def _add_const(p: tuple[str, int], v: FeatureRef | Any) -> FeatureRef:
+        return (
+            v if isinstance(v, FeatureRef) else Const(value=v).to(flow).value
+        )
+
+    # add all constants in the collection to the flow
+    container = container.map(_add_const, FeatureRef)
+
+    return CollectFeatures().call(collection=container).collected
+
+
+def sum_(a: FeatureRef) -> AggregationRef:
     """Calculate the sum of feature values.
 
     Args:
         a (FeatureRef): The feature to aggregate.
 
     Returns:
-        DataAggregationRef: A reference to the result of the sum operation.
+        AggregationRef: A reference to the result of the sum operation.
     """
     return SumAggregator().call(x=a)
 
 
-def mean(a: FeatureRef) -> DataAggregationRef:
+def mean(a: FeatureRef) -> AggregationRef:
     """Calculate the mean of feature values.
 
     Args:
         a (FeatureRef): The feature to aggregate.
 
     Returns:
-        DataAggregationRef: A reference to the result of the mean operation.
+        AggregationRef: A reference to the result of the mean operation.
     """
     return MeanAggregator().call(x=a)
 

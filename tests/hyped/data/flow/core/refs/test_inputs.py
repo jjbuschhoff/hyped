@@ -5,7 +5,7 @@ import pytest
 from datasets import Features, Sequence, Value
 from typing_extensions import Annotated
 
-from hyped.data.flow.refs.inputs import (
+from hyped.data.flow.core.refs.inputs import (
     CheckFeatureEquals,
     CheckFeatureIsSequence,
     FeatureValidator,
@@ -13,7 +13,7 @@ from hyped.data.flow.refs.inputs import (
 )
 
 # import hyped.data.processors.base
-from hyped.data.flow.refs.ref import NONE_REF, FeaturePointer, FeatureRef
+from hyped.data.flow.core.refs.ref import NONE_REF, FeaturePointer, FeatureRef
 
 
 def ptr_set(refs: Iterable[FeatureRef]) -> set[FeaturePointer]:
@@ -62,7 +62,7 @@ def test_feature_validator():
         x: Annotated[FeatureRef, FeatureValidator(x_validator)]
         y: Annotated[FeatureRef, FeatureValidator(y_validator)]
 
-    k, n, f = tuple(), -1, None
+    k, n, f = tuple(), "", None
     # create dummy input refs
     x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
     y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("string"))
@@ -78,7 +78,7 @@ def test_check_feature_equals():
         x: Annotated[FeatureRef, CheckFeatureEquals(Value("int32"))]
         y: Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
 
-    k, n, f = tuple(), -1, None
+    k, n, f = tuple(), "", None
     # create dummy input refs
     x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
     y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("string"))
@@ -95,7 +95,7 @@ def test_check_feature_is_sequence():
         x: Annotated[FeatureRef, CheckFeatureIsSequence(Value("int32"))]
         y: Annotated[FeatureRef, CheckFeatureIsSequence(Value("string"))]
 
-    k, n, f = tuple(), -1, None
+    k, n, f = tuple(), "", None
     # create dummy input refs
     x_ref = FeatureRef(
         key_=k, node_id_=n, flow_=f, feature_=Sequence(Value("int32"))
@@ -141,7 +141,7 @@ def test_required_input_refs():
         x: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
         y: Annotated[FeatureRef, FeatureValidator(lambda r, f: None)]
 
-    k, n, f = tuple(), -1, MagicMock
+    k, n, f = tuple(), "", MagicMock
     # create dummy input refs
     x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
     y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("string"))
@@ -161,7 +161,7 @@ def test_required_input_refs():
 
 
 def test_optional_input_refs():
-    k, n, f = tuple(), -1, MagicMock
+    k, n, f = tuple(), "", MagicMock
     # create dummy input refs
     x_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("int32"))
     y_ref = FeatureRef(key_=k, node_id_=n, flow_=f, feature_=Value("string"))

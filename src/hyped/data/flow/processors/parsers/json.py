@@ -12,18 +12,19 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, PlainSerializer
 from pydantic_core import ValidationError
 
 from hyped.common.pydantic import pydantic_model_from_features
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
+    IOContext,
     Sample,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import (
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import (
     ConditionalOutputFeature,
     LambdaOutputFeature,
     OutputRefs,
 )
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class JsonParserInputRefs(InputRefs):
@@ -145,7 +146,9 @@ class JsonParser(
         self.__dict__ = d
         self._feature_model = self._build_feature_model()
 
-    def process(self, inputs: Sample, index: int, rank: int) -> Sample:
+    def process(
+        self, inputs: Sample, index: int, rank: int, io: IOContext
+    ) -> Sample:
         """Processes a single input sample synchronously and returns the corresponding output sample.
 
         This method parses a JSON string contained within the input sample and validates it
@@ -157,6 +160,7 @@ class JsonParser(
             inputs (Sample): The input sample containing the JSON string to be processed.
             index (int): The index associated with the input sample.
             rank (int): The rank of the processor in a distributed setting.
+            io (IOContext): Context information for the data processors execution.
 
         Returns:
             Sample: The processed output sample. If :code:`config.catch_validation_errors` is True, the output

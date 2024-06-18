@@ -37,18 +37,19 @@ from typing import Annotated, Any, Callable, TypeVar
 import numpy as np
 from datasets import Value
 
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
     Batch,
+    IOContext,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import (
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import (
     LambdaOutputFeature,
     OutputFeature,
     OutputRefs,
 )
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 INTS = {"int8", "int16", "int32", "int64"}
 FLOATS = {"float16", "float32", "float64"}
@@ -87,7 +88,7 @@ class BinaryOp(BaseDataProcessor[C, I, O], ABC):
     """Base class for binary operations."""
 
     async def batch_process(
-        self, inputs: Batch, index: list[int], rank: int
+        self, inputs: Batch, index: list[int], rank: int, io: IOContext
     ) -> Batch:
         """Processes a batch of inputs, applying the binary operation.
 
@@ -95,10 +96,12 @@ class BinaryOp(BaseDataProcessor[C, I, O], ABC):
             inputs (Batch): The input batch containing features 'a' and 'b'.
             index (list[int]): The indices of the batch.
             rank (int): The rank of the current process.
+            io (IOContext): Context information for the data processors execution.
 
         Returns:
             Batch: The batch containing the result of the binary operation.
         """
+        print(inputs)
         return {
             "result": [
                 self.config.op(a, b) for a, b in zip(inputs["a"], inputs["b"])

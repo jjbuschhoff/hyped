@@ -4,19 +4,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 from datasets import Features, Sequence
 
-from hyped.common.feature_checks import (
-    check_feature_equals,
-    check_object_matches_feature,
-)
-from hyped.data.flow.aggregators.base import (
+from hyped.common.feature_checks import check_object_matches_feature
+from hyped.data.flow.core.nodes.aggregator import (
     BaseDataAggregator,
     BaseDataAggregatorConfig,
     Batch,
     DataAggregationManager,
-    DataAggregationRef,
 )
-from hyped.data.flow.refs.inputs import InputRefs
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.inputs import InputRefs
+from hyped.data.flow.core.refs.ref import AggregationRef, FeatureRef
 
 UNSET = object()
 
@@ -48,7 +44,7 @@ class BaseDataAggregatorTest:
     @pytest.fixture
     def input_refs(self, aggregator) -> InputRefs:
         cls = type(self)
-        n, f = -1, MagicMock()
+        n, f = "in", MagicMock()
         input_refs = {
             k: FeatureRef(key_=k, feature_=v, node_id_=n, flow_=f)
             for k, v in cls.input_features.items()
@@ -56,13 +52,13 @@ class BaseDataAggregatorTest:
         return aggregator._in_refs_type(**input_refs)
 
     @pytest.fixture
-    def aggregation_ref(self, aggregator, input_refs) -> DataAggregationRef:
-        return DataAggregationRef(
-            node_id_=-1, flow_=input_refs.flow, type_=aggregator._value_type
+    def aggregation_ref(self, aggregator, input_refs) -> AggregationRef:
+        return AggregationRef(
+            node_id_="out", flow_=input_refs.flow, type_=aggregator._value_type
         )
 
     @pytest.fixture
-    @patch("hyped.data.flow.aggregators.base._manager")
+    @patch("hyped.data.flow.core.nodes.aggregator._manager")
     def manager(self, mock_manager, aggregator) -> DataAggregationManager:
         cls = type(self)
         # Mock the multiprocessing manager object

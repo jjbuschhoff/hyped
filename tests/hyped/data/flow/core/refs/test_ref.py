@@ -5,7 +5,7 @@ import pytest
 from datasets import Features, Sequence, Value
 
 from hyped.common.feature_key import FeatureKey
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class TestFeatureRef(object):
@@ -15,31 +15,31 @@ class TestFeatureRef(object):
             FeatureRef(
                 key_=FeatureKey(),
                 feature_=Value("string"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
             FeatureRef(
                 key_=FeatureKey(),
                 feature_=Value("int32"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
             FeatureRef(
                 key_=FeatureKey(),
                 feature_=Sequence(Value("int32")),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
             FeatureRef(
                 key_=FeatureKey(),
                 feature_=Sequence(Value("int32"), length=3),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
             FeatureRef(
                 key_=FeatureKey(),
                 feature_=Features({"x": Value("int32")}),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
             FeatureRef(
@@ -56,7 +56,7 @@ class TestFeatureRef(object):
                         },
                     }
                 ),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ),
         ],
@@ -82,7 +82,7 @@ class TestFeatureRef(object):
                     },
                 }
             ),
-            node_id_=-1,
+            node_id_="",
             flow_=None,
         )
 
@@ -103,7 +103,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("x"),
                 feature_=Value("int32"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -113,7 +113,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("y"),
                 feature_=Sequence(Value("string")),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -122,7 +122,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("y", slice(None)),
                 feature_=Sequence(Value("string")),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -131,7 +131,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("y", 0),
                 feature_=Value("string"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -140,7 +140,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("z", 0),
                 feature_=Value("string"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -152,7 +152,7 @@ class TestFeatureRef(object):
             == FeatureRef(
                 key_=FeatureKey("a", "a_x"),
                 feature_=Value("int32"),
-                node_id_=-1,
+                node_id_="",
                 flow_=None,
             ).model_dump()
         )
@@ -162,37 +162,37 @@ class TestFeatureRef(object):
         refA = FeatureRef(
             key_=FeatureKey(),
             feature_=Value("int32"),
-            node_id_=-1,
+            node_id_="",
             flow_=None,
         )
         refB = FeatureRef(
             key_=FeatureKey(),
             feature_=Value("float32"),
-            node_id_=-1,
+            node_id_="",
             flow_=None,
         )
         refC = FeatureRef(
             key_=FeatureKey("x"),
             feature_=Value("int32"),
-            node_id_=-1,
+            node_id_="",
             flow_=None,
         )
         refD = FeatureRef(
             key_=FeatureKey(),
             feature_=Value("int32"),
-            node_id_=1,
+            node_id_="1",
             flow_=None,
         )
         refE = FeatureRef(
             key_=FeatureKey(),
             feature_=Value("int32"),
-            node_id_=-1,
+            node_id_="",
             flow_=object(),
         )
         refF = FeatureRef(
             key_=FeatureKey("x"),
             feature_=Value("int32"),
-            node_id_=1,
+            node_id_="1",
             flow_=object(),
         )
 
@@ -232,10 +232,10 @@ class TestFeatureRef(object):
 def test_binary_ops(op, op_fn, dtype):
     # create feature refs
     refA = FeatureRef(
-        key_=FeatureKey(), node_id_=-1, flow_=None, feature_=Value(dtype)
+        key_=FeatureKey(), node_id_="", flow_=None, feature_=Value(dtype)
     )
     refB = FeatureRef(
-        key_=FeatureKey(), node_id_=-1, flow_=None, feature_=Value(dtype)
+        key_=FeatureKey(), node_id_="", flow_=None, feature_=Value(dtype)
     )
     # patch operator function
     with patch(op_fn) as mock:
@@ -255,7 +255,7 @@ def test_binary_ops(op, op_fn, dtype):
 def test_aggregator_ops(agg, agg_fn, dtype):
     # create a feature reference
     ref = FeatureRef(
-        key_=FeatureKey(), node_id_=-1, flow_=None, feature_=Value(dtype)
+        key_=FeatureKey(), node_id_="", flow_=None, feature_=Value(dtype)
     )
     # patch aggregator function
     with patch(agg_fn) as mock:

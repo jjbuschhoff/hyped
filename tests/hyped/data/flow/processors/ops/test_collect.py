@@ -1,145 +1,100 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 from datasets import Features, Sequence, Value
+from pydantic import ValidationError
 
-from hyped.common.feature_checks import check_feature_equals
+from hyped.data.flow.core.refs.inputs import InputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
     CollectFeaturesConfig,
     CollectFeaturesInputRefs,
-    Const,
-    FeatureCollection,
+    CollectFeaturesOutputRefs,
+    NestedContainer,
 )
-from hyped.data.flow.refs.ref import FeatureRef
 from tests.hyped.data.flow.processors.base import BaseDataProcessorTest
 
-mock_flow = MagicMock()
-mock_flow.add_processor_node = MagicMock(return_value=-1)
-# create feature refs with different feature types
+
+class TestNestedContainer:
+    def test_basics(self):
+        # test parse sequence
+        container = NestedContainer[int](data=[1, 1])
+        assert isinstance(container.data[0], NestedContainer)
+        assert isinstance(container.data[1], NestedContainer)
+        assert isinstance(container.data[0].data, int)
+        assert isinstance(container.data[1].data, int)
+        # test parse dict
+        container = NestedContainer[int](data={"a": 1, "b": 1})
+        assert isinstance(container.data["a"], NestedContainer)
+        assert isinstance(container.data["b"], NestedContainer)
+        assert isinstance(container.data["a"].data, int)
+        assert isinstance(container.data["b"].data, int)
+        # test parse nested
+        container = NestedContainer[int](data={"a": [1, 1], "b": 1})
+        assert isinstance(container.data["a"], NestedContainer)
+        assert isinstance(container.data["b"], NestedContainer)
+        assert isinstance(container.data["a"].data[0], NestedContainer)
+        assert isinstance(container.data["a"].data[1], NestedContainer)
+        assert isinstance(container.data["a"].data[0].data, int)
+        assert isinstance(container.data["a"].data[1].data, int)
+        assert isinstance(container.data["b"].data, int)
+        # invalid type
+        with pytest.raises(ValidationError):
+            NestedContainer[int](data=[1, "a"])
+
+    def test_map(self):
+        container = NestedContainer[int](data={"a": [1, 2], "b": 3})
+        # create mock mapping function and apply it to the container
+        f = MagicMock(return_value="x")
+        mapped_container = container.map(f, str)
+        # make sure the function was applied to all values
+        f.assert_has_calls(
+            [
+                call(("a", 0), 1),
+                call(("a", 1), 2),
+                call(("b",), 3),
+            ]
+        )
+        # check output
+        assert mapped_container == NestedContainer[str](
+            data={"a": ["x", "x"], "b": "x"}
+        )
+
+    def test_flatten(self):
+        container = NestedContainer[int](data={"a": [1, 2], "b": 3})
+        assert container.flatten() == {("a", 0): 1, ("a", 1): 2, ("b",): 3}
+
+    def test_unpack(self):
+        container = NestedContainer[int](data={"a": [1, 2], "b": 3})
+        assert container.unpack() == {"a": [1, 2], "b": 3}
+
+
 int_ref = FeatureRef(
-    key_="int", feature_=Value("int32"), node_id_=0, flow_=mock_flow
+    key_="int", feature_=Value("int32"), node_id_="0", flow_=None
 )
 str_ref = FeatureRef(
-    key_="str", feature_=Value("string"), node_id_=1, flow_=mock_flow
+    key_="str", feature_=Value("string"), node_id_="1", flow_=None
 )
-float_ref = FeatureRef(
-    key_="float", feature_=Value("float"), node_id_=2, flow_=mock_flow
+dct_ref = FeatureRef(
+    key_="dct",
+    feature_=Features({"val": Value("int32")}),
+    node_id_="2",
+    flow_=None,
+)
+lst_ref = FeatureRef(
+    key_="lst", feature_=Sequence(Value("int32")), node_id_="3", flow_=None
 )
 
 
-class TestFeatureCollection(object):
-    def test_basics(self):
-        # pack features of same type in sequence
-        FeatureCollection(collection=[int_ref, int_ref]).feature
-        # can pack arbitrary types in dict
-        FeatureCollection(collection={"a": str_ref, "b": int_ref}).feature
-        # cannot pack features of different types in sequence
-        with pytest.raises(TypeError):
-            FeatureCollection(collection=[int_ref, str_ref]).feature
-
-    @pytest.mark.parametrize(
-        "collection,feature",
-        [
-            (FeatureCollection(collection={}), Features()),
-            (
-                FeatureCollection(collection={"a": str_ref, "b": int_ref}),
-                Features({"a": Value("string"), "b": Value("int32")}),
-            ),
-            (
-                FeatureCollection(collection=[int_ref, int_ref]),
-                Sequence(Value("int32"), length=2),
-            ),
-            (
-                FeatureCollection(collection=[str_ref, str_ref, "const"]),
-                Sequence(Value("string"), length=3),
-            ),
-            (
-                FeatureCollection(
-                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
-                ),
-                Sequence(Value("int32"), length=3),
-            ),
-        ],
+def test_invalid_sequence():
+    inputs = CollectFeaturesInputRefs(
+        collection=NestedContainer[FeatureRef](data=[int_ref, str_ref])
     )
-    def test_feature(self, collection, feature):
-        assert check_feature_equals(collection.feature, feature)
-
-    @pytest.mark.parametrize(
-        "collection,refs",
-        [
-            (FeatureCollection(collection={}), {}),
-            (
-                FeatureCollection(collection={"a": str_ref, "b": int_ref}),
-                {"a": str_ref, "b": int_ref},
-            ),
-            (
-                FeatureCollection(collection=[int_ref, int_ref]),
-                {"[0]": int_ref, "[1]": int_ref},
-            ),
-            (
-                FeatureCollection(collection=[str_ref, str_ref, "const"]),
-                {"[0]": str_ref, "[1]": str_ref},
-            ),
-            (
-                FeatureCollection(
-                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
-                ),
-                {"[0]": int_ref, "[1]": int_ref},
-            ),
-            (
-                FeatureCollection(
-                    collection={
-                        "a": [int_ref, int_ref],
-                        "b": {"x": [str_ref, str_ref]},
-                    }
-                ),
-                {
-                    "a[0]": int_ref,
-                    "a[1]": int_ref,
-                    "b.x[0]": str_ref,
-                    "b.x[1]": str_ref,
-                },
-            ),
-        ],
-    )
-    def test_named_refs(self, collection, refs):
-        assert collection.named_refs == refs
-
-    @pytest.mark.parametrize(
-        "collection,inputs,expected_output",
-        [
-            (FeatureCollection(collection={}), {}, []),
-            (
-                FeatureCollection(collection={"a": str_ref, "b": int_ref}),
-                {"a": ["A"], "b": [1]},
-                [{"a": "A", "b": 1}],
-            ),
-            (
-                FeatureCollection(collection=[int_ref, int_ref]),
-                {"[0]": [1], "[1]": [1]},
-                [[1, 1]],
-            ),
-            (
-                FeatureCollection(collection=[str_ref, str_ref, "const"]),
-                {"[0]": ["var"], "[1]": ["var"]},
-                [["var", "var", "const"]],
-            ),
-            (
-                FeatureCollection(
-                    collection=[int_ref, int_ref, Const(0, Value("int32"))]
-                ),
-                {"[0]": [1], "[1]": [1]},
-                [[1, 1, 0]],
-            ),
-        ],
-    )
-    def test_collect_values(self, collection, inputs, expected_output):
-        batch_size = (
-            0 if len(inputs) == 0 else len(next(iter(inputs.values())))
+    with pytest.raises(TypeError):
+        CollectFeaturesOutputRefs.build_features(
+            CollectFeaturesConfig(), inputs
         )
-        collected = collection._collect_values(inputs, batch_size)
-        assert collected == expected_output
 
 
 class BaseCollectFeaturesTest(BaseDataProcessorTest):
@@ -147,155 +102,80 @@ class BaseCollectFeaturesTest(BaseDataProcessorTest):
     processor_type = CollectFeatures
     processor_config = CollectFeaturesConfig()
     # collection
-    collection: FeatureCollection
+    collection: dict | list
 
     @pytest.fixture
-    def input_refs(self):
-        return CollectFeaturesInputRefs(
-            collection=type(self).collection, flow_=mock_flow
-        )
-
-    @pytest.fixture
-    def processor(self):
+    def input_refs(self) -> InputRefs:
         cls = type(self)
-        processor = cls.processor_type.from_config(cls.processor_config)
-        processor.call(collection=cls.collection)
-        return processor
-
-    def test_input_refs_properties(self, input_refs):
-        assert type(input_refs).required_keys == set()
-        assert input_refs.flow == mock_flow
+        return CollectFeaturesInputRefs(
+            collection=NestedContainer[FeatureRef](data=cls.collection)
+        )
 
 
 class TestCollectFeatures_mapping(BaseCollectFeaturesTest):
-    # collection
-    collection = FeatureCollection(collection={"a": int_ref, "b": str_ref})
+    collection = {"a": int_ref, "b": str_ref}
     # inputs
-    input_features = {
-        "a": int_ref.feature_,
-        "b": str_ref.feature_,
-    }
+    input_features = {"a": int_ref.feature_, "b": str_ref.feature_}
     input_data = {
         "a": [i for i in range(100)],
-        "b": [str(i) for i in range(100)],
+        "b": [str(i) for i in range(100, 200)],
     }
     input_index = list(range(100))
-    # expected output
+    # expected outputs
+    expected_output_features = {
+        "collected": {"a": int_ref.feature_, "b": str_ref.feature_}
+    }
     expected_output_data = {
-        "collected": [{"a": i, "b": str(i)} for i in range(100)]
+        "collected": [{"a": i, "b": str(100 + i)} for i in range(100)]
     }
-
-    def test_new_processor_on_reuse(self, processor):
-        cls = type(self)
-
-        mock_flow.reset_mock()
-        # call same processor multiple times
-        processor.call(collection=cls.collection)
-        processor.call(collection=cls.collection)
-        # this should end up being two different
-        # processor instances in the flow
-        calls = mock_flow.add_processor_node.mock_calls
-        assert mock_flow.add_processor_node.call_count == 2
-        assert calls[0].args[0] != calls[1].args[0]
-
-
-class TestCollectFeatures_const(BaseCollectFeaturesTest):
-    # collection
-    collection = FeatureCollection(collection={"a": int_ref, "b": "constant"})
-    # inputs
-    input_features = {
-        "a": int_ref.feature_,
-    }
-    input_data = {
-        "a": [i for i in range(100)],
-    }
-    input_index = list(range(100))
-    # expected output
-    expected_output_data = {
-        "collected": [{"a": i, "b": "constant"} for i in range(100)]
-    }
-
-    def test_error_on_flow_mismatch(self):
-        cls = type(self)
-        processor = cls.processor_type.from_config(cls.processor_config)
-        # flow inferred from collection (mock_flow) does not match
-        # explicitly provided flow instance (object())
-        with pytest.raises(RuntimeError):
-            processor.call(collection=cls.collection, flow=object())
-
-
-class TestCollectFeatures_const_only(BaseCollectFeaturesTest):
-    # collection
-    collection = FeatureCollection(collection={"a": 0, "b": "constant"})
-    # inputs
-    input_features = {}
-    input_data = {}
-    input_index = list(range(100))
-    # expected output
-    expected_output_data = {
-        "collected": [{"a": 0, "b": "constant"} for i in range(100)]
-    }
-
-    @pytest.fixture
-    def processor(self):
-        cls = type(self)
-        processor = cls.processor_type.from_config(cls.processor_config)
-        processor.call(collection=cls.collection, flow=mock_flow)
-        return processor
-
-    def test_error_on_undefined_flow(self):
-        cls = type(self)
-        processor = cls.processor_type.from_config(cls.processor_config)
-        # flow cannot be inferred from constant collection
-        # and is not provided explicitly
-        with pytest.raises(RuntimeError):
-            processor.call(collection=cls.collection)
 
 
 class TestCollectFeatures_sequence(BaseCollectFeaturesTest):
-    # collection
-    collection = FeatureCollection(collection=[int_ref, int_ref])
+    collection = [int_ref, int_ref, int_ref]
     # inputs
     input_features = {
-        "[0]": int_ref.feature_,
-        "[1]": int_ref.feature_,
+        "0": int_ref.feature_,
+        "1": int_ref.feature_,
+        "2": int_ref.feature_,
     }
     input_data = {
-        "[0]": [i for i in range(100)],
-        "[1]": [i for i in range(100)],
+        "0": list(range(100)),
+        "1": list(range(100)),
+        "2": list(range(100)),
     }
     input_index = list(range(100))
-    # expected output
-    expected_output_data = {"collected": [[i, i] for i in range(100)]}
+    # expected outputs
+    expected_output_features = {
+        "collected": Sequence(int_ref.feature_, length=3)
+    }
+    expected_output_data = {"collected": [[i, i, i] for i in range(100)]}
 
 
 class TestCollectFeatures_nested(BaseCollectFeaturesTest):
     # collection
-    collection = FeatureCollection(
-        collection={
-            "a": {
-                "b": int_ref,
-                "c": [
-                    {"x": str_ref, "y": str_ref},
-                    {"x": str_ref, "y": str_ref},
-                ],
-            }
+    collection = {
+        "a": {
+            "b": int_ref,
+            "c": [
+                {"x": str_ref, "y": str_ref},
+                {"x": str_ref, "y": str_ref},
+            ],
         }
-    )
+    }
     # inputs
     input_features = {
         "a.b": int_ref.feature_,
-        "a.c[0].x": str_ref.feature_,
-        "a.c[0].y": str_ref.feature_,
-        "a.c[1].x": str_ref.feature_,
-        "a.c[1].y": str_ref.feature_,
+        "a.c.0.x": str_ref.feature_,
+        "a.c.0.y": str_ref.feature_,
+        "a.c.1.x": str_ref.feature_,
+        "a.c.1.y": str_ref.feature_,
     }
     input_data = {
         "a.b": [i for i in range(100)],
-        "a.c[0].x": [str(i) for i in range(100)],
-        "a.c[0].y": [str(i) for i in range(100)],
-        "a.c[1].x": [str(i) for i in range(100)],
-        "a.c[1].y": [str(i) for i in range(100)],
+        "a.c.0.x": [str(i) for i in range(100)],
+        "a.c.0.y": [str(i) for i in range(100)],
+        "a.c.1.x": [str(i) for i in range(100)],
+        "a.c.1.y": [str(i) for i in range(100)],
     }
     input_index = list(range(100))
     # expected output
@@ -312,4 +192,40 @@ class TestCollectFeatures_nested(BaseCollectFeaturesTest):
             }
             for i in range(100)
         ]
+    }
+
+
+class TestCollectFeatures_nested_dict(BaseCollectFeaturesTest):
+    collection = {"a": dct_ref, "b": str_ref}
+    # inputs
+    input_features = {"a": dct_ref.feature_, "b": str_ref.feature_}
+    input_data = {
+        "a": [{"val": i} for i in range(100)],
+        "b": [str(i) for i in range(100, 200)],
+    }
+    input_index = list(range(100))
+    # expected outputs
+    expected_output_features = {
+        "collected": {"a": dct_ref.feature_, "b": str_ref.feature_}
+    }
+    expected_output_data = {
+        "collected": [{"a": {"val": i}, "b": str(100 + i)} for i in range(100)]
+    }
+
+
+class TestCollectFeatures_nested_list(BaseCollectFeaturesTest):
+    collection = {"a": lst_ref, "b": str_ref}
+    # inputs
+    input_features = {"a": lst_ref.feature_, "b": str_ref.feature_}
+    input_data = {
+        "a": [[i] for i in range(100)],
+        "b": [str(i) for i in range(100, 200)],
+    }
+    input_index = list(range(100))
+    # expected outputs
+    expected_output_features = {
+        "collected": {"a": lst_ref.feature_, "b": str_ref.feature_}
+    }
+    expected_output_data = {
+        "collected": [{"a": [i], "b": str(100 + i)} for i in range(100)]
     }

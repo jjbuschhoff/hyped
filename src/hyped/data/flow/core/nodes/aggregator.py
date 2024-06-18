@@ -15,10 +15,10 @@ Usage Example:
     .. code-block:: python
 
         # Import necessary classes from the module
-        from hyped.data.aggregators.base import (
-            BaseDataAggregator, BaseDataAggregatorConfig, DataAggregationRef, DataAggregationManager
+        from hyped.data.flow.core.nodes.aggregator import (
+            BaseDataAggregator, BaseDataAggregatorConfig
         )
-        from hyped.data.flow.refs.inputs import InputRefs
+        from hyped.data.flow.core.refs.inputs import InputRefs
         from datasets.features.features import Features
         from typing import Annotated
 
@@ -60,9 +60,9 @@ from datasets import Features
 from hyped.base.config import BaseConfig, BaseConfigurable
 from hyped.base.generic import solve_typevar
 from hyped.common.lazy import LazyStaticInstance
-from hyped.data.flow.refs.inputs import InputRefs
 
-from .ref import DataAggregationRef
+from ..refs.inputs import InputRefs
+from ..refs.ref import AggregationRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 
@@ -238,7 +238,7 @@ class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
         """
         return self._in_refs_type.required_keys
 
-    def call(self, **kwargs) -> DataAggregationRef:
+    def call(self, **kwargs) -> AggregationRef:
         """Call the data aggregator with the provided inputs.
 
         This method builds inputs from keyword arguments, adds the aggregator
@@ -249,13 +249,13 @@ class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
                 passed as inputs to the aggregator.
 
         Returns:
-            DataAggregationRef: The reference to the aggregation node.
+            AggregationRef: The reference to the aggregation node.
         """
         # build inputs from keyword arguments and add the aggregator to the flow
         inputs = self._in_refs_type(**kwargs)
         node_id = inputs.flow.add_processor_node(self, inputs, None)
         # build the aggregation reference
-        return DataAggregationRef(
+        return AggregationRef(
             node_id_=node_id, flow_=inputs.flow, type_=self._value_type
         )
 

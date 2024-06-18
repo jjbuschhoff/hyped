@@ -17,18 +17,19 @@ from transformers.tokenization_utils_base import TruncationStrategy
 from transformers.utils import PaddingStrategy
 from typing_extensions import Annotated
 
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
     Batch,
+    IOContext,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import (
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import (
     ConditionalOutputFeature,
     LambdaOutputFeature,
     OutputRefs,
 )
-from hyped.data.flow.refs.ref import NONE_REF, FeatureRef
+from hyped.data.flow.core.refs.ref import NONE_REF, FeatureRef
 
 
 def _get_output_sequence_length(config: TransformersTokenizerConfig) -> int:
@@ -262,7 +263,7 @@ class TransformersTokenizer(
         )
 
     async def batch_process(
-        self, inputs: Batch, index: list[int], rank: 0
+        self, inputs: Batch, index: list[int], rank: 0, io: IOContext
     ) -> Batch:
         """Tokenize input batch.
 
@@ -270,6 +271,7 @@ class TransformersTokenizer(
             inputs (Batch): Batch of input data.
             index (list[int]): Batch index.
             rank (int): Rank of the processor.
+            io (IOContext): Context information for the data processors execution.
 
         Returns:
             Batch: The batch of tokenizer outputs.

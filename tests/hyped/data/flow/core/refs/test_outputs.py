@@ -4,13 +4,13 @@ import pytest
 from datasets import Features, Value
 from typing_extensions import Annotated
 
-from hyped.data.flow.refs.outputs import (
+from hyped.data.flow.core.refs.outputs import (
     ConditionalOutputFeature,
     LambdaOutputFeature,
     OutputFeature,
     OutputRefs,
 )
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 def test_lambda_output_feature():
@@ -30,7 +30,7 @@ def test_lambda_output_feature():
     x_feature.assert_called_with(config, inputs)
     y_feature.assert_called_with(config, inputs)
     # create instance
-    inst = CustomOutputRefs(MagicMock(), -1, features)
+    inst = CustomOutputRefs(MagicMock(), "", features)
     # check features
     assert inst.x.feature_ == Value("string")
     assert inst.y.feature_ == Value("int32")
@@ -53,7 +53,7 @@ def test_conditional_output_feature():
 
     # build output features and create output refs instance
     features = CustomOutputRefs.build_features(config, inputs)
-    inst = CustomOutputRefs(inputs.flow, -1, features)
+    inst = CustomOutputRefs(inputs.flow, "", features)
 
     # x should be propagated, y should not be propagated
     assert hasattr(inst, "x")
@@ -89,7 +89,7 @@ def test_output_refs():
 
     # create output refs instance
     features = CustomOutputRefs.build_features(MagicMock(), MagicMock())
-    inst = CustomOutputRefs(MagicMock(), -1, features)
+    inst = CustomOutputRefs(MagicMock(), "", features)
 
     # check feature type
     assert inst.x.feature_ == Value("int32")

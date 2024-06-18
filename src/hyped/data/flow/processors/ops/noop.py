@@ -8,14 +8,15 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
     Batch,
+    IOContext,
 )
-from hyped.data.flow.refs.inputs import FeatureValidator, InputRefs
-from hyped.data.flow.refs.outputs import LambdaOutputFeature, OutputRefs
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.inputs import FeatureValidator, InputRefs
+from hyped.data.flow.core.refs.outputs import LambdaOutputFeature, OutputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class NoOpInputRefs(InputRefs):
@@ -66,7 +67,7 @@ class NoOp(BaseDataProcessor[NoOpConfig, NoOpInputRefs, NoOpOutputRefs]):
         return cls()
 
     async def batch_process(
-        self, inputs: Batch, index: list[int], rank: int
+        self, inputs: Batch, index: list[int], rank: int, io: IOContext
     ) -> Batch:
         """Processes a batch of inputs and returns the corresponding batch of outputs.
 
@@ -78,6 +79,7 @@ class NoOp(BaseDataProcessor[NoOpConfig, NoOpInputRefs, NoOpOutputRefs]):
             inputs (Batch): The batch of input samples.
             index (int): The index associated with the input samples.
             rank (int): The rank of the processor in a distributed setting.
+            io (IOContext): Context information for the data processors execution.
 
         Returns:
             Batch: The batch of output samples.

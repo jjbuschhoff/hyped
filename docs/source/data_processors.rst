@@ -151,14 +151,22 @@ Create a custom processor class (:code:`CustomProcessor`) inheriting from :class
 
 .. code-block:: python
 
-    from hyped.data.flow.processors.base import Sample, BaseDataProcessor
+    from hyped.data.flow.processors.base import Sample, IOContext, BaseDataProcessor
     
     class CustomProcessor(BaseDataProcessor[CustomConfig, CustomInputRefs, CustomOutputRefs]):
-        def process(self, inputs: Sample, index: int, rank: int) -> Sample:
+        def process(self, inputs: Sample, index: int, rank: int, io: IOContext) -> Sample:
             # Access configuration values
             val = self.config.val
             # Custom process function combining index and input feature
             return Sample(y=f"Index {index} has content {inputs['x']}")
+
+
+Most of the arguments to the process function are rather intuitive, for reference here is a short description of each one:
+
+- **inputs**: The input sample in the form of a dictionary with the keys matching the members of the correspoding input references (i.e. :code:`x`).
+- **index**: The index of the sample in the dataset.
+- **rank**: The rank of the process, always 0 in case multiprocessing is disabled.
+- **io**: The execution context object containing the input and output feature types for reference. Additionally, it identifies a specific instance of a processor call. For more information see the :doc:`IOContext documentation <api/data.flow.core.nodes.processor>`.
 
 **Best Practices:**
 
@@ -173,10 +181,10 @@ Hyped supports asynchronous processing, enabling seamless integration of asynchr
 .. code-block:: python
 
     from asyncio import sleep
-    from hyped.data.flow.processors.base import Sample, BaseDataProcessor
+    from hyped.data.flow.processors.base import Sample, IOContext, BaseDataProcessor
 
     class CustomAsyncProcessor(BaseDataProcessor[CustomConfig, CustomInputRefs, CustomOutputRefs]):
-        async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
+        async def process(self, inputs: Sample, index: int, rank: int, io: IOContext) -> Sample:
             # Simulate asynchronous processing
             await sleep(1)
             return Sample(y=f"Index {index} has content {inputs['x']}")
@@ -186,17 +194,15 @@ Hyped supports asynchronous processing, enabling seamless integration of asynchr
 By implementing the :code:`batch_process` function you can define custom batch processing logic tailored to your specific requirements.
 
 .. code-block:: python
+    
+    from hyped.data.flow.processors.base import Batch, IOContext, BaseDataProcessor
 
     class CustomBatchProcessor(BaseDataProcessor[CustomConfig, CustomInputRefs, CustomOutputRefs]):
-        async def batch_process(self, inputs: Batch, index: list[int], rank: int) -> Batch:
+        async def batch_process(self, inputs: Batch, index: list[int], rank: int, io: IOContext) -> Batch:
             # Custom batch processing logic
-            processed_batch = {
-                key: [
-                    f"Index {i} has content {value}" for value in values
-                ]
-                for key, values in inputs.items()
-            }
-            return processed_batch
+            return Batch(
+                y=[f"Index {i} has content {value}" for value in inputs["x"]]
+            )
 
 4. Instantiate and Apply the Custom Processor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -4,25 +4,18 @@ import pytest
 from datasets import Features, Value
 from typing_extensions import Annotated
 
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
+    IOContext,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import (
-    ConditionalOutputFeature,
-    OutputFeature,
-    OutputRefs,
-)
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import OutputFeature, OutputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class MockOutputRefs(OutputRefs):
     out: Annotated[FeatureRef, OutputFeature(Value("int32"))]
-    out_cond: Annotated[
-        FeatureRef,
-        ConditionalOutputFeature(Value("int32"), lambda c, _: c.output_cond),
-    ]
 
 
 class MockInputRefs(InputRefs):
@@ -31,7 +24,6 @@ class MockInputRefs(InputRefs):
 
 class MockProcessorConfig(BaseDataProcessorConfig):
     c: float = 0.0
-    output_cond: bool = False
 
 
 class MockProcessor(
@@ -40,9 +32,8 @@ class MockProcessor(
     process = MagicMock(return_value={"out": 0})
 
 
-@pytest.mark.parametrize("output_cond", [False, True])
 class TestBaseDataProcessor:
-    def test_init(self, output_cond):
+    def test_init(self):
         a = MockProcessor()
         b = MockProcessor(MockProcessorConfig())
         # test default values
@@ -53,34 +44,26 @@ class TestBaseDataProcessor:
         # test setting value
         assert a.config.c == b.config.c == 1.0
 
-    def test_properties(self, output_cond):
+    def test_properties(self):
         # create mock processor
-        proc = MockProcessor.from_config(
-            MockProcessorConfig(output_cond=output_cond)
-        )
+        proc = MockProcessor()
         # check config and input keys property
         assert isinstance(proc.config, MockProcessorConfig)
         assert proc.required_input_keys == {"x"}
 
-    def test_call(self, output_cond):
+    def test_call(self):
         # build expected output features
-        out_features = Features(
-            {"out": Value("int32")}
-            if not output_cond
-            else {"out": Value("int32"), "out_cond": Value("int32")}
-        )
-
+        out_features = Features({"out": Value("int32")})
         # mock flow instance
         mock_flow = MagicMock()
+        mock_flow.add_processor_node = MagicMock(return_value="")
         # create processor instance
-        proc = MockProcessor.from_config(
-            MockProcessorConfig(output_cond=output_cond)
-        )
+        proc = MockProcessor()
         # create mock inputs
         mock_inputs = MockInputRefs(
             x=FeatureRef(
                 key_=tuple(),
-                node_id_=-1,
+                node_id_="",
                 flow_=mock_flow,
                 feature_=Value("int32"),
             )
@@ -103,19 +86,22 @@ class TestBaseDataProcessor:
         assert call_out_features == out_features
 
     @pytest.mark.asyncio
-    async def test_batch_process(self, output_cond):
+    async def test_batch_process(self):
         # create mock instance
-        proc = MockProcessor.from_config(
-            MockProcessorConfig(output_cond=output_cond)
-        )
+        proc = MockProcessor()
         # create dummy inputs
         rank = 0
         index = list(range(10))
         batch = {"x": index}
+        io_ctx = IOContext(
+            _IOContext__node_id=-1,
+            inputs=Features({"x": Value("int32")}),
+            outputs=Features({"out": Value("int32")}),
+        )
         # run batch process
-        out_batch = await proc.batch_process(batch, index, rank)
+        out_batch = await proc.batch_process(batch, index, rank, io_ctx)
         # check output
         assert out_batch == {"out": [0] * 10}
         # make sure the process function was called for each input sample
-        calls = [call({"x": i}, i, rank) for i in index]
+        calls = [call({"x": i}, i, rank, io_ctx) for i in index]
         proc.process.assert_has_calls(calls, any_order=True)

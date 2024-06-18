@@ -1,25 +1,20 @@
 """Jinja2 Template Data Processor."""
-import warnings
 from functools import partial
-from typing import Annotated, Any, Callable, Iterable
+from typing import Annotated
 
-from datasets import ClassLabel, Features, Sequence, Value
-from datasets.features.features import FeatureType
+from datasets import Features, Value
 from jinja2 import Environment, Template
 
 from hyped.common.lazy import LazyInstance
-from hyped.data.flow.processors.base import (
+from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
+    IOContext,
     Sample,
 )
-from hyped.data.flow.refs.inputs import CheckFeatureEquals, InputRefs
-from hyped.data.flow.refs.outputs import (
-    LambdaOutputFeature,
-    OutputFeature,
-    OutputRefs,
-)
-from hyped.data.flow.refs.ref import FeatureRef
+from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import OutputFeature, OutputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class Jinja2InputRefs(InputRefs):
@@ -88,7 +83,9 @@ class Jinja2(
             partial(_setup_jinja_env, self.config.template)
         )
 
-    async def process(self, inputs: Sample, index: int, rank: int) -> Sample:
+    async def process(
+        self, inputs: Sample, index: int, rank: int, io: IOContext
+    ) -> Sample:
         """Process example.
 
         Renders the template based on the given example and it's
@@ -98,6 +95,7 @@ class Jinja2(
             inputs (Sample): Input sample containing features for template filling.
             index (int): Index of the sample in the dataset.
             rank (int): Rank of the sample.
+            io (IOContext): Context information for the data processors execution.
 
         Returns:
             Sample: Output sample containing the rendered template string.
