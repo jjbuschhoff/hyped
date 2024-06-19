@@ -236,7 +236,7 @@ Start by defining input reference class (:code:`InputRefs`). This class specifie
     class CustomAggregatorOutputRefs(OutputRefs):
         y: Annotated[FeatureRef, OutputFeature(datasets.Value("float32"))]
 
-For more information on specifying input and output references, please refer to the :doc:`InputRefs <api/data.flow.refs.inputs>` and :doc:`OutputRefs <api/data.flow.refs.outputs>` documentation.
+For more information on specifying input and output references, please refer to the :doc:`InputRefs <api/data.flow.core.refs.inputs>` and :doc:`OutputRefs <api/data.flow.core.refs.outputs>` documentation.
 
 2. Define Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~

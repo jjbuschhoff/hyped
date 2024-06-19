@@ -132,7 +132,7 @@ Start by defining input and output reference classes (:code:`InputRefs` and :cod
     class CustomOutputRefs(OutputRefs):
         y: Annotated[FeatureRef, OutputFeature(datasets.Value("string"))]
 
-For more information on specifying input and output references, please refer to the :doc:`InputRefs <api/data.flow.refs.inputs>` and :doc:`OutputRefs <api/data.flow.refs.outputs>` documentation, respectively.
+For more information on specifying input and output references, please refer to the :doc:`InputRefs <api/data.flow.core.refs.inputs>` and :doc:`OutputRefs <api/data.flow.core.refs.outputs>` documentation, respectively.
 
 
 2. Define Configuration

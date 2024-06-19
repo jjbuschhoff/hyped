@@ -22,19 +22,12 @@ class TypedJsonDatasetConfig(JsonConfig):
 
     The attributes of the configuration are typically set by providing
     them as keyword arguments to the `datasets.load_dataset` function.
-
-    Attributes:
-        data_files (str | list[str] | dict[str,str|list[str]):
-            files to load
-        features (datasets.Features):
-            dataset features, required for type checking
-        **kwargs (Any):
-            please refer to huggingface documentation
     """
 
     # features are required and not
     # optional as in the base json cofig
     features: datasets.Features = None
+    """Dataset features, required for type checking."""
 
     _feature_model: pydantic.BaseModel = field(init=False)
     _batch_feature_model: pydantic.BaseModel = field(init=False)

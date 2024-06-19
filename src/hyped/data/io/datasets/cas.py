@@ -163,21 +163,19 @@ class CasDatasetConfig(datasets.BuilderConfig):
 
     The attributes of the configuration are typically set by providing
     them as keyword arguments to the `datasets.load_dataset` function.
-
-    Attributes:
-        typesystem (str): path to a file containing the cas typesystem to use
-        num_processes (int):
-            the number of processes to spawn for processing cas objects
-        annotation_types (None|list[str]):
-            the set of annotation types to extract from the cas objects.
-            Defaults to all types present in the typesystem.
     """
 
-    # cas type management
     typesystem: str = None
+    """Path to a file containing the cas typesystem to use."""
+
     annotation_types: None | list[str] = None
-    # number of processes to use
+    """The number of processes to spawn for processing cas objects."""
+
     num_processes: int = mp.cpu_count()
+    """the set of annotation types to extract from the cas objects.
+
+    Defaults to all types present in the typesystem.
+    """
 
 
 class CasDataset(datasets.GeneratorBasedBuilder):

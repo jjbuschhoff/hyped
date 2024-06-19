@@ -96,7 +96,8 @@ class JsonParser(
 
     This processor is designed to take a JSON string as input and parse it into
     structured data based on a predefined schema. The schema can be defined using
-    either a `Features` object, a single `FeatureType`, or a `Sequence` of `FeatureType`s.
+    either a :code:`Features` object, a single :code:`FeatureType`, or a
+    :code:`Sequence` of :code:`FeatureType` instances.
 
     The parsed data is then validated and transformed into the desired format using
     Pydantic models, ensuring that the data conforms to the specified schema. This
