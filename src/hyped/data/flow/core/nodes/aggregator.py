@@ -50,19 +50,15 @@ from __future__ import annotations
 import asyncio
 import multiprocessing as mp
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from multiprocessing.managers import SyncManager
 from types import MappingProxyType
-from typing import Any, Generic, TypeAlias, TypeVar
+from typing import Any, TypeAlias, TypeVar
 
-from datasets import Features
-
-from hyped.base.config import BaseConfig, BaseConfigurable
-from hyped.base.generic import solve_typevar
 from hyped.common.lazy import LazyStaticInstance
 
 from ..refs.inputs import InputRefs
-from ..refs.ref import AggregationRef
+from ..refs.outputs import OutputRefs
+from .base import BaseNode, BaseNodeConfig, IOContext
 
 Batch: TypeAlias = dict[str, list[Any]]
 
@@ -92,40 +88,35 @@ class DataAggregationManager(object):
         _value_buffer (dict): Thread-safe buffer for aggregation values.
         _state_buffer (dict): Thread-safe buffer for aggregation states.
         _locks (dict): Locks for synchronizing access to aggregators.
-        _lookup (dict): Lookup table mapping aggregators to their respective names.
     """
 
     def __init__(
         self,
-        aggregators: dict[str, BaseDataAggregator],
-        in_features: dict[str, Features],
+        aggregators: list[BaseDataAggregator],
+        io_contexts: list[IOContext],
     ) -> None:
         """Initialize the DataAggregationManager.
 
         Args:
-            aggregators (dict[str, BaseDataAggregator]): A dictionary of aggregators.
-            in_features (dict[str, Features]): A dictionary of input features.
+            aggregators (dict[str, BaseDataAggregator]): A list of aggregators.
+            io_contexts (list[IOContext]): A list of contexts correspoding to the aggregators.
         """
         global _manager
         # create buffers
         value_buffer = {}
         state_buffer = {}
         # fill buffers with initial values from aggregators
-        for name, agg in aggregators.items():
-            value_buffer[name], state_buffer[name] = agg.initialize(
-                in_features[name]
-            )
+        for agg, io in zip(aggregators, io_contexts):
+            (
+                value_buffer[io.node_id],
+                state_buffer[io.node_id],
+            ) = agg.initialize(io)
         # create thread-safe buffers
         self._value_buffer = _manager.dict(value_buffer)
         self._state_buffer = _manager.dict(state_buffer)
         # create a lock for each entry to synchronize access
-        self._locks = {name: _manager.Lock() for name in aggregators.keys()}
+        self._locks = {ctx.node_id: _manager.Lock() for ctx in io_contexts}
         self._locks = _manager.dict(self._locks)
-
-        # create aggregator lookup
-        self._lookup: dict[BaseDataAggregator, list[str]] = defaultdict(set)
-        for name, agg in aggregators.items():
-            self._lookup[agg].add(name)
 
     @property
     def values_proxy(self) -> MappingProxyType[str, Any]:
@@ -137,30 +128,30 @@ class DataAggregationManager(object):
         return MappingProxyType(self._value_buffer)
 
     async def _safe_update(
-        self, name: str, aggregator: BaseDataAggregator, ctx: Any
+        self, io: IOContext, aggregator: BaseDataAggregator, ctx: Any
     ) -> None:
         """Safely update an aggregation value.
 
         Args:
-            name (str): The name of the aggregator.
+            io (IOContext): The io context object indicating the specific node to execute.
             aggregator (BaseDataAggregator): The aggregator object.
             ctx (Any): The context values extracted from the input batch.
         """
-        assert name in self._value_buffer
+        assert io.node_id in self._value_buffer
         # get the running event loop
         loop = asyncio.get_running_loop()
         # acquire the lock for the current aggregator
-        await loop.run_in_executor(None, self._locks[name].acquire)
+        await loop.run_in_executor(None, self._locks[io.node_id].acquire)
         # get current value and context
-        value = self._value_buffer[name]
-        state = self._state_buffer[name]
+        value = self._value_buffer[io.node_id]
+        state = self._state_buffer[io.node_id]
         # compute udpated value and context
-        value, state = await aggregator.update(value, ctx, state)
+        value, state = await aggregator.update(value, ctx, state, io)
         # write new values to buffers
-        self._value_buffer[name] = value
-        self._state_buffer[name] = state
+        self._value_buffer[io.node_id] = value
+        self._state_buffer[io.node_id] = state
         # release lock
-        self._locks[name].release()
+        self._locks[io.node_id].release()
 
     async def aggregate(
         self,
@@ -168,6 +159,7 @@ class DataAggregationManager(object):
         inputs: Batch,
         index: list[int],
         rank: int,
+        io: IOContext,
     ) -> None:
         """Perform aggregation for a batch of inputs.
 
@@ -176,19 +168,15 @@ class DataAggregationManager(object):
             inputs (Batch): The batch of input samples.
             index (list[int]): The indices associated with the input samples.
             rank (int): The rank of the processor in a distributed setting.
+            io (IOContext): Context information for the aggregator execution.
         """
         # extract values required for update from current input batch
-        ctx = await aggregator.extract(inputs, index, rank)
-        # update all entries
-        await asyncio.gather(
-            *(
-                self._safe_update(name, aggregator, ctx)
-                for name in self._lookup[aggregator]
-            )
-        )
+        # and update the aggregated value and state
+        ctx = await aggregator.extract(inputs, index, rank, io)
+        await self._safe_update(io, aggregator, ctx)
 
 
-class BaseDataAggregatorConfig(BaseConfig):
+class BaseDataAggregatorConfig(BaseNodeConfig):
     """Base configuration class for data aggregators.
 
     This class serves as the base configuration class for data aggregators.
@@ -199,10 +187,10 @@ class BaseDataAggregatorConfig(BaseConfig):
 
 C = TypeVar("C", bound=BaseDataAggregatorConfig)
 I = TypeVar("I", bound=InputRefs)
-T = TypeVar("T")
+O = TypeVar("O", bound=OutputRefs)
 
 
-class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
+class BaseDataAggregator(BaseNode[C, I, O], ABC):
     """Base class for data aggregators.
 
     This class serves as the base for all data aggregators, defining the necessary
@@ -213,22 +201,6 @@ class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
         _value_type (Type[T]): The type of the aggregation value.
     """
 
-    def __init__(self, config: None | C = None, **kwargs) -> None:
-        """Initialize the data aggregator.
-
-        Initializes the data aggregator with the given configuration. If no configuration is
-        provided, a new configuration is created using the provided keyword arguments.
-
-        Args:
-            config (C, optional): The configuration object for the data aggregator.
-                If not provided, a configuration is created based on the given keyword arguments.
-            **kwargs: Additional keyword arguments that update the provided configuration
-                or create a new configuration if none is provided.
-        """
-        super(BaseDataAggregator, self).__init__(config, **kwargs)
-        self._in_refs_type = solve_typevar(type(self), I)
-        self._value_type = solve_typevar(type(self), T)
-
     @property
     def required_input_keys(self) -> set[str]:
         """Retrieves the set of input keys required by the processor.
@@ -238,47 +210,51 @@ class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
         """
         return self._in_refs_type.required_keys
 
-    def call(self, **kwargs) -> AggregationRef:
+    def call(self, **kwargs) -> O:
         """Call the data aggregator with the provided inputs.
 
         This method builds inputs from keyword arguments, adds the aggregator
-        to the data flow, and returns a reference to the aggregation node.
+        to the data flow, and returns a reference to the aggregation outputs.
 
         Args:
             **kwargs: Keyword arguments specifying feature references to be
                 passed as inputs to the aggregator.
 
         Returns:
-            AggregationRef: The reference to the aggregation node.
+            O: The output references produced by the aggregator.
         """
-        # build inputs from keyword arguments and add the aggregator to the flow
+        # build inputs from keyword arguments
         inputs = self._in_refs_type(**kwargs)
-        node_id = inputs.flow.add_processor_node(self, inputs, None)
-        # build the aggregation reference
-        return AggregationRef(
-            node_id_=node_id, flow_=inputs.flow, type_=self._value_type
-        )
+        # compute output features and add the processor to the data flow
+        out_features = self._out_refs_type.build_features(self.config, inputs)
+        node_id = inputs.flow.add_processor_node(self, inputs, out_features)
+        # return the output feature refs
+        return self._out_refs_type(inputs.flow, node_id, out_features)
 
     @abstractmethod
-    def initialize(self, features: Features) -> tuple[T, Any]:
+    def initialize(self, io: IOContext) -> tuple[O, Any]:
         """Initialize the aggregator with the given features.
 
         Args:
-            features (Features): The features to initialize the aggregator with.
+            io (IOContext): The execution context object wrapping the
+                input and output features.
 
         Returns:
-            tuple[T, Any]: The initial value and state for the aggregator.
+            tuple[O, Any]: The initial value and state for the aggregator.
         """
         ...
 
     @abstractmethod
-    async def extract(self, inputs: Batch, index: list[int], rank: int) -> Any:
+    async def extract(
+        self, inputs: Batch, index: list[int], rank: int, io: IOContext
+    ) -> Any:
         """Extract necessary values from the inputs for aggregation.
 
         Args:
             inputs (Batch): The batch of input samples.
             index (list[int]): The indices associated with the input samples.
             rank (int): The rank of the processor in a distributed setting.
+            io (IOContext): Context information for the aggregator execution.
 
         Returns:
             Any: The extracted context values required for aggregation.
@@ -286,15 +262,18 @@ class BaseDataAggregator(BaseConfigurable[C], Generic[C, I, T], ABC):
         ...
 
     @abstractmethod
-    async def update(self, val: T, state: Any, ctx: Any) -> tuple[T, Any]:
+    async def update(
+        self, val: I, state: Any, ctx: Any, io: IOContext
+    ) -> tuple[O, Any]:
         """Update the aggregation value and context.
 
         Args:
-            val (T): The current aggregation value.
+            val (I): The current aggregation value.
             state (Any): The current aggregation state.
             ctx (Any): The context values extracted from the input batch.
+            io (IOContext): Context information for the aggregator execution.
 
         Returns:
-            tuple[T, Any]: The updated aggregation value and state.
+            tuple[O, Any]: The updated aggregation value and state.
         """
         ...

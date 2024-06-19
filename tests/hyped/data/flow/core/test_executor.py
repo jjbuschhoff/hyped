@@ -135,8 +135,9 @@ class TestDataFlowExecutor:
         assert state.ready[const_node].is_set()
 
     @pytest.mark.asyncio
-    async def test_execute_processor(self, setup_state):
+    async def test_execute_processor(self, setup_state, io_contexts):
         state, graph, const_node, proc_node, agg_node = setup_state
+        proc_io_ctx, agg_io_ctx = io_contexts
         # capture output of const node
         state.capture_output(const_node, {"value": [0, 0, 0]})
         # build executor
@@ -145,24 +146,13 @@ class TestDataFlowExecutor:
         # run processor node in executor
         await executor.execute_node(proc_node, state)
 
-        # build io context for the processor
-        io_ctx = IOContext(
-            _IOContext__node_id=proc_node,
-            inputs=graph.nodes[proc_node][
-                DataFlowGraph.NodeAttribute.IN_FEATURES
-            ],
-            outputs=graph.nodes[proc_node][
-                DataFlowGraph.NodeAttribute.OUT_FEATURES
-            ],
-        )
-
         # make sure the processor was called correctly
         p = graph.nodes[proc_node][DataFlowGraph.NodeAttribute.NODE_OBJ]
         p.process.assert_has_calls(
             [
-                call({"a": 1, "b": 0}, 0, 0, io_ctx),
-                call({"a": 2, "b": 0}, 1, 0, io_ctx),
-                call({"a": 3, "b": 0}, 2, 0, io_ctx),
+                call({"a": 1, "b": 0}, 0, 0, proc_io_ctx),
+                call({"a": 2, "b": 0}, 1, 0, proc_io_ctx),
+                call({"a": 3, "b": 0}, 2, 0, proc_io_ctx),
             ]
         )
         # check state after execution
@@ -170,8 +160,9 @@ class TestDataFlowExecutor:
         assert state.ready[proc_node].is_set()
 
     @pytest.mark.asyncio
-    async def test_execute_aggregator(self, setup_state):
+    async def test_execute_aggregator(self, setup_state, io_contexts):
         state, graph, const_node, proc_node, agg_node = setup_state
+        proc_io_ctx, agg_io_ctx = io_contexts
         # capture output of const node
         state.capture_output(const_node, {"value": [0, 0, 0]})
         # create aggregation manager
@@ -185,12 +176,13 @@ class TestDataFlowExecutor:
 
         a = graph.nodes[agg_node][DataFlowGraph.NodeAttribute.NODE_OBJ]
         manager.aggregate.assert_called_with(
-            a, {"a": [1, 2, 3], "b": [0, 0, 0]}, [0, 1, 2], 0
+            a, {"a": [1, 2, 3], "b": [0, 0, 0]}, [0, 1, 2], 0, agg_io_ctx
         )
 
     @pytest.mark.asyncio
-    async def test_execute_graph(self, setup_graph):
+    async def test_execute_graph(self, setup_graph, io_contexts):
         graph, const_node, proc_node, agg_node = setup_graph
+        proc_io_ctx, agg_io_ctx = io_contexts
         # create aggregation manager
         mock_manager = MagicMock()
         mock_manager.aggregate = AsyncMock()
@@ -201,27 +193,17 @@ class TestDataFlowExecutor:
         batch, index, rank = {"x": [1, 2, 3]}, [0, 1, 2], 0
         await executor.execute(batch, index, rank)
 
-        # build io context for the processor
-        io_ctx = IOContext(
-            _IOContext__node_id=proc_node,
-            inputs=graph.nodes[proc_node][
-                DataFlowGraph.NodeAttribute.IN_FEATURES
-            ],
-            outputs=graph.nodes[proc_node][
-                DataFlowGraph.NodeAttribute.OUT_FEATURES
-            ],
-        )
         # make sure the processor is called correctly
         p = graph.nodes[proc_node][DataFlowGraph.NodeAttribute.NODE_OBJ]
         p.process.assert_has_calls(
             [
-                call({"a": 1, "b": 0}, 0, 0, io_ctx),
-                call({"a": 2, "b": 0}, 1, 0, io_ctx),
-                call({"a": 3, "b": 0}, 2, 0, io_ctx),
+                call({"a": 1, "b": 0}, 0, 0, proc_io_ctx),
+                call({"a": 2, "b": 0}, 1, 0, proc_io_ctx),
+                call({"a": 3, "b": 0}, 2, 0, proc_io_ctx),
             ]
         )
         # make sure the aggregator is called correctly
         a = graph.nodes[agg_node][DataFlowGraph.NodeAttribute.NODE_OBJ]
         mock_manager.aggregate.assert_called_with(
-            a, {"a": [1, 2, 3], "b": [0, 0, 0]}, [0, 1, 2], 0
+            a, {"a": [1, 2, 3], "b": [0, 0, 0]}, [0, 1, 2], 0, agg_io_ctx
         )

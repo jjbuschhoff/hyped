@@ -8,21 +8,15 @@ Classes:
     - :class:`ExecutionState`: Tracks the state during the execution of a data flow graph.
     - :class:`DataFlowExecutor`: Executes a data flow graph, managing the execution of each node and collecting results.
 """
-
-
 import asyncio
 from typing import Any, TypeAlias
 
 import datasets
 
-from hyped.data.flow.core.nodes.aggregator import (
-    BaseDataAggregator,
-    DataAggregationManager,
-)
-from hyped.data.flow.core.nodes.processor import IOContext
-from hyped.data.flow.core.refs.ref import FeatureRef
-
 from .graph import DataFlowGraph
+from .nodes.aggregator import BaseDataAggregator, DataAggregationManager
+from .nodes.base import IOContext
+from .refs.ref import FeatureRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 
@@ -200,7 +194,7 @@ class DataFlowExecutor(object):
         self.collect = collect
         self.aggregation_manager = aggregation_manager
 
-    async def execute_node(self, node_id: str, state: ExecutionState):
+    async def execute_node(self, node_id: str, state: ExecutionState) -> None:
         """Execute a single node in the data flow graph.
 
         Args:
@@ -230,18 +224,21 @@ class DataFlowExecutor(object):
             # get constants from node object
             consts = node_obj.get_const_batch(batch_size=len(state.index))
             state.capture_output(node_id, consts)
+            # done
+            return
 
-        elif node_type == DataFlowGraph.NodeType.DATA_PROCESSOR:
-            # build io context for processor
-            io = IOContext(
-                _IOContext__node_id=node_id,
-                inputs=self.graph.nodes[node_id][
-                    DataFlowGraph.NodeAttribute.IN_FEATURES
-                ],
-                outputs=self.graph.nodes[node_id][
-                    DataFlowGraph.NodeAttribute.OUT_FEATURES
-                ],
-            )
+        # build the io context
+        io = IOContext(
+            node_id=node_id,
+            inputs=self.graph.nodes[node_id][
+                DataFlowGraph.NodeAttribute.IN_FEATURES
+            ],
+            outputs=self.graph.nodes[node_id][
+                DataFlowGraph.NodeAttribute.OUT_FEATURES
+            ],
+        )
+
+        if node_type == DataFlowGraph.NodeType.DATA_PROCESSOR:
             # run processor and check the output batch size
             out = await node_obj.batch_process(
                 inputs, state.index, state.rank, io
@@ -255,7 +252,7 @@ class DataFlowExecutor(object):
         elif node_type == DataFlowGraph.NodeType.DATA_AGGREGATOR:
             # run aggregator
             await self.aggregation_manager.aggregate(
-                node_obj, inputs, state.index, state.rank
+                node_obj, inputs, state.index, state.rank, io
             )
 
     async def execute(

@@ -8,22 +8,24 @@ useful for tasks where an average of certain features is required.
 
 from typing import Annotated
 
-from datasets import Features, Value
+from datasets import Value
 from pydantic import Field
 
 from hyped.data.flow.core.nodes.aggregator import (
     BaseDataAggregator,
     BaseDataAggregatorConfig,
     Batch,
+    IOContext,
 )
 from hyped.data.flow.core.refs.inputs import CheckFeatureEquals, InputRefs
+from hyped.data.flow.core.refs.outputs import OutputFeature, OutputRefs
 from hyped.data.flow.core.refs.ref import FeatureRef
 
 
 class MeanAggregatorInputRefs(InputRefs):
-    """A collection of input references for the MeanAggregator.
+    """A collection of input references for the :class:`MeanAggregator`.
 
-    This class defines the expected input feature for the MeanAggregator.
+    This class defines the expected input feature for the :class:`MeanAggregator`.
     The input feature :code:`x` must be one of the specified numeric or boolean types.
     """
 
@@ -58,6 +60,20 @@ class MeanAggregatorInputRefs(InputRefs):
     """
 
 
+class MeanAggregatorOutputRefs(OutputRefs):
+    """A collection of output references for the :class:`MeanAggregator`.
+
+    This class defines the expected output feature for the :class:`MeanAggregator`.
+    The output feature :code:`value` will be of type :code:`float64`.
+    """
+
+    value: Annotated[FeatureRef, OutputFeature(Value("float64"))]
+    """
+    The output feature reference representing the aggregated mean value.
+    This value is always of type :code:`float64`.
+    """
+
+
 class MeanAggregatorConfig(BaseDataAggregatorConfig):
     """Configuration for the :class:`MeanAggregator`.
 
@@ -73,7 +89,9 @@ class MeanAggregatorConfig(BaseDataAggregatorConfig):
 
 
 class MeanAggregator(
-    BaseDataAggregator[MeanAggregatorConfig, MeanAggregatorInputRefs, float]
+    BaseDataAggregator[
+        MeanAggregatorConfig, MeanAggregatorInputRefs, MeanAggregatorOutputRefs
+    ]
 ):
     """A data aggregator that computes the mean of input features.
 
@@ -81,19 +99,19 @@ class MeanAggregator(
     input feature :code:`x` over batches of data.
     """
 
-    def initialize(self, features: Features) -> tuple[float, float]:
+    def initialize(self, io: IOContext) -> tuple[float, float]:
         """Initializes the aggregation with the starting value and a count of 0.
 
         Args:
-            features (Features): The features of the dataset.
+            io (IOContext): Context information for the aggregator execution.
 
         Returns:
             tuple[float, float]: A tuple containing the starting value and a count of 0.
         """
-        return self.config.start, self.config.start_count
+        return {"value": self.config.start}, self.config.start_count
 
     async def extract(
-        self, inputs: Batch, index: list[int], rank: int
+        self, inputs: Batch, index: list[int], rank: int, io: IOContext
     ) -> tuple[float, int]:
         """Extracts the sum of the input feature :code:`x` and the count of items in the batch.
 
@@ -101,6 +119,7 @@ class MeanAggregator(
             inputs (Batch): The batch of input data.
             index (list[int]): The indices of the current batch.
             rank (int): The rank of the current process.
+            io (IOContext): Context information for the aggregator execution.
 
         Returns:
             tuple[float, int]: The sum of the input feature :code:`x` and the count of items in the batch.
@@ -108,7 +127,7 @@ class MeanAggregator(
         return sum(inputs["x"]), len(index)
 
     async def update(
-        self, val: float, ctx: tuple[float, int], state: float
+        self, val: float, ctx: tuple[float, int], state: float, io: IOContext
     ) -> tuple[float, None]:
         """Updates the running mean with the extracted value and count.
 
@@ -116,11 +135,12 @@ class MeanAggregator(
             val (float): The current running mean.
             ctx (tuple[float, int]): The extracted sum and count from the current batch.
             state (float): The current count of items.
+            io (IOContext): Context information for the aggregator execution.
 
         Returns:
             tuple[float, float]: The updated running mean and the new count of items.
         """
         ext_val, ext_count = ctx
-        return (val * state + ext_val) / (state + ext_count), (
-            state + ext_count
-        )
+        return {
+            "value": (val["value"] * state + ext_val) / (state + ext_count)
+        }, (state + ext_count)

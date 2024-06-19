@@ -4,7 +4,7 @@ from datasets import Features, Value
 
 from hyped.data.flow.core.graph import DataFlowGraph
 from hyped.data.flow.core.nodes.const import Const
-from hyped.data.flow.core.refs.ref import AggregationRef, FeatureRef
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 from .mock import MockAggregator, MockInputRefs, MockOutputRefs, MockProcessor
 

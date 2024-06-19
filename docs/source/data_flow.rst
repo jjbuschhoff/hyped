@@ -112,8 +112,8 @@ To get started, you'll first need to initialize a :class:`DataFlow` object with 
    # Initialize a DataFlow object with the dataset features
    flow = DataFlow(features=ds.features)
 
-Adding Processors Nodes
-~~~~~~~~~~~~~~~~~~~~~~~
+Adding Nodes
+~~~~~~~~~~~~
 
 Once you have initialized a :class:`DataFlow` instance, you can enhance it by adding processor nodes to perform specific data processing tasks. These nodes encapsulate operations or transformations applied to input data. Here's an example of how to add a processor node to tokenize the input text features:
 
@@ -159,8 +159,8 @@ After building the flow, you can execute data processing tasks within the DataFl
 
 It's important to note that the :code:`batch_process` function assumes that the flow has been built before execution. Therefore, it's essential to use the :code:`sub_flow` instance, which is already built.
 
-Applying Data Flow to Dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Applying a Data Flow to a Dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Afterwards, you can apply the data flow to your dataset for processing. The apply method integrates the data flow processing with the dataset. Here's how you can apply the tokenizer flow to the dataset:
 

@@ -41,9 +41,9 @@ class MockAggregatorConfig(BaseDataAggregatorConfig):
 
 
 class MockAggregator(
-    BaseDataAggregator[MockAggregatorConfig, MockInputRefs, int]
+    BaseDataAggregator[MockAggregatorConfig, MockInputRefs, MockOutputRefs]
 ):
     # mock abstract functions
     initialize = MagicMock()
     extract = AsyncMock()
-    update = AsyncMock()
+    update = AsyncMock(return_value=({"y": 0}, None))

@@ -245,7 +245,7 @@ class TestJsonParser_CatchWithError(BaseJsonParserTest):
 
         # build the io context
         io = IOContext(
-            _IOContext__node_id=-1,
+            node_id=-1,
             inputs=cls.input_features,
             outputs=processor._out_refs_type.build_features(
                 processor.config, input_refs

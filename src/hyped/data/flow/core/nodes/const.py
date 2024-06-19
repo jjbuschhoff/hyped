@@ -68,7 +68,6 @@ class ConstConfig(BaseNodeConfig):
             self.feature = ds.features["x"]
 
         else:
-            print(self.feature)
             # make sure feature type aligns with the value
             raise_object_matches_feature(self.value, self.feature)
 

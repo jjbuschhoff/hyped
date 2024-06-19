@@ -317,8 +317,6 @@ class CollectFeatures(
         Returns:
             Batch: The processed batch.
         """
-        print(self._lookup(io))
-
         # convert dict of lists to list of dicts
         keys = inputs.keys()
         samples = [dict(zip(keys, values)) for values in zip(*inputs.values())]

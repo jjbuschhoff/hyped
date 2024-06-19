@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import re
 from functools import cached_property, partial
-from itertools import groupby
+from itertools import chain, groupby
 from types import MappingProxyType
 from typing import Any, Literal, TypeVar
 
@@ -27,15 +27,17 @@ from typing_extensions import TypeAlias
 
 from hyped.common.arrow import convert_features_to_arrow_schema
 from hyped.common.feature_checks import check_feature_equals
+from hyped.common.feature_key import FeatureKey
 from hyped.common.lazy import LazyInstance
 
 from .executor import DataFlowExecutor
 from .graph import DataFlowGraph
+from .lazy import LazyFlowOutput
 from .nodes.aggregator import DataAggregationManager
+from .nodes.base import IOContext
 from .nodes.const import Const
 from .optim import DataFlowGraphOptimizer
-from .refs.inputs import InputRefs
-from .refs.ref import AggregationRef, FeatureRef
+from .refs.ref import FeatureRef
 
 Batch: TypeAlias = dict[str, list[Any]]
 D = TypeVar(
@@ -83,6 +85,7 @@ class DataFlow(object):
         self._graph.add_source_node(features)
         # lazy executor instance, set in build
         self._executor: None | LazyInstance[DataFlowExecutor] = None
+        self._aggregates: None | LazyFlowOutput = None
 
     @property
     def depth(self) -> int:
@@ -151,7 +154,7 @@ class DataFlow(object):
 
         Returns:
             None | MappingProxyType[str, Any]: A read-only view of the aggregated
-            values as a mapping from aggregation names to their respective values.
+            values.
 
         Raises:
             RuntimeError: If the flow has not been built yet.
@@ -161,8 +164,8 @@ class DataFlow(object):
 
         return (
             None
-            if (self._executor.aggregation_manager is None)
-            else self._executor.aggregation_manager.values_proxy
+            if self._aggregates is None
+            else MappingProxyType(self._aggregates)
         )
 
     def const(
@@ -187,7 +190,7 @@ class DataFlow(object):
     def build(
         self,
         collect: FeatureRef,
-        aggregators: None | dict[str, AggregationRef] = None,
+        aggregate: None | FeatureRef = None,
     ) -> tuple[DataFlow, None | MappingProxyType[str, Any]]:
         """Build an optimized sub-data flow to compute the requested output features.
 
@@ -199,8 +202,7 @@ class DataFlow(object):
 
         Args:
             collect (FeatureRef): The feature reference to collect.
-            aggregators (None | dict[str, AggregationRef], optional): Dictionary of
-                aggregators for computing dataset-wide values. Defaults to None.
+            aggregate (None | FeatureRef): The feature reference to aggregated values to collect.
 
         Returns:
             tuple[DataFlow, None | MappingProxyType[str, Any]]: The sub-data flow and a proxy
@@ -211,67 +213,209 @@ class DataFlow(object):
             TypeError: If the collect feature is not of type `datasets.Features` or `dict`.
             TypeError: If aggregators are provided but are not of the expected type.
             RuntimeError: If the collect feature does not belong to this flow.
-            RuntimeError: If any of the aggregators does not belong to this flow.
+            RuntimeError: If the aggregate feature does not belong to this flow.
         """
         if not isinstance(collect.feature_, (datasets.Features, dict)):
             raise TypeError(
-                f"Expected collect feature of type `datasets.Features` or `dict`, "
+                f"Expected `collect` feature of type `datasets.Features` or `dict`, "
                 f"but got {type(collect.feature_)}"
             )
 
-        if (aggregators is not None) and not (
-            isinstance(aggregators, dict)
-            and all(
-                isinstance(ref, AggregationRef) for ref in aggregators.values()
-            )
-        ):
-            raise TypeError(
-                f"Expected aggregators to be a dictionary with values of type "
-                f"`AggregationRef`, but got {type(aggregators)} with "
-                f"values {aggregators.values()}"
-            )
-
-        if collect.flow_ != self._graph:
+        if collect.flow_ is not self._graph:
             raise RuntimeError(
                 "The collect feature does not belong to the current graph."
             )
 
-        if (aggregators is not None) and any(
-            ref.flow_ != self._graph for ref in aggregators.values()
-        ):
-            raise RuntimeError(
-                "One or more aggregators do not belong to the current graph."
-            )
+        if aggregate is not None:
+            if aggregate.flow_ is not self._graph:
+                raise RuntimeError(
+                    "The aggregate feature does not belong to the current graph."
+                )
+
+            if not isinstance(aggregate.feature_, (datasets.Features, dict)):
+                raise TypeError(
+                    f"Expected `aggregate` feature of type `datasets.Features` or `dict`, "
+                    f"but got {type(aggregate.feature_)}"
+                )
+
+            # get aggregate attributes
+            aggregate_type = self._graph.nodes[aggregate.node_id_][
+                DataFlowGraph.NodeAttribute.NODE_TYPE
+            ]
+            aggregate_partition = self._graph.nodes[aggregate.node_id_][
+                DataFlowGraph.NodeAttribute.PARTITION
+            ]
+            # validate aggregate type
+            if (aggregate_type != DataFlowGraph.NodeType.DATA_AGGREGATOR) and (
+                aggregate_partition
+                != DataFlowGraph.PredefinedPartition.AGGREGATED
+            ):
+                # invalid aggregate, must be the output of an aggregator call
+                raise RuntimeError()
 
         # collect all requested leaf nodes
-        leaf_nodes = set([collect.node_id_])
-        if aggregators is not None:
-            leaf_nodes.update([ref.node_id_ for ref in aggregators.values()])
+        leaf_nodes = set(
+            [collect.node_id_]
+            if aggregate is None
+            else [collect.node_id_, aggregate.node_id_]
+        )
 
         # optimize data flow graph
         optim = DataFlowGraphOptimizer()
         optim_graph = optim.optimize(self._graph, leaf_nodes)
 
-        # update collect reference to optimized graph
-        collect = collect.model_copy(update=dict(flow_=optim_graph))
-
-        aggregation_manager = None
-        # create the aggregation manager
-        if aggregators is not None:
-            in_features = {name: None for name in aggregators.keys()}  # TODO
-            aggregation_manager = DataAggregationManager(
-                aggregators, in_features
-            )
-
-        # build the sub-flow
+        # build the sub-flow from the optimized graph
         # TODO: restrict input features to only the
         #       ones required by the sub-graph
         flow = DataFlow(self.src_features.feature_)
         flow._graph = optim_graph
+
+        # update references to optimized graph
+        collect = collect.model_copy(update=dict(flow_=optim_graph))
+        aggregate = (
+            None
+            if aggregate is None
+            else aggregate.model_copy(update=dict(flow_=optim_graph))
+        )
+
+        # get all aggregator node ids in the optimized graph
+        aggregator_node_ids = [
+            node_id
+            for node_id, data in optim_graph.nodes(data=True)
+            if (
+                data[DataFlowGraph.NodeAttribute.NODE_TYPE]
+                == DataFlowGraph.NodeType.DATA_AGGREGATOR
+            )
+        ]
+
+        # if aggregate is specified then there must be at least one aggregator
+        # in the optimized graph producing the specified aggregate, if no aggregate
+        # is specified then there all aggregator nodes that were present in the graph
+        # should have been pruned by the optimized as their outputs are not captured
+        assert ((aggregate is None) and (len(aggregator_node_ids) == 0)) or (
+            (aggregate is not None) and (len(aggregator_node_ids) > 0)
+        )
+
+        aggregation_manager = None
+        # build the aggregation manager
+        if aggregate is not None:
+            # get the node objects to each aggregator node
+            aggregator_nodes = [
+                optim_graph.nodes[node_id][
+                    DataFlowGraph.NodeAttribute.NODE_OBJ
+                ]
+                for node_id in aggregator_node_ids
+            ]
+            # build the io contexts for all aggregator nodes
+            io_ctxs = [
+                IOContext(
+                    node_id=node_id,
+                    inputs=optim_graph.nodes[node_id][
+                        DataFlowGraph.NodeAttribute.IN_FEATURES
+                    ],
+                    outputs=optim_graph.nodes[node_id][
+                        DataFlowGraph.NodeAttribute.OUT_FEATURES
+                    ],
+                )
+                for node_id in aggregator_node_ids
+            ]
+            # create the aggregation manager
+            aggregation_manager = DataAggregationManager(
+                aggregator_nodes, io_ctxs
+            )
+
+            # get the aggregator type
+            aggregate_type = self._graph.nodes[aggregate.node_id_][
+                DataFlowGraph.NodeAttribute.NODE_TYPE
+            ]
+
+            if aggregate_type == DataFlowGraph.NodeType.DATA_AGGREGATOR:
+                # build a subflow that of only a single source node
+                # matching the structure of the manager's proxy values dict
+                lazy_graph = DataFlowGraph()
+                lazy_graph.add_source_node(
+                    datasets.Features(
+                        {io.node_id: io.outputs for io in io_ctxs}
+                    )
+                )
+                # update the aggregate to point to the output of the
+                # aggregator in the lazy graph
+                aggregate = FeatureRef(
+                    node_id_=lazy_graph.src_node_id,
+                    key_=(aggregate.node_id_,) + aggregate.key_,
+                    flow_=lazy_graph,
+                    feature_=aggregate.feature_,
+                )
+
+            else:
+                # extract the aggregated partition sub-flow which is executed
+                # on top of the aggregation outputs to compute the final aggregates
+
+                # get the aggregated and constant partition of the data flow graph
+                # the lazy partition is constructed from both partitions
+                value_graph = optim_graph.get_partition(
+                    DataFlowGraph.PredefinedPartition.AGGREGATED
+                )
+                const_graph = optim_graph.get_partition(
+                    DataFlowGraph.PredefinedPartition.CONST
+                )
+                # not all constants are used in the aggregated partition
+                # filter out the unused constants by building the dependency graph
+                lazy_graph = optim_graph.subgraph(
+                    chain(value_graph, const_graph)
+                )
+                lazy_graph = lazy_graph.dependency_graph({aggregate.node_id_})
+                # now introduce the source node to the lazy graph
+                # the source features to the lazy graph are the aggregator outputs
+                # managed by the aggregation manager, note how the features match
+                # the structure of the proxy values dict of the manager
+                lazy_graph = DataFlowGraph(lazy_graph)
+                lazy_graph.add_source_node(
+                    datasets.Features(
+                        {io.node_id: io.outputs for io in io_ctxs}
+                    )
+                )
+                # finally the edges from the newly introduced source node
+                # to the nodes that make use of the aggregates need to be
+                # added to the graph
+                for u, v, key, data in optim_graph.subgraph_in_edges(
+                    lazy_graph, data=True
+                ):
+                    lazy_graph.add_edge(
+                        lazy_graph.src_node_id,
+                        v,
+                        key=key,
+                        **{
+                            DataFlowGraph.EdgeAttribute.NAME: data[
+                                DataFlowGraph.EdgeAttribute.NAME
+                            ],
+                            DataFlowGraph.EdgeAttribute.KEY: FeatureKey(
+                                (u,) + data[DataFlowGraph.EdgeAttribute.KEY]
+                            ),
+                        },
+                    )
+                # update the aggregate reference to point to the corresponding
+                # node in the lazy graph, note that the node ids in the lazy graph
+                # match the ids in the original graph
+                aggregate = aggregate.model_copy(update=dict(flow_=lazy_graph))
+
+            # build the lazy flow output object managing the final aggregates view
+            flow._aggregates = LazyFlowOutput(
+                input_proxy=aggregation_manager.values_proxy,
+                executor=DataFlowExecutor(
+                    graph=lazy_graph,
+                    collect=aggregate,
+                    aggregation_manager=None,
+                ),
+            )
+
+        # set the executor for the optimized flow
         flow._executor = LazyInstance(
             partial(
                 DataFlowExecutor,
-                graph=optim_graph,
+                graph=optim_graph.dependency_graph(
+                    {collect.node_id_, *aggregator_node_ids}
+                ),
                 collect=collect,
                 aggregation_manager=aggregation_manager,
             )
@@ -343,7 +487,7 @@ class DataFlow(object):
         self,
         ds: D,
         collect: None | FeatureRef = None,
-        aggregators: None | dict[str, AggregationRef] = None,
+        aggregate: None | FeatureRef = None,
         **kwargs,
     ) -> tuple[D, None | dict[str, Any] | MappingProxyType[str, Any]]:
         """Apply the data flow to a dataset.
@@ -354,10 +498,10 @@ class DataFlow(object):
         Args:
             ds (D): The dataset to process.
             collect (None | FeatureRef): The feature reference to collect. If None, uses current output features.
-            aggregators (None | dict[str, AggregationRef]): Optional dictionary of aggregators for computing
-                dataset-wide values. Defaults to None.
+            aggregate (None | FeatureRef): The feature reference to aggregated values to collect. If None,
+                uses the current aggregate features.
             **kwargs: Additional arguments for dataset mapping. Refer to the HuggingFace documentation for the
-                Datasets.map function for the respective dataset type.
+                :code:`Datasets.map` function for the respective dataset type.
 
         Returns:
             tuple[D, None | dict[str, Any] | MappingProxyType[str, Any]]: The processed dataset and a snapshot
@@ -386,19 +530,19 @@ class DataFlow(object):
         if (features is not None) and not check_feature_equals(
             features, self.src_features.feature_
         ):
-            # TODO: should only check whether the features are present
-            #       i.e. they should be a subset and don't need to match exactly
+            # TODO: should only check whether the required features are present
+            #       i.e. they can be a subset and don't need to match exactly
             raise TypeError("Dataset features do not match source features.")
 
         # build the sub data flow required to compute the requested output features
-        if (collect is None) and (aggregators is None):
+        if (collect is None) and (aggregate is None):
             flow = self
         else:
             # default to output features of self
             if (collect is None) and (self._executor is not None):
                 collect = self.out_features
             # build the flow
-            flow, _ = self.build(collect=collect, aggregators=aggregators)
+            flow, _ = self.build(collect=collect, aggregate=aggregate)
 
         if flow._executor is None:
             raise RuntimeError(
@@ -424,7 +568,7 @@ class DataFlow(object):
         return ds, (
             None
             if flow.aggregates is None
-            else flow.aggregates.copy()
+            else dict(flow.aggregates)
             if isinstance(ds, (datasets.Dataset, datasets.DatasetDict))
             else flow.aggregates
         )

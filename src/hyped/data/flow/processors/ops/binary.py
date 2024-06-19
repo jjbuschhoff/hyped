@@ -101,7 +101,6 @@ class BinaryOp(BaseDataProcessor[C, I, O], ABC):
         Returns:
             Batch: The batch containing the result of the binary operation.
         """
-        print(inputs)
         return {
             "result": [
                 self.config.op(a, b) for a, b in zip(inputs["a"], inputs["b"])

@@ -11,8 +11,10 @@ from hyped.data.flow.core.nodes.aggregator import (
     Batch,
     DataAggregationManager,
 )
+from hyped.data.flow.core.nodes.base import IOContext
 from hyped.data.flow.core.refs.inputs import InputRefs
-from hyped.data.flow.core.refs.ref import AggregationRef, FeatureRef
+from hyped.data.flow.core.refs.outputs import OutputRefs
+from hyped.data.flow.core.refs.ref import FeatureRef
 
 UNSET = object()
 
@@ -34,7 +36,7 @@ class BaseDataAggregatorTest:
     # others
     rank: int = 0
 
-    aggregation_name: str = "name"
+    node_id: str = "node_id"
 
     @pytest.fixture
     def aggregator(self):
@@ -52,14 +54,31 @@ class BaseDataAggregatorTest:
         return aggregator._in_refs_type(**input_refs)
 
     @pytest.fixture
-    def aggregation_ref(self, aggregator, input_refs) -> AggregationRef:
-        return AggregationRef(
-            node_id_="out", flow_=input_refs.flow, type_=aggregator._value_type
+    def output_refs(self, aggregator, input_refs) -> OutputRefs:
+        return aggregator._out_refs_type(
+            input_refs.flow,
+            "out",
+            aggregator._out_refs_type.build_features(
+                aggregator.config, input_refs
+            ),
+        )
+
+    @pytest.fixture
+    def io_context(self, output_refs):
+        cls = type(self)
+        return IOContext(
+            node_id=cls.node_id,
+            inputs=cls.input_features,
+            outputs=output_refs.build_features(
+                cls.aggregator_config, cls.input_features
+            ),
         )
 
     @pytest.fixture
     @patch("hyped.data.flow.core.nodes.aggregator._manager")
-    def manager(self, mock_manager, aggregator) -> DataAggregationManager:
+    def manager(
+        self, mock_manager, aggregator, io_context
+    ) -> DataAggregationManager:
         cls = type(self)
         # Mock the multiprocessing manager object
         mock_manager.dict = MagicMock(side_effect=lambda x: dict(x))
@@ -67,13 +86,12 @@ class BaseDataAggregatorTest:
         # create aggregation manager
         cls = type(self)
         return DataAggregationManager(
-            aggregators={cls.aggregation_name: aggregator},
-            in_features={cls.aggregation_name: cls.input_features},
+            aggregators=[aggregator], io_contexts=[io_context]
         )
 
     @pytest.mark.asyncio
     async def test_case(
-        self, manager, aggregator, input_refs, aggregation_ref
+        self, manager, aggregator, input_refs, output_refs, io_context
     ):
         cls = type(self)
         # check input data
@@ -95,40 +113,43 @@ class BaseDataAggregatorTest:
         # check initial aggregation state
         if cls.expected_initial_value != UNSET:
             assert (
-                manager._value_buffer[cls.aggregation_name]
+                manager._value_buffer[cls.node_id]
                 == cls.expected_initial_value
             ), (
-                f"Expected {manager._value_buffer[cls.aggregation_name]}, "
+                f"Expected {manager._value_buffer[cls.node_id]}, "
                 f"got {cls.expected_initial_value}"
             )
         if cls.expected_initial_state != UNSET:
             assert (
-                manager._state_buffer[cls.aggregation_name]
+                manager._state_buffer[cls.node_id]
                 == cls.expected_initial_state
             ), (
-                f"Expected {manager._state_buffer[cls.aggregation_name]}, "
+                f"Expected {manager._state_buffer[cls.node_id]}, "
                 f"got {cls.expected_initial_state}"
             )
 
         # run aggregation
         await manager.aggregate(
-            aggregator, cls.input_data, input_index, cls.rank
+            aggregator, cls.input_data, input_index, cls.rank, io_context
+        )
+
+        # check aggregation value matches output features
+        assert check_object_matches_feature(
+            manager._value_buffer[cls.node_id], output_refs.feature_
         )
 
         # check aggregation state after execution
         if cls.expected_output_value != UNSET:
             assert (
-                manager._value_buffer[cls.aggregation_name]
-                == cls.expected_output_value
+                manager._value_buffer[cls.node_id] == cls.expected_output_value
             ), (
-                f"Expected {manager._value_buffer[cls.aggregation_name]}, "
+                f"Expected {manager._value_buffer[cls.node_id]}, "
                 f"got {cls.expected_output_value}"
             )
         if cls.expected_output_state != UNSET:
             assert (
-                manager._state_buffer[cls.aggregation_name]
-                == cls.expected_output_state
+                manager._state_buffer[cls.node_id] == cls.expected_output_state
             ), (
-                f"Expected {manager._state_buffer[cls.aggregation_name]}, "
+                f"Expected {manager._state_buffer[cls.node_id]}, "
                 f"got {cls.expected_output_ctx}"
             )

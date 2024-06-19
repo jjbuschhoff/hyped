@@ -4,6 +4,7 @@ from datasets import Features, Value
 from hyped.data.flow.core.executor import ExecutionState
 from hyped.data.flow.core.flow import DataFlow
 from hyped.data.flow.core.graph import DataFlowGraph
+from hyped.data.flow.core.nodes.base import IOContext
 from hyped.data.flow.core.nodes.const import Const
 
 from .mock import MockAggregator, MockInputRefs, MockProcessor
@@ -21,7 +22,6 @@ def reset_mocks():
 def setup_graph():
     # create graph
     graph = DataFlowGraph()
-    print("INIT", id(graph))
     # add source node
     src_features = Features({"x": Value("int64")})
     src_node = graph.add_source_node(src_features)
@@ -41,9 +41,10 @@ def setup_graph():
     )
     # build output features
     po = p._out_refs_type.build_features(p.config, i)
+    ao = a._out_refs_type.build_features(a.config, i)
     # add nodes
     proc_node = graph.add_processor_node(p, i, po)
-    agg_node = graph.add_processor_node(a, i, None)
+    agg_node = graph.add_processor_node(a, i, ao)
 
     return graph, const_node, proc_node, agg_node
 
@@ -61,10 +62,34 @@ def setup_state(setup_graph):
 @pytest.fixture
 def setup_flow(setup_graph):
     graph, const_node, proc_node, agg_node = setup_graph
-    print("FLOW", id(graph))
     # create data flow
     flow = DataFlow(Features({"x": Value("int64")}))
     flow._graph = graph
-    print(id(flow._graph))
     # return setup
     return flow, graph, const_node, proc_node, agg_node
+
+
+@pytest.fixture
+def io_contexts(setup_graph):
+    graph, const_node, proc_node, agg_node = setup_graph
+
+    return [
+        IOContext(
+            node_id=proc_node,
+            inputs=graph.nodes[proc_node][
+                DataFlowGraph.NodeAttribute.IN_FEATURES
+            ],
+            outputs=graph.nodes[proc_node][
+                DataFlowGraph.NodeAttribute.OUT_FEATURES
+            ],
+        ),
+        IOContext(
+            node_id=agg_node,
+            inputs=graph.nodes[agg_node][
+                DataFlowGraph.NodeAttribute.IN_FEATURES
+            ],
+            outputs=graph.nodes[agg_node][
+                DataFlowGraph.NodeAttribute.OUT_FEATURES
+            ],
+        ),
+    ]

@@ -47,14 +47,14 @@ from typing import Any, Callable
 from .aggregators.ops.mean import MeanAggregator
 from .aggregators.ops.sum import SumAggregator
 from .core.nodes.const import Const
-from .core.refs.ref import AggregationRef, FeatureRef
+from .core.refs.ref import FeatureRef
 from .processors.ops import binary
 from .processors.ops.collect import CollectFeatures, NestedContainer
 
 
 def _handle_constant_inputs_for_binary_op(
     binary_op: Callable[[FeatureRef, FeatureRef], FeatureRef]
-) -> Callable[[FeatureRef, FeatureRef], FeatureRef]:
+) -> Callable[[FeatureRef | Any, FeatureRef | Any], FeatureRef]:
     """Decorator to handle constant inputs for binary operations on feature references.
 
     This decorator allows binary operations to be applied to a mix of feature references
@@ -67,7 +67,7 @@ def _handle_constant_inputs_for_binary_op(
             function to be decorated.
 
     Returns:
-        Callable[[FeatureRef, FeatureRef], FeatureRef]: The wrapped binary operation
+        Callable[[FeatureRef | Any, FeatureRef | Any], FeatureRef]: The wrapped binary operation
         function that can handle constant inputs.
 
     Raises:
@@ -162,28 +162,28 @@ def collect(
     return CollectFeatures().call(collection=container).collected
 
 
-def sum_(a: FeatureRef) -> AggregationRef:
+def sum_(a: FeatureRef) -> FeatureRef:
     """Calculate the sum of feature values.
 
     Args:
         a (FeatureRef): The feature to aggregate.
 
     Returns:
-        AggregationRef: A reference to the result of the sum operation.
+        FeatureRef: A reference to the result of the sum operation.
     """
-    return SumAggregator().call(x=a)
+    return SumAggregator().call(x=a).value
 
 
-def mean(a: FeatureRef) -> AggregationRef:
+def mean(a: FeatureRef) -> FeatureRef:
     """Calculate the mean of feature values.
 
     Args:
         a (FeatureRef): The feature to aggregate.
 
     Returns:
-        AggregationRef: A reference to the result of the mean operation.
+        FeatureRef: A reference to the result of the mean operation.
     """
-    return MeanAggregator().call(x=a)
+    return MeanAggregator().call(x=a).value
 
 
 @_handle_constant_inputs_for_binary_op

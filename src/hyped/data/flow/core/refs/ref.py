@@ -369,44 +369,25 @@ class FeatureRef(BaseModel):
 
         return xor_(self, other)
 
-    def sum_(self) -> AggregationRef:
+    def sum_(self) -> FeatureRef:
         """Calculate the sum of the referenced feature.
 
         Returns:
-            AggregationRef: Reference to the aggregated value.
+            FeatureRef: Reference to the aggregated value.
         """
         from hyped.data.flow.ops import sum_
 
         return sum_(self)
 
-    def mean_(self) -> AggregationRef:
+    def mean_(self) -> FeatureRef:
         """Calculate the mean of the referenced feature.
 
         Returns:
-            AggregationRef: Reference to the aggregated value.
+            FeatureRef: Reference to the aggregated value.
         """
         from hyped.data.flow.ops import mean
 
         return mean(self)
-
-
-class AggregationRef(BaseModel):
-    """Reference to a data aggregation node in the data flow.
-
-    Attributes:
-        node_id_ (int): The ID of the aggregation node.
-        flow_ (object): The data flow object.
-        type_ (type): The type of the aggregation value.
-    """
-
-    node_id_: str
-    """The ID of the aggregation node."""
-
-    flow_: object
-    """The data flow object."""
-
-    type_: type
-    """The type of the aggregation value."""
 
 
 NONE_REF = FeatureRef(

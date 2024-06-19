@@ -264,6 +264,8 @@ class DataFlowGraphOptimizer(object):
             loop = asyncio.new_event_loop()
             future = executor.execute({"x": [0]}, index=[0], rank=0)
             out = loop.run_until_complete(future)["collected"][0]
+            # close the event loop
+            loop.close()
 
             # get usage of constants in the graph
             const_edges = graph.subgraph_out_edges(const_graph, data=True)
@@ -341,7 +343,7 @@ class DataFlowGraphOptimizer(object):
 
     def optimize(
         self, graph: DataFlowGraph, leaf_nodes: set[str]
-    ) -> tuple[DataFlowGraph, dict[int, int]]:
+    ) -> DataFlowGraph:
         """Optimizes the data flow graph for a specified set of leaf nodes.
 
         Args:
@@ -349,8 +351,7 @@ class DataFlowGraphOptimizer(object):
             leaf_nodes (set[str]): Set of leaf node IDs.
 
         Returns:
-            tuple[DataFlowGraph, dict[int, int]]: The optimized data flow graph and a mapping
-                of node IDs before and after optimization.
+            DataFlowGraph: The optimized data flow graph.
 
         Raises:
             AssertionError: If not all leaf nodes are contained in the optimized graph.

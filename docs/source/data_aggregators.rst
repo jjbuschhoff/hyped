@@ -23,7 +23,7 @@ The figure below illustrates the workings of the extraction and update phase. It
 .. image:: _static/AggregationExecutionModel.svg
     :width: 600
 
-This logic is implemented by the :doc:`DataAggregationManager <api/data.flow.aggregators.base>`.
+This logic is implemented by the :doc:`DataAggregationManager <api/data.flow.core.nodes.aggregator>`.
 
 Initialization Phase
 ~~~~~~~~~~~~~~~~~~~~
@@ -97,6 +97,71 @@ Let's illustrate the usage of the :code:`call` method with a practical example. 
     # Call the sum aggregator with input features
     sum_feature = sum_aggregator.call(x=len(flow.src_features["text"]))
 
+
+Executing Data Aggregators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To compute aggregated values within a data flow, the corresponding reference must be passed to the :code:`aggregate` argument of the `apply` or `build` function. This allows the data flow to compute the specified statistics and make them easily accessible in the output:
+
+.. code-block:: python
+
+    # Execute the data flow and compute the aggregation feature
+    _, statistics = flow.apply(ds, collect=flow.src_features, aggregate=sum_feature)
+
+In this example, we are collecting the source features in the output dataset without transforming them, while computing statistics using a :code:`SumAggregator`. The execution computes the sum of a specified feature and stores this statistic in a read-only dictionary called :code:`statistics`, which holds all computed statistics during the execution.
+
+**Example: Executing Multiple Aggregators**
+
+In this example, we demonstrate how to invoke multiple aggregators within a data flow to compute various statistics on the dataset. Specifically, we calculate the total and average text length of a text feature. We collect the source features in the output dataset without transforming them, while computing the desired statistics.
+
+.. code-block:: python
+
+    from hyped.data.flow.ops import collect
+    from hyped.data.flow.aggregators.ops.sum import SumAggregator
+    from hyped.data.flow.aggregators.ops.mean import MeanAggregator
+
+    # Capture total and average text length over the whole dataset
+    total_text_length = SumAggregator().call(x=len(flow.src_features["text"]))
+    average_text_length = MeanAggregator().call(x=len(flow.src_features["text"]))
+
+    # Execute the data flow with multiple aggregation features
+    _, statistics = flow.apply(
+        ds, collect=flow.src_features, aggregate=collect(
+            {
+                "total": total_text_length.value,
+                "avg": average_text_length.value
+            }
+        )
+    )
+
+    print(statistics["total"])
+    print(statistics["avg"])
+
+The :code:`SumAggregator` and :code:`MeanAggregator` compute the total and average text lengths, respectively. Specifying multiple statistics in the :code:`apply` call is done using the :code:`collect` operator, which works the same way as for collecting dataset features. This approach allows you to aggregate multiple statistical measures simultaneously, ensuring they are included in the read-only dictionary :code:`statistics` for easy access.
+
+**Example: Post-processing Aggregator Outputs**
+
+To illustrate how aggregated values computed within a data flow can undergo further processing, consider the following example.
+
+.. code-block:: python
+
+    from hyped.data.flow.ops import collect
+    from hyped.data.flow.aggregators.ops.sum import SumAggregator
+    from hyped.data.flow.aggregators.ops.mean import MeanAggregator
+
+    double_total = total_text_length.value * 2
+
+    # Execute the data flow with multiple aggregation features
+    _, statistics = flow.apply(
+        ds, collect=flow.src_features, aggregate=collect(
+            {"double_total": double_total}
+        )
+    )
+
+After computing the total text length using a :code:`SumAggregator`, the aggregated value is then doubled using the :code:`Mul` processor added under the hood by the magic operator for multiplication.
+
+Note that aggregated values within the data flow can undergo additional post-processing using any available data processor, including custom implementations.
+
 Advanced Usage: Aggregating Values Over Multiple Datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -121,21 +186,21 @@ Let's illustrate this process with an example where we calculate the sum of a nu
     ref = SumAggregator().call(x=len(flow.src_features["text"]))
 
     # manually build the data flow
-    flow, vals = flow.build(collect=flow.src_features, aggregators={"sum": ref})
+    flow, statistics = flow.build(collect=flow.src_features, aggregate=ref)
 
     # Apply the data flow to the first dataset
-    ds1, vals1 = flow.apply(ds1)
-    print(f"Aggregated Value after first dataset: {vals1}")
+    ds1, snapshot1 = flow.apply(ds1)
+    print(f"Aggregated Value after first dataset: {snapshot1}")
 
     # Apply the data flow to the second dataset
-    ds1, vals2 = flow.apply(ds1)
-    print(f"Aggregated Value after second dataset: {vals2}")
+    ds1, snapshot2 = flow.apply(ds1)
+    print(f"Aggregated Value after second dataset: {snapshot2}")
 
-    # the values object returned by the build function always contains
+    # the object returned by the build function always contains
     # the up-to-date values, while the apply function returns a snapshot
     # of the aggregated values at that point
-    assert vals != vals1  # vals1 is outdated
-    assert vals == vals2  # vals2 is up-to-date
+    assert statistics != snapshot1  # snapshot1 is outdated
+    assert statistics == snapshot2  # snapshot2 is up-to-date
 
 In this example, we first create a data flow and configure a :class:`SumAggregator` to calculate the sum of a numerical feature (length of the :code:`text`). We manually build the data flow graph by adding the sum aggregator node. We then apply the data flow to two different datasets sequentially.
 
@@ -162,11 +227,16 @@ Start by defining input reference class (:code:`InputRefs`). This class specifie
     import datasets
     from hyped.data.flow.refs.ref import FeatureRef
     from hyped.data.flow.refs.inputs import InputRefs, CheckFeatureEquals
+    from hyped.data.flow.refs.outputs import OutputRefs, OutputFeature
+    from typing import Annotated
 
     class CustomAggregatorInputRefs(InputRefs):
         x: Annotated[FeatureRef, CheckFeatureEquals(datasets.Value("float32"))]
+    
+    class CustomAggregatorOutputRefs(OutputRefs):
+        y: Annotated[FeatureRef, OutputFeature(datasets.Value("float32"))]
 
-For more information on specifying input references, please refer to the :doc:`InputRefs <api/data.flow.refs.inputs>` documentation.
+For more information on specifying input and output references, please refer to the :doc:`InputRefs <api/data.flow.refs.inputs>` and :doc:`OutputRefs <api/data.flow.refs.outputs>` documentation.
 
 2. Define Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,31 +257,41 @@ Create a custom aggregator class (:code:`CustomAggregator`) inheriting from :cla
 
 .. code-block:: python
 
-    from hyped.data.flow.aggregators.base import Batch, BaseDataAggregator
+    from hyped.data.flow.aggregators.base import Batch, BaseDataAggregator, IOContext
 
-    class CustomAggregator(BaseDataAggregator[CustomConfig, CustomAggregatorInputRefs, float]):
+    class CustomAggregator(
+        BaseDataAggregator[
+            CustomConfig,
+            CustomAggregatorInputRefs,
+            CustomAggregatorOutputRefs
+        ]
+    ):
 
-        def initialize(self, features: Features) -> tuple[float, None]:
-            return self.config.initial_value, None
+        def initialize(self, io: IOContext) -> tuple[dict[str, float], None]:
+            return {"y": self.config.initial_value}, None
 
-        async def extract(self, inputs: Batch, index: list[int], rank: int) -> float:
+        async def extract(
+            self, inputs: Batch, index: list[int], rank: int, io: IOContext
+        ) -> float:
             return sum(inputs["x"])
 
-        async def update(self, val: float, ctx: float, state: None) -> tuple[float, None]:
-            return val + ctx, None
+        async def update(
+            self, val: float, ctx: float, state: None, io: IOContext
+        ) -> tuple[dict[str, float], None]:
+            return {"y": val["y"] + ctx}, None
 
 Here's a breakdown of each method:
 
-- :code:`initialize`: The :code:`initialize` function is responsible for initializing the aggregator before the aggregation process begins. It takes the dataset's features as input and returns an initial value for aggregation and an initial context. The initial value represents the starting point for the aggregation process, while the initial context provides any additional state information required during aggregation. In some cases, the context might not be applicable, in which case it can be set to :code:`None`.
+- :code:`initialize`: The :code:`initialize` function is responsible for initializing the aggregator before the aggregation process begins. It takes the :code:`IOContext` as input and returns an initial value for aggregation and an initial state. The initial value represents the starting point for the aggregation process, while the initial state provides any additional information required during aggregation. In some cases, the state might not be required, in which case it can be set to :code:`None`.
 - :code:`extract`: The :code:`extract` function extracts information from the input data batch. It takes the batch of input data along with any additional parameters required for extraction. This function typically operates asynchronously and in parallel, allowing for efficient processing, especially in multi-process setups. It should return the extracted information relevant to the aggregation process.
-- :code:`update`: The :code:`update` function is responsible for updating the aggregated value based on the extracted information, taking into account the current aggregated value, newly extracted context values, and the current aggregation state. It's important to note that the executor calls the :code:`update` function in a thread-safe manner, relieving users from implementing locking mechanisms themselves. The update function returns the updated aggregated value and state.
+- :code:`update`: The :code:`update` function is responsible for updating the aggregated value, taking into account the current aggregated value, newly extracted context values, and the current aggregation state. It's important to note that the executor calls the :code:`update` function in a thread-safe manner, relieving users from implementing locking mechanisms themselves. The update function returns the updated aggregated value and state.
   
 **Best Practices**:
 
 - **Optimize Extract Function**: Since the extract function runs in parallel and can benefit from parallel processing, it's recommended to handle all possible overhead within this function. By optimizing the extract function, you can improve the overall efficiency of the aggregation process.
 - **Keep Update Lightweight**: While the extract function can handle heavier computations efficiently, the update function should focus on lightweight update computations. Since the update function is called in a thread-safe manner, heavy computations within this function may impact performance. Keeping the update function lightweight ensures faster aggregation updates and maintains overall system performance.
 
-4. Instantiate and Apply the Custom Aggregator
+1. Instantiate and Apply the Custom Aggregator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Instantiate the custom aggregator with optional configuration parameters. Use the :code:`call` method to apply the aggregator to input features within the data flow. Provide input features as arguments to the :code:`call` method, and retrieve the aggregated output values for further analysis or processing.

@@ -94,7 +94,7 @@ class TestBaseDataProcessor:
         index = list(range(10))
         batch = {"x": index}
         io_ctx = IOContext(
-            _IOContext__node_id=-1,
+            node_id=-1,
             inputs=Features({"x": Value("int32")}),
             outputs=Features({"out": Value("int32")}),
         )

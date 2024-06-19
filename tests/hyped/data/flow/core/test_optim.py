@@ -240,12 +240,6 @@ def node_match(n1, n2):
     if node_type_1 == DataFlowGraph.NodeType.CONST:
         node_obj_1 = n1[DataFlowGraph.NodeAttribute.NODE_OBJ]
         node_obj_2 = n2[DataFlowGraph.NodeAttribute.NODE_OBJ]
-
-        if node_obj_1.config.value != node_obj_2.config.value:
-            print("-" * 30)
-            print(node_obj_1.config.value)
-            print(node_obj_2.config.value)
-
         return node_obj_1.config.value == node_obj_2.config.value
 
     return True

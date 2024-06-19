@@ -106,6 +106,9 @@ Let's illustrate the usage of the :code:`call` method with a practical example. 
     # Call the tokenizer processor with input features
     tokenized_features = tokenizer.call(text=flow.src_features.text)
 
+    # Execute the data flow and collect the tokenized features
+    tokenized_ds, _ = flow.apply(ds, collect=tokenized_features)
+
 Implementing Custom Data Processors
 -----------------------------------
 
@@ -166,7 +169,7 @@ Most of the arguments to the process function are rather intuitive, for referenc
 - **inputs**: The input sample in the form of a dictionary with the keys matching the members of the correspoding input references (i.e. :code:`x`).
 - **index**: The index of the sample in the dataset.
 - **rank**: The rank of the process, always 0 in case multiprocessing is disabled.
-- **io**: The execution context object containing the input and output feature types for reference. Additionally, it identifies a specific instance of a processor call. For more information see the :doc:`IOContext documentation <api/data.flow.core.nodes.processor>`.
+- **io**: The execution context object containing the input and output feature types for reference. Additionally, it identifies a specific instance of a processor call. For more information see the :doc:`IOContext documentation <api/data.flow.core.nodes.base>`.
 
 **Best Practices:**
 
