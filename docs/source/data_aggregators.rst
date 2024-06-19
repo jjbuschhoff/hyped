@@ -291,7 +291,7 @@ Here's a breakdown of each method:
 - **Optimize Extract Function**: Since the extract function runs in parallel and can benefit from parallel processing, it's recommended to handle all possible overhead within this function. By optimizing the extract function, you can improve the overall efficiency of the aggregation process.
 - **Keep Update Lightweight**: While the extract function can handle heavier computations efficiently, the update function should focus on lightweight update computations. Since the update function is called in a thread-safe manner, heavy computations within this function may impact performance. Keeping the update function lightweight ensures faster aggregation updates and maintains overall system performance.
 
-1. Instantiate and Apply the Custom Aggregator
+4. Instantiate and Apply the Custom Aggregator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Instantiate the custom aggregator with optional configuration parameters. Use the :code:`call` method to apply the aggregator to input features within the data flow. Provide input features as arguments to the :code:`call` method, and retrieve the aggregated output values for further analysis or processing.
