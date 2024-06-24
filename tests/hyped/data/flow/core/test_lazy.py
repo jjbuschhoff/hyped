@@ -22,8 +22,8 @@ def test_lazy_flow_initialization():
 
     assert obj._proxy == input_proxy
     assert obj._executor == executor
-    assert obj._snapshot is None
-    assert obj._snapshot_hash is None
+    assert obj._proxy_snapshot is None
+    assert obj._out_snapshot is None
 
 
 def test_lazy_flow_keys():
@@ -45,24 +45,24 @@ def test_lazy_flow_getitem():
     executor.collect.feature_.keys = MagicMock(return_value=["y"])
 
     obj = LazyFlowOutput(input_proxy, executor)
-    prev_snapshot_hash = obj._snapshot_hash
+    prev_snapshot = obj._proxy_snapshot
 
     value = obj["y"]
 
     assert value == 1
     executor.execute.assert_called_once()
-    assert obj._snapshot == {"y": 1}
-    assert obj._snapshot_hash != prev_snapshot_hash
+    assert obj._out_snapshot == {"y": 1}
+    assert obj._proxy_snapshot != prev_snapshot
 
     # change the input and make sure the flow is executed again
     executor.reset_mock()
     input_dict["x"] = 1
-    prev_snapshot_hash = obj._snapshot_hash
+    prev_snapshot = obj._proxy_snapshot
 
     value = obj["y"]
 
     executor.execute.assert_called_once()
-    assert obj._snapshot_hash != prev_snapshot_hash
+    assert obj._proxy_snapshot != prev_snapshot
 
 
 def test_lazy_flow_getitem_keyerror():

@@ -37,10 +37,9 @@ class LazyFlowOutput(Mapping):
         """
         self._proxy = input_proxy
         self._executor = executor
-        # output snapshot
-        self._snapshot = None
-        self._snapshot_hash = None
-        self._snapshot_keys = list(self._proxy.keys())
+        # snapshot
+        self._proxy_snapshot = None
+        self._out_snapshot = None
 
     def keys(self) -> Iterable[Hashable]:
         """Get the keys of the output features.
@@ -56,16 +55,11 @@ class LazyFlowOutput(Mapping):
         Returns:
             MappingProxyType[Hashable, Any]: A read-only proxy to the computed output values.
         """
-        # compute hash of current values in proxy
-        proxy_hash = hash(
-            tuple(self._proxy[key] for key in self._snapshot_keys)
-        )
-
+        proxy_snapshot = dict(self._proxy)
         # check
-        if self._snapshot_hash != proxy_hash:
+        if self._proxy_snapshot != proxy_snapshot:
             # build batch of inputs
-            inputs = {k: [v] for k, v in self._proxy.items()}
-            self._snapshot_hash = proxy_hash
+            inputs = {k: [v] for k, v in proxy_snapshot.items()}
             # execute the flow executor on the inputs
             loop = asyncio.new_event_loop()
             future = self._executor.execute(inputs, index=[0], rank=0)
@@ -73,9 +67,10 @@ class LazyFlowOutput(Mapping):
             # close the event loop
             loop.close()
             # parse the outputs and store them as the snapshot
-            self._snapshot = {k: v[0] for k, v in output.items()}
+            self._proxy_snapshot = proxy_snapshot
+            self._out_snapshot = {k: v[0] for k, v in output.items()}
 
-        return MappingProxyType(self._snapshot)
+        return MappingProxyType(self._out_snapshot)
 
     def __getitem__(self, key: Hashable) -> Any:
         """Get the value associated with the specified key.
