@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from functools import cached_property, partial
+from functools import partial
 from itertools import chain, groupby
 from types import MappingProxyType
 from typing import Any, Literal, TypeVar
@@ -113,7 +113,7 @@ class DataFlow(object):
         """
         return self._graph.width
 
-    @cached_property
+    @property
     def src_features(self) -> FeatureRef:
         """Get the source features.
 

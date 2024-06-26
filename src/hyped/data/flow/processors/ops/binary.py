@@ -34,9 +34,9 @@ import operator
 from abc import ABC
 from typing import Annotated, Any, Callable, TypeVar
 
-import numpy as np
 from datasets import Value
 
+from hyped.common.feature_checks import FLOAT_TYPES, INT_TYPES
 from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
@@ -50,9 +50,6 @@ from hyped.data.flow.core.refs.outputs import (
     OutputRefs,
 )
 from hyped.data.flow.core.refs.ref import FeatureRef
-
-INTS = {"int8", "int16", "int32", "int64"}
-FLOATS = {"float16", "float32", "float64"}
 
 
 class BinaryOpInputRefs(InputRefs):
@@ -269,13 +266,13 @@ class MathInputRefs(BinaryOpInputRefs):
 
     a: Annotated[
         FeatureRef,
-        CheckFeatureEquals(list(map(Value, list(INTS) + list(FLOATS)))),
+        CheckFeatureEquals(INT_TYPES + FLOAT_TYPES),
     ]
     """The first input feature. Must be an integer or float."""
 
     b: Annotated[
         FeatureRef,
-        CheckFeatureEquals(list(map(Value, list(INTS) + list(FLOATS)))),
+        CheckFeatureEquals(INT_TYPES + FLOAT_TYPES),
     ]
     """The second input feature. Must be an integer or float."""
 
@@ -309,17 +306,17 @@ def closed_op_infer_dtype(
     Returns:
         Value: The inferred data type for the output.
     """
-    a_dtype = inputs.a.feature_.dtype
-    b_dtype = inputs.b.feature_.dtype
+    a_dtype = inputs.a.feature_
+    b_dtype = inputs.b.feature_
 
-    if (a_dtype in INTS) and (b_dtype in INTS):
-        return Value(max(a_dtype, b_dtype))
+    if (a_dtype in INT_TYPES) and (b_dtype in INT_TYPES):
+        return Value(max(a_dtype.dtype, b_dtype.dtype))
 
-    if (a_dtype in FLOATS) and (b_dtype in FLOATS):
-        return Value(max(a_dtype, b_dtype))
+    if (a_dtype in FLOAT_TYPES) and (b_dtype in FLOAT_TYPES):
+        return Value(max(a_dtype.dtype, b_dtype.dtype))
 
     # type mismatch, one is int and one is float, keep the float
-    return inputs.a.feature_ if a_dtype in FLOATS else inputs.b.feature_
+    return inputs.a.feature_ if a_dtype in FLOAT_TYPES else inputs.b.feature_
 
 
 class ClosedOpOutputRefs(BinaryOpOutputRefs):

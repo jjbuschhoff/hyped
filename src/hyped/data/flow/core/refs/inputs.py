@@ -39,6 +39,8 @@ Usage Example:
     In this example, :class:`CustomInputRefs` extends :class:`InputRefs` to define a collection of input
     references with specified validators for feature type checking.
 """
+from __future__ import annotations
+
 from typing import Callable
 
 from datasets.features.features import Features, FeatureType
@@ -54,21 +56,66 @@ from hyped.common.pydantic import BaseModelWithTypeValidation
 from .ref import NONE_REF, FeatureRef
 
 
-class FeatureValidator(AfterValidator):
-    """Validator for checking the type of a FeatureRef instance.
+class ValidationWrapper(object):
+    """Wrapper class for feature validation functions.
 
-    This validator checks whether the provided FeatureRef instance
+    This class wraps a validation function and provides a call interface
+    that checks if a :class:`FeatureRef` instance conforms to the expected
+    feature type.
+    """
+
+    def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
+        """Initialize the ValidationWrapper instance.
+
+        Args:
+            f (Callable[[FeatureRef, FeatureType], None]): The validation function
+                to be wrapped.
+        """
+        self.unwrapped = f
+
+    def __call__(self, ref: FeatureRef) -> FeatureRef:
+        """Check if the provided reference conforms to the expected feature type.
+
+        Args:
+            ref (FeatureRef): The FeatureRef instance to be validated.
+
+        Returns:
+            FeatureRef: The validated FeatureRef instance.
+
+        Raises:
+            TypeError: If the feature does not conform to the expected feature type.
+        """
+        if ref is NONE_REF:
+            return ref
+
+        try:
+            self.unwrapped(ref, ref.feature_)
+        except TypeError as e:
+            raise TypeError(
+                "Feature does not conform to the expected type."
+            ) from e
+
+        return ref
+
+
+class FeatureValidator(AfterValidator):
+    """Validator for checking the type of a :class:`FeatureRef` instance.
+
+    This validator checks whether the provided :class:`FeatureRef` instance
     conforms to a specific feature type by invoking the given validation
     function.
 
     Args:
         f (Callable[[FeatureRef, FeatureType], None]): The validation function
-            to be applied to the FeatureRef.
+            to be applied to the :class:`FeatureRef`.
 
     Raises:
-        TypeError: If the provided reference is not a FeatureRef instance
+        TypeError: If the provided reference is not a :class:`FeatureRef` instance
         TypeError: If the feature does not conform to the expected feature type.
     """
+
+    func: ValidationWrapper
+    """The wrapped validation function to be applied to the :class:`FeatureRef`"""
 
     def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
         """Initialize the FeatureValidator instance.
@@ -77,32 +124,44 @@ class FeatureValidator(AfterValidator):
             f (Callable[[FeatureRef, FeatureType], None]): The validation function
                 to be applied to the FeatureRef.
         """
+        validator = ValidationWrapper(f)
+        super(FeatureValidator, self).__init__(validator)
 
-        def check(ref: FeatureRef) -> FeatureRef:
-            """Check if the provided reference conforms to the expected feature type.
+    def __or__(self, other: FeatureValidator) -> FeatureValidator:
+        """Combine this validator with another validator using logical OR.
 
-            Args:
-                ref (FeatureRef): The FeatureRef instance to be validated.
+        This method creates a new validator that checks if a :class:`FeatureRef`
+        instance conforms to either of the two validators. If the feature does not
+        conform to either validator, it raises a TypeError with details from both
+        errors.
 
-            Returns:
-                FeatureRef: The validated FeatureRef instance.
+        Args:
+            other (FeatureValidator): The other validator to combine with.
 
-            Raises:
-                TypeError: If the feature does not conform to the expected feature type.
-            """
-            if ref is NONE_REF:
-                return ref
+        Returns:
+            FeatureValidator: A new FeatureValidator instance that validates
+                against either of the combined validators.
+        """
 
+        def unwrapped_check_either(
+            ref: FeatureRef, feature: FeatureType
+        ) -> None:
             try:
-                f(ref, ref.feature_)
-            except TypeError as e:
-                raise TypeError(
-                    "Feature does not conform to the expected type."
-                ) from e
+                # check if feature conforms to first validator
+                return self.func.unwrapped(ref, feature)
 
-            return ref
+            except TypeError as e1:
+                try:
+                    # fallback to second validator
+                    return other.func.unwrapped(ref, feature)
 
-        super(FeatureValidator, self).__init__(check)
+                except TypeError as e2:
+                    # TODO: e1 should also be included in traceback
+                    raise TypeError(
+                        f"Feature does not conform to any of the expected types: `{str(e1)}` and `{str(e2)}` "
+                    ) from e2
+
+        return FeatureValidator(unwrapped_check_either)
 
 
 class CheckFeatureEquals(FeatureValidator):
@@ -158,7 +217,7 @@ class CheckFeatureIsSequence(FeatureValidator):
 
     def __init__(
         self,
-        value_type: None | FeatureType | list[FeatureType],
+        value_type: None | FeatureType | list[FeatureType] = None,
         length: int = -1,
     ) -> None:
         """Initialize the CheckFeatureIsSequence validator.
@@ -185,6 +244,18 @@ class CheckFeatureIsSequence(FeatureValidator):
             return ref
 
         super(CheckFeatureIsSequence, self).__init__(check)
+
+
+class AnyFeatureType(FeatureValidator):
+    """Validator that allows any feature type.
+
+    This validator is a permissive validator that does not enforce any specific
+    feature type. It accepts any feature type without raising an error.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the AnyFeatureType validator."""
+        super(AnyFeatureType, self).__init__(lambda r, f: None)
 
 
 class InputRefs(BaseModelWithTypeValidation):

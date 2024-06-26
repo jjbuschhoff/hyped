@@ -30,6 +30,13 @@ FLOAT_TYPES = [
     Value("float64"),
 ]
 
+STRING_LIKE_TYPES = [
+    Value("string"),
+    Value("large_string"),
+    Value("binary"),
+    Value("large_binary"),
+]
+
 INDEX_TYPES = INT_TYPES + UINT_TYPES
 
 

@@ -44,12 +44,60 @@ Usage Example:
 from functools import wraps
 from typing import Any, Callable
 
+from datasets import Value
+
+from hyped.common.feature_checks import (
+    STRING_LIKE_TYPES,
+    check_feature_equals,
+    check_feature_is_sequence,
+    get_sequence_length,
+)
+
 from .aggregators.ops.mean import MeanAggregator
 from .aggregators.ops.sum import SumAggregator
 from .core.nodes.const import Const
 from .core.refs.ref import FeatureRef
-from .processors.ops import binary
+from .processors.ops import binary, sequence, unary
 from .processors.ops.collect import CollectFeatures, NestedContainer
+
+
+def _check_args(*args: FeatureRef | Any) -> tuple[FeatureRef]:
+    """Ensure at least one argument is a FeatureRef and convert constants to feature references.
+
+    This function performs two main tasks:
+    1. It checks that at least one of the arguments is a FeatureRef instance.
+    2. It converts any non-FeatureRef arguments into FeatureRef instances by using the flow
+       associated with the first FeatureRef in the sequence.
+
+    Args:
+        *args (FeatureRef | Any): A variable number of arguments, which can be either
+            FeatureRef instances or constant values.
+
+    Returns:
+        tuple[FeatureRef]: A tuple where all constant values have been converted into
+            FeatureRef instances, and the original FeatureRef instances are unchanged.
+
+    Raises:
+        RuntimeError: If all inputs are constants (i.e., there are no FeatureRef instances).
+    """
+    if not any(isinstance(a, FeatureRef) for a in args):
+        raise RuntimeError(
+            "All inputs are constants. At least one input must "
+            "be a FeatureRef instance."
+        )
+
+    # get the flow from the argument sequence
+    flow = next(iter(arg for arg in args if isinstance(arg, FeatureRef))).flow_
+
+    # add all constants in the argument sequence to the flow
+    return tuple(
+        (
+            arg
+            if isinstance(arg, FeatureRef)
+            else Const(value=arg).to(flow).value
+        )
+        for arg in args
+    )
 
 
 def _handle_constant_inputs_for_binary_op(
@@ -78,23 +126,8 @@ def _handle_constant_inputs_for_binary_op(
     def wrapped_binary_op(
         a: FeatureRef | Any, b: FeatureRef | Any
     ) -> FeatureRef:
-        if not isinstance(a, FeatureRef) and not isinstance(b, FeatureRef):
-            raise RuntimeError(
-                "Both inputs to the binary operation are constants. "
-                "At least one input must be a FeatureRef."
-            )
-
-        # get the flow from the valid feature reference
-        flow = (a if isinstance(a, FeatureRef) else b).flow_
-
-        # collect constant value a
-        if not isinstance(a, FeatureRef):
-            a = Const(value=a).to(flow).value
-
-        # collect constant value b
-        if not isinstance(b, FeatureRef):
-            b = Const(value=b).to(flow).value
-
+        # add constant arguments to the data flow
+        a, b = _check_args(a, b)
         # apply binary operation on feature refs
         return binary_op(a, b)
 
@@ -127,7 +160,10 @@ def collect(
         RuntimeError: If the flow cannot be inferred from the constant collection and no flow is provided explicitly.
     """
     if (collection is not None) and len(kwargs) > 0:
-        raise ValueError()  # TODO: only one allowed
+        raise ValueError(
+            "Both `collection` and keyword arguments provided. "
+            "Please provide only one."
+        )
 
     # create a nested container from the inputs
     # this collection might contain constants of any type
@@ -408,3 +444,250 @@ def xor_(a: FeatureRef, b: FeatureRef) -> FeatureRef:
         FeatureRef: A FeatureRef instance representing the result of the xor operation.
     """
     return binary.LogicalXOr().call(a=a, b=b).result
+
+
+def neg(a: FeatureRef) -> FeatureRef:
+    """Perform a negation operation on a feature.
+
+    Args:
+        a (FeatureRef): The feature to negate.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the negated value of the input feature.
+    """
+    return unary.Neg().call(a=a).result
+
+
+def abs_(a: FeatureRef) -> FeatureRef:
+    """Compute the absolute value of a feature.
+
+    Args:
+        a (FeatureRef): The feature to compute the absolute value.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the absolute value of the input feature.
+    """
+    return unary.Abs().call(a=a).result
+
+
+def invert(a: FeatureRef) -> FeatureRef:
+    """Perform a bitwise inversion operation on a feature.
+
+    Args:
+        a (FeatureRef): The feature to invert bitwise.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the bitwise inverted value of the input feature.
+    """
+    return unary.Invert().call(a=a).result
+
+
+def len_(a: FeatureRef) -> FeatureRef | int:
+    """Determine the length of a feature.
+
+    This function calculates the length of a feature if it is a sequence or a
+    string-like type according to the following logic:
+
+    - For sequences, it returns the length as an integer if the length is fixed, or
+      as a FeatureRef if the length is dynamic.
+    - For string-like features, the length is always assumed to be dynamic, and thus
+      results in a FeatureRef instance.
+
+    Args:
+        a (FeatureRef): The feature for which to determine the length.
+
+    Returns:
+        FeatureRef | int: The length of the sequence as an integer if fixed, or as a FeatureRef
+        if dynamic.
+
+    Raises:
+        TypeError: If the feature is of an unexpected type.
+    """
+    if check_feature_is_sequence(a.feature_):
+        # return constant in case length if fixed and a
+        # feature reference to the length feature otherwise
+        length = get_sequence_length(a.feature_)
+        return (
+            length
+            if length != -1
+            else sequence.SequenceLength().call(a=a).result
+        )
+
+    elif check_feature_equals(a.feature_, STRING_LIKE_TYPES):
+        # implement length operation for string-like features
+        raise NotImplementedError()
+
+    else:
+        # unexpected feature type
+        raise TypeError(
+            f"Unexpected feature type for length operation, "
+            "got `{a.feature_}`."
+        )
+
+
+@_handle_constant_inputs_for_binary_op
+def concat(a: FeatureRef, b: FeatureRef) -> FeatureRef:
+    """Concatenate two features.
+
+    Args:
+        a (FeatureRef): The first feature to concatenate.
+        b (FeatureRef): The second feature to concatenate.
+
+    Returns:
+        FeatureRef: The concatenated feature if the features are sequences.
+
+    Raises:
+        TypeError: If the features are of unexpected types.
+    """
+    if check_feature_is_sequence(a.feature_):
+        # return concatenated sequence feature
+        return sequence.SequenceConcat().call(a=a, b=b).result
+
+    elif check_feature_equals(a.feature_, STRING_LIKE_TYPES):
+        # implement string concat operation
+        raise NotImplementedError()
+
+    else:
+        # unexpected feature type for concat operation
+        raise TypeError(
+            f"Unexpected feature type for concat operation, "
+            "got `{a.feature_}` and `{b.feature_}`."
+        )
+
+
+def get_item(seq: FeatureRef | Any, index: FeatureRef | Any) -> FeatureRef:
+    """Retrieve an item from a sequence feature at a specified index.
+
+    Args:
+        seq (FeatureRef | Any): The sequence feature or constant value to retrieve the item from.
+        index (FeatureRef | Any): The index at which to retrieve the item. Can also be a sequence of indices.
+
+    Returns:
+        FeatureRef: The feature representing the item at the specified index.
+    """
+    # check arguments
+    seq, index = _check_args(seq, index)
+    # add the getitem processor
+    return sequence.SequenceGetItem().call(sequence=seq, index=index).gathered
+
+
+def set_item(
+    seq: FeatureRef | list[Any],
+    index: FeatureRef | int | list[int] | slice,
+    value: FeatureRef | Any | list[Any],
+) -> FeatureRef:
+    """Set an item in a sequence feature at a specified index.
+
+    Args:
+        seq (FeatureRef): The sequence feature to modify.
+        index (FeatureRef | int | list[int] | slice): The index at which
+            to set the item. Can also be a sequence of indices or slice.
+        value (FeatureRef | Any | list[Any]): The value to set at the
+            specified index. Can be a sequence of values in case the
+            index is a sequence as well.
+
+    Returns:
+        FeatureRef: The feature representing the modified sequence.
+    """
+    if isinstance(index, slice):
+        # TODO: support slices as index
+        raise NotImplemented()
+    # check arguments
+    seq, index, value = _check_args(seq, index, value)
+    # add the setitem processor
+    return (
+        sequence.SequenceSetItem()
+        .call(sequence=seq, index=index, value=value)
+        .result
+    )
+
+
+def contains(obj: FeatureRef | Any, value: FeatureRef | Any) -> FeatureRef:
+    """Check if a sequence or string-like feature contains a specified value.
+
+    Args:
+        obj (FeatureRef | Any): The sequence or string-like feature to check.
+        value (FeatureRef | Any): The value to check for.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing whether the value is contained in the feature.
+
+    Raises:
+        TypeError: If the feature is of an unexpected type.
+    """
+    obj, value = _check_args(obj, value)
+
+    if check_feature_is_sequence(obj.feature_):
+        return (
+            sequence.SequenceContains()
+            .call(sequence=obj, value=value)
+            .contains
+        )
+
+    elif check_feature_equals(obj.feature_, STRING_LIKE_TYPES):
+        # implement contains operation for string-like features
+        raise NotImplementedError()
+
+    else:
+        raise TypeError(
+            f"Unexpected feature type for contains operation, "
+            "got `{obj.feature_}`."
+        )
+
+
+def count_of(obj: FeatureRef | Any, value: FeatureRef | Any) -> FeatureRef:
+    """Count the occurrences of a value in a sequence or string-like feature.
+
+    Args:
+        obj (FeatureRef | Any): The sequence or string-like feature to check.
+        value (FeatureRef | Any): The value to count occurrences of.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the count of occurrences.
+
+    Raises:
+        TypeError: If the feature is of an unexpected type.
+    """
+    obj, value = _check_args(obj, value)
+
+    if check_feature_is_sequence(obj.feature_):
+        return sequence.SequenceCountOf().call(sequence=obj, value=value).count
+
+    elif check_feature_equals(obj.feature_, STRING_LIKE_TYPES):
+        # implement contains operation for string-like features
+        raise NotImplementedError()
+
+    else:
+        raise TypeError(
+            f"Unexpected feature type for countOf operation, "
+            "got `{obj.feature_}`."
+        )
+
+
+def index_of(obj: FeatureRef | Any, value: FeatureRef | Any) -> FeatureRef:
+    """Find the index of a value in a sequence or string-like feature.
+
+    Args:
+        obj (FeatureRef | Any): The sequence or string-like feature to check.
+        value (FeatureRef | Any): The value to find the index of.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the index of the value.
+
+    Raises:
+        TypeError: If the feature is of an unexpected type.
+    """
+    obj, value = _check_args(obj, value)
+
+    if check_feature_is_sequence(obj.feature_):
+        return sequence.SequenceIndexOf().call(sequence=obj, value=value).index
+
+    elif check_feature_equals(obj.feature_, STRING_LIKE_TYPES):
+        # implement contains operation for string-like features
+        raise NotImplementedError()
+
+    else:
+        raise TypeError(
+            f"Unexpected feature type for indexOf operation, "
+            "got `{obj.feature_}`."
+        )
