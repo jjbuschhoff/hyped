@@ -88,7 +88,7 @@ class TestFeatureRef(object):
         )
 
         # invalid sub-feature key
-        with pytest.raises(KeyError):
+        with pytest.raises(AttributeError):
             ref.invalid
         with pytest.raises(KeyError):
             ref["invalid"]

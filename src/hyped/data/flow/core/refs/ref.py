@@ -154,7 +154,14 @@ class FeatureRef(BaseModel):
         if key.startswith("_"):
             return object.__getattribute__(self, key)
 
-        return self.__getitem__(key)
+        try:
+            # try to index the features with the key
+            return self.__getitem__(key)
+        except (KeyError, TypeError) as e:
+            # raise attribute error
+            raise AttributeError(
+                f"'FeatureRef' object has no attribute '{key}'"
+            ) from e
 
     def __getitem__(
         self, key: str | int | slice | FeatureKey | FeatureRef
@@ -170,6 +177,7 @@ class FeatureRef(BaseModel):
 
         Raises:
             TypeError: If the feature type is not a sequence but the index is a feature reference.
+            KeyError: If the key does not align with the structure of the feature.
         """
         if isinstance(key, FeatureRef):
             # make sure the feature is a sequence
@@ -188,9 +196,21 @@ class FeatureRef(BaseModel):
         # of the feature reference
         key = key if isinstance(key, tuple) else (key,)
         key = tuple.__new__(FeatureKey, key)
+
+        try:
+            # try to index the features with the given key
+            feature = key.index_features(self.feature_)
+        except (KeyError, TypeError) as e:
+            # raise keyerror on mismatch
+            raise KeyError(
+                f"Key doesn't match feature structure, got 'key={key}' "
+                "and 'features={self.feature_}'."
+            ) from e
+
+        # build feature reference to feature at key
         return FeatureRef(
             key_=self.key_ + key,
-            feature_=key.index_features(self.feature_),
+            feature_=feature,
             node_id_=self.node_id_,
             flow_=self.flow_,
         )
