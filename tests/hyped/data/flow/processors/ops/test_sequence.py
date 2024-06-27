@@ -223,3 +223,26 @@ class TestSequenceIndexOf(BaseDataProcessorTest):
 
     expected_output_features = Features({"index": Value("int64")})
     expected_output_data = {"index": [0, 0, 1]}
+
+
+class TestSequenceZip(BaseDataProcessorTest):
+    processor_type = sequence.SequenceZip
+    processor_config = sequence.SequenceZipConfig()
+
+    input_features = Features(
+        {"sequences": Sequence(Sequence(Value("int32"), length=4), length=2)}
+    )
+    input_data = {
+        "sequences": [
+            [
+                [0, 1, 2, 3],
+                [4, 5, 6, 7],
+            ],
+        ]
+    }
+    input_index = [0]
+
+    expected_output_features = Features(
+        {"result": Sequence(Sequence(Value("int32"), length=2), length=4)}
+    )
+    expected_output_data = {"result": [[(0, 4), (1, 5), (2, 6), (3, 7)]]}

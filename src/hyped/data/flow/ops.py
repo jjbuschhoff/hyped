@@ -691,3 +691,16 @@ def index_of(obj: FeatureRef | Any, value: FeatureRef | Any) -> FeatureRef:
             f"Unexpected feature type for indexOf operation, "
             "got `{obj.feature_}`."
         )
+
+
+def zip_(*sequences: FeatureRef) -> FeatureRef:
+    """Zip multiple sequences together.
+
+    Args:
+        *sequences (FeatureRef): Sequences to zip together.
+
+    Returns:
+        FeatureRef: A FeatureRef instance representing the zipped sequences.
+    """
+    # zip collected sequences
+    return sequence.SequenceZip().call(sequences=collect(list(sequences)))

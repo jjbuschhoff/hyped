@@ -790,7 +790,7 @@ class FeatureRef(BaseModel):
 
         return invert(self)
 
-    def __len__(self) -> FeatureRef | int:
+    def length_(self) -> FeatureRef | int:
         """Compute the length of the feature.
 
         Returns an integer in case the length value of the feature ref is constant.
@@ -807,7 +807,7 @@ class FeatureRef(BaseModel):
 
         return len_(self)
 
-    def __contains__(self, value: FeatureRef | Any) -> FeatureRef:
+    def contains_(self, value: FeatureRef | Any) -> FeatureRef:
         """Check if the feature contains a given value.
 
         Args:

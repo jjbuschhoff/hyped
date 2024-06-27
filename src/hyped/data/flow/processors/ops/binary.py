@@ -31,8 +31,8 @@ is implemented as a subclass of the appropriate base class (:class:`Comparator`,
 with a corresponding configuration class that sets the operation to be applied.
 """
 import operator
-from abc import ABC
-from typing import Annotated, Any, Callable, TypeVar
+from abc import ABC, abstractmethod
+from typing import Annotated, Any, TypeVar
 
 from datasets import Value
 
@@ -62,27 +62,28 @@ class BinaryOpInputRefs(InputRefs):
     """The second input feature. Can be any value type."""
 
 
-class BinaryOpOutputRefs(OutputRefs, ABC):
+class BaseBinaryOpOutputRefs(OutputRefs, ABC):
     """Defines output references for binary operations."""
 
     result: Annotated[FeatureRef, OutputFeature(None)]
     """The result of the binary operation. Placeholder type."""
 
 
-class BinaryOpConfig(BaseDataProcessorConfig):
+class BaseBinaryOpConfig(BaseDataProcessorConfig):
     """Configuration class for binary operations."""
 
-    op: Callable[[Any, Any], Any]
-    """The binary operation to be applied."""
 
-
-C = TypeVar("C", bound=BinaryOpConfig)
+C = TypeVar("C", bound=BaseBinaryOpConfig)
 I = TypeVar("I", bound=BinaryOpInputRefs)
-O = TypeVar("O", bound=BinaryOpOutputRefs)
+O = TypeVar("O", bound=BaseBinaryOpOutputRefs)
 
 
-class BinaryOp(BaseDataProcessor[C, I, O], ABC):
+class BaseBinaryOp(BaseDataProcessor[C, I, O], ABC):
     """Base class for binary operations."""
+
+    @abstractmethod
+    def op(self, a: Any, b: Any) -> Any:
+        """The binary operation to apply."""
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int, io: IOContext
@@ -99,106 +100,97 @@ class BinaryOp(BaseDataProcessor[C, I, O], ABC):
             Batch: The batch containing the result of the binary operation.
         """
         return {
-            "result": [
-                self.config.op(a, b) for a, b in zip(inputs["a"], inputs["b"])
-            ]
+            "result": [self.op(a, b) for a, b in zip(inputs["a"], inputs["b"])]
         }
 
 
-class BoolOutputRefs(BinaryOpOutputRefs):
+class BoolOutputRefs(BaseBinaryOpOutputRefs):
     """Defines output references for binary operations with boolean output."""
 
     result: Annotated[FeatureRef, OutputFeature(Value("bool"))]
     """The result of the binary operation. Represents a boolean feature type."""
 
 
-class ComparatorConfig(BinaryOpConfig):
+class BaseComparatorConfig(BaseBinaryOpConfig):
     """Configuration class for comparator operations."""
 
-    op: Callable[[Any, Any], bool]
-    """The comparator operation to be applied. Takes any value type inputs and outputs a boolean feature."""
+
+C = TypeVar("C", bound=BaseComparatorConfig)
 
 
-class Comparator(
-    BinaryOp[ComparatorConfig, BinaryOpInputRefs, BoolOutputRefs]
-):
+class BaseComparator(BaseBinaryOp[C, BinaryOpInputRefs, BoolOutputRefs]):
     """Base class for comparator operations.
 
     Comparators are characterized by their ability to take inputs of any value type
     and output a boolean feature.
     """
 
+    @abstractmethod
+    def op(self, a: Any, b: Any) -> bool:
+        """The comparator operation to be applied.
 
-class EqualsConfig(ComparatorConfig):
+        Takes any value type inputs and outputs a boolean feature.
+        """
+
+
+class EqualsConfig(BaseComparatorConfig):
     """Configuration class for the equality operation."""
 
-    op: Callable[[Any, Any], bool] = operator.eq
 
-
-class Equals(Comparator):
+class Equals(BaseComparator[EqualsConfig]):
     """Processor for the equality operation."""
 
-    CONFIG_TYPE = EqualsConfig
+    op = operator.eq
 
 
-class NotEqualsConfig(ComparatorConfig):
+class NotEqualsConfig(BaseComparatorConfig):
     """Configuration class for the inequality operation."""
 
-    op: Callable[[Any, Any], bool] = operator.ne
 
-
-class NotEquals(Comparator):
+class NotEquals(BaseComparator[NotEqualsConfig]):
     """Processor for the inequality operation."""
 
-    CONFIG_TYPE = NotEqualsConfig
+    op = operator.ne
 
 
-class LessThanConfig(ComparatorConfig):
+class LessThanConfig(BaseComparatorConfig):
     """Configuration class for the less-than operation."""
 
-    op: Callable[[Any, Any], bool] = operator.lt
 
-
-class LessThan(Comparator):
+class LessThan(BaseComparator[LessThanConfig]):
     """Processor for the less-than operation."""
 
-    CONFIG_TYPE = LessThanConfig
+    op = operator.lt
 
 
-class LessThanOrEqualConfig(ComparatorConfig):
+class LessThanOrEqualConfig(BaseComparatorConfig):
     """Configuration class for the less-than-or-equal operation."""
 
-    op: Callable[[Any, Any], bool] = operator.le
 
-
-class LessThanOrEqual(Comparator):
+class LessThanOrEqual(BaseComparator[LessThanOrEqualConfig]):
     """Processor for the less-than-or-equal operation."""
 
-    CONFIG_TYPE = LessThanOrEqualConfig
+    op = operator.le
 
 
-class GreaterThanConfig(ComparatorConfig):
+class GreaterThanConfig(BaseComparatorConfig):
     """Configuration class for the greater-than operation."""
 
-    op: Callable[[Any, Any], bool] = operator.gt
 
-
-class GreaterThan(Comparator):
+class GreaterThan(BaseComparator[GreaterThanConfig]):
     """Processor for the greater-than operation."""
 
-    CONFIG_TYPE = GreaterThanConfig
+    op = operator.gt
 
 
-class GreaterThanOrEqualConfig(ComparatorConfig):
+class GreaterThanOrEqualConfig(BaseComparatorConfig):
     """Configuration class for the greater-than-or-equal operation."""
 
-    op: Callable[[Any, Any], bool] = operator.ge
 
-
-class GreaterThanOrEqual(Comparator):
+class GreaterThanOrEqual(BaseComparator[GreaterThanOrEqualConfig]):
     """Processor for the greater-than-or-equal operation."""
 
-    CONFIG_TYPE = GreaterThanOrEqualConfig
+    op = operator.ge
 
 
 class LogicalOpInputRefs(BinaryOpInputRefs):
@@ -211,54 +203,55 @@ class LogicalOpInputRefs(BinaryOpInputRefs):
     """The second input feature. Must be of boolean type."""
 
 
-class LogicalOpConfig(BinaryOpConfig):
+class BaseLogicalOpConfig(BaseBinaryOpConfig):
     """Configuration class for logical operations."""
 
-    op: Callable[[bool, bool], bool]
-    """The logical operation to be applied. Takes two boolean inputs and returns a boolean output."""
+
+C = TypeVar("C", bound=BaseLogicalOpConfig)
 
 
-class LogicalOp(BinaryOp[BinaryOpConfig, LogicalOpInputRefs, BoolOutputRefs]):
+class BaseLogicalOp(BaseBinaryOp[C, LogicalOpInputRefs, BoolOutputRefs]):
     """Base class for logical operations.
 
     Logical operators take boolean inputs and return a boolean output.
     """
 
+    @abstractmethod
+    def op(self, a: bool, b: bool) -> bool:
+        """The logical operation to be applied.
 
-class LogicalAndConfig(LogicalOpConfig):
+        Takes two boolean inputs and returns a boolean output.
+        """
+
+
+class LogicalAndConfig(BaseLogicalOpConfig):
     """Configuration class for the logical AND operation."""
 
-    op: Callable[[bool, bool], bool] = operator.and_
 
-
-class LogicalAnd(LogicalOp):
+class LogicalAnd(BaseLogicalOp[LogicalAndConfig]):
     """Processor for the logical AND operation."""
 
-    CONFIG_TYPE = LogicalAndConfig
+    op = operator.and_
 
 
-class LogicalOrConfig(LogicalOpConfig):
+class LogicalOrConfig(BaseLogicalOpConfig):
     """Configuration class for the logical OR operation."""
 
-    op: Callable[[bool, bool], bool] = operator.or_
 
-
-class LogicalOr(LogicalOp):
+class LogicalOr(BaseLogicalOp[LogicalOrConfig]):
     """Processor for the logical OR operation."""
 
-    CONFIG_TYPE = LogicalOrConfig
+    op = operator.or_
 
 
-class LogicalXOrConfig(LogicalOpConfig):
+class LogicalXOrConfig(BaseLogicalOpConfig):
     """Configuration class for the logical XOR operation."""
 
-    op: Callable[[bool, bool], bool] = operator.xor
 
-
-class LogicalXOr(LogicalOp):
+class LogicalXOr(BaseLogicalOp[LogicalXOrConfig]):
     """Processor for the logical XOR operation."""
 
-    CONFIG_TYPE = LogicalXOrConfig
+    op = operator.xor
 
 
 class MathInputRefs(BinaryOpInputRefs):
@@ -277,20 +270,12 @@ class MathInputRefs(BinaryOpInputRefs):
     """The second input feature. Must be an integer or float."""
 
 
-class ClosedOpConfig(BinaryOpConfig):
+class BaseClosedOpConfig(BaseBinaryOpConfig):
     """Configuration class for closed mathematical operations."""
-
-    op: Callable[[int | float, int | float], int | float]
-    """The closed mathematical operation to be applied.
-    
-    Closed mathematical operations are operations where applying the operation to two operands 
-    always results in a value within the same data type domain as the operands, preserving 
-    closure within the set of values.
-    """
 
 
 def closed_op_infer_dtype(
-    config: ClosedOpConfig, inputs: MathInputRefs
+    config: BaseClosedOpConfig, inputs: MathInputRefs
 ) -> Value:
     """Infers the output data type for closed operations based on input types.
 
@@ -319,14 +304,17 @@ def closed_op_infer_dtype(
     return inputs.a.feature_ if a_dtype in FLOAT_TYPES else inputs.b.feature_
 
 
-class ClosedOpOutputRefs(BinaryOpOutputRefs):
+class ClosedOpOutputRefs(BaseBinaryOpOutputRefs):
     """Defines output references for closed mathematical operations."""
 
     result: Annotated[FeatureRef, LambdaOutputFeature(closed_op_infer_dtype)]
     """The result of the closed mathematical operation."""
 
 
-class ClosedOp(BinaryOp[ClosedOpConfig, MathInputRefs, ClosedOpOutputRefs]):
+C = TypeVar("C", bound=BaseClosedOpConfig)
+
+
+class BaseClosedOp(BaseBinaryOp[C, MathInputRefs, ClosedOpOutputRefs]):
     """Base class for closed mathematical operations.
 
     Closed operations are characterized by preserving closure within the set of values they operate on.
@@ -336,96 +324,97 @@ class ClosedOp(BinaryOp[ClosedOpConfig, MathInputRefs, ClosedOpOutputRefs]):
     result.
     """
 
+    @abstractmethod
+    def op(self, a: int | float, b: int | float) -> int | float:
+        """The closed mathematical operation to be applied.
 
-class AddConfig(ClosedOpConfig):
+        Closed mathematical operations are operations where applying the operation to two operands
+        always results in a value within the same data type domain as the operands, preserving
+        closure within the set of values.
+        """
+
+
+class AddConfig(BaseClosedOpConfig):
     """Configuration class for the addition operation."""
 
-    op: Callable[[int | float, int | float], int | float] = operator.add
 
-
-class Add(ClosedOp):
+class Add(BaseClosedOp[AddConfig]):
     """Processor for the addition operation."""
 
-    CONFIG_TYPE = AddConfig
+    op = operator.add
 
 
-class SubConfig(ClosedOpConfig):
+class SubConfig(BaseClosedOpConfig):
     """Configuration class for the subtraction operation."""
 
-    op: Callable[[int | float, int | float], int | float] = operator.sub
 
-
-class Sub(ClosedOp):
+class Sub(BaseClosedOp[SubConfig]):
     """Processor for the subtraction operation."""
 
-    CONFIG_TYPE = SubConfig
+    op = operator.sub
 
 
-class MulConfig(ClosedOpConfig):
+class MulConfig(BaseClosedOpConfig):
     """Configuration class for the multiplication operation."""
 
-    op: Callable[[int | float, int | float], int | float] = operator.mul
 
-
-class Mul(ClosedOp):
+class Mul(BaseClosedOp[MulConfig]):
     """Processor for the multiplication operation."""
 
-    CONFIG_TYPE = MulConfig
+    op = operator.mul
 
 
-class PowConfig(ClosedOpConfig):
+class PowConfig(BaseClosedOpConfig):
     """Configuration class for the power operation."""
 
-    op: Callable[[int | float, int | float], int | float] = operator.pow
 
-
-class Pow(ClosedOp):
+class Pow(BaseClosedOp[PowConfig]):
     """Processor for the power operation."""
 
-    CONFIG_TYPE = PowConfig
+    op = operator.pow
 
 
-class ModConfig(ClosedOpConfig):
+class ModConfig(BaseClosedOpConfig):
     """Configuration class for the modulus operation."""
 
-    op: Callable[[int | float, int | float], int | float] = operator.mod
 
-
-class Mod(ClosedOp):
+class Mod(BaseClosedOp[ModConfig]):
     """Processor for the modulus operation."""
 
-    CONFIG_TYPE = ModConfig
+    op = operator.mod
 
 
-class FloorDivConfig(BinaryOpConfig):
+class FloorDivConfig(BaseBinaryOpConfig):
     """Configuration class for the floor division operation."""
 
-    op: Callable[[int | float, int | float], int] = operator.floordiv
 
-
-class FloorDivOutputRefs(BinaryOpOutputRefs):
+class FloorDivOutputRefs(BaseBinaryOpOutputRefs):
     """Defines output references for the floor division operation."""
 
     result: Annotated[FeatureRef, OutputFeature(Value("int32"))]
     """The result of the floor division operation."""
 
 
-class FloorDiv(BinaryOp[FloorDivConfig, MathInputRefs, FloorDivOutputRefs]):
+class FloorDiv(
+    BaseBinaryOp[FloorDivConfig, MathInputRefs, FloorDivOutputRefs]
+):
     """Processor for the floor division operation."""
 
+    op = operator.floordiv
 
-class TrueDivConfig(BinaryOpConfig):
+
+class TrueDivConfig(BaseBinaryOpConfig):
     """Configuration class for the true division operation."""
 
-    op: Callable[[int | float, int | float], float] = operator.truediv
 
-
-class TrueDivOutputRefs(BinaryOpOutputRefs):
+class TrueDivOutputRefs(BaseBinaryOpOutputRefs):
     """Defines output references for the true division operation."""
 
     result: Annotated[FeatureRef, OutputFeature(Value("float32"))]
     """The result of the true division operation."""
 
 
-class TrueDiv(BinaryOp[TrueDivConfig, MathInputRefs, TrueDivOutputRefs]):
+class TrueDiv(BaseBinaryOp[TrueDivConfig, MathInputRefs, TrueDivOutputRefs]):
     """Processor for the true division operation."""
+
+    op = operator.truediv

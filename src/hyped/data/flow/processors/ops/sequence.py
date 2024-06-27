@@ -1,13 +1,14 @@
 """Module containing processor implementations for sequence operators."""
 import operator
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import deque
 from functools import partial
 from itertools import starmap
-from typing import Any, Callable, ClassVar, TypeVar
+from typing import Any, ClassVar, TypeVar
 
 import numpy as np
 from datasets import Sequence, Value
+from pydantic import ConfigDict
 from typing_extensions import Annotated
 
 from hyped.common.feature_checks import (
@@ -37,12 +38,17 @@ from hyped.data.flow.core.refs.outputs import (
 from hyped.data.flow.core.refs.ref import FeatureRef
 
 from .binary import (
-    BinaryOp,
-    BinaryOpConfig,
+    BaseBinaryOp,
+    BaseBinaryOpConfig,
+    BaseBinaryOpOutputRefs,
     BinaryOpInputRefs,
-    BinaryOpOutputRefs,
 )
-from .unary import UnaryOp, UnaryOpConfig, UnaryOpInputRefs, UnaryOpOutputRefs
+from .unary import (
+    BaseUnaryOp,
+    BaseUnaryOpConfig,
+    BaseUnaryOpOutputRefs,
+    UnaryOpInputRefs,
+)
 
 
 class SequenceLengthInputRefs(UnaryOpInputRefs):
@@ -52,22 +58,19 @@ class SequenceLengthInputRefs(UnaryOpInputRefs):
     """The sequence feature reference to get the length of."""
 
 
-class SequenceLengthOutputRefs(UnaryOpOutputRefs):
+class SequenceLengthOutputRefs(BaseUnaryOpOutputRefs):
     """Output references for the Sequence Length operation."""
 
     result: Annotated[FeatureRef, OutputFeature(Value("int64"))]
     """The feature reference to the length of the sequence."""
 
 
-class SequenceLengthConfig(UnaryOpConfig):
+class SequenceLengthConfig(BaseUnaryOpConfig):
     """Configuration class for the Sequence Length operation."""
-
-    op: Callable[[list[Any]], int] = len
-    """The operation to get the length of the sequence."""
 
 
 class SequenceLength(
-    UnaryOp[
+    BaseUnaryOp[
         SequenceLengthConfig, SequenceLengthInputRefs, SequenceLengthOutputRefs
     ]
 ):
@@ -76,14 +79,11 @@ class SequenceLength(
     This class defines the operation to get the length of a sequence feature.
     """
 
-    CONFIG_TYPE = SequenceLengthConfig
+    op = len
 
 
-class SequenceConcatConfig(BinaryOpConfig):
+class SequenceConcatConfig(BaseBinaryOpConfig):
     """Configuration class for the Concat operation."""
-
-    op: Callable[[list[Any], list[Any]], list[Any]] = operator.concat
-    """The concatenate operation."""
 
 
 class SequenceConcatInputRefs(BinaryOpInputRefs):
@@ -141,7 +141,7 @@ def infer_concat_output_dtype(
     )
 
 
-class SequenceConcatOutputRefs(BinaryOpOutputRefs):
+class SequenceConcatOutputRefs(BaseBinaryOpOutputRefs):
     """Output references for the Concat operation."""
 
     result: Annotated[
@@ -151,7 +151,7 @@ class SequenceConcatOutputRefs(BinaryOpOutputRefs):
 
 
 class SequenceConcat(
-    BinaryOp[
+    BaseBinaryOp[
         SequenceConcatConfig, SequenceConcatInputRefs, SequenceConcatOutputRefs
     ]
 ):
@@ -159,6 +159,8 @@ class SequenceConcat(
 
     This class defines the concatenation operation for sequence features.
     """
+
+    op = operator.concat
 
 
 class SequenceGetItemInputRefs(InputRefs):
@@ -406,12 +408,16 @@ class SequenceValueOpInputRefs(InputRefs):
             )
 
 
-C = TypeVar("C", bound=BaseDataProcessorConfig)
+class BaseSequenceValueOpConfig(BaseDataProcessorConfig):
+    """Base Configuration class for sequence-value operations."""
+
+
+C = TypeVar("C", bound=BaseSequenceValueOpConfig)
 I = TypeVar("I", bound=SequenceValueOpInputRefs)
 O = TypeVar("O", bound=OutputRefs)
 
 
-class SequenceValueOp(BaseDataProcessor[C, I, O], ABC):
+class BaseSequenceValueOp(BaseDataProcessor[C, I, O], ABC):
     """Base class for sequence value operations.
 
     This class provides a template for processing operations that involve a sequence and a value.
@@ -421,6 +427,10 @@ class SequenceValueOp(BaseDataProcessor[C, I, O], ABC):
     """
 
     _OUTPUT_KEY: ClassVar[str]
+
+    @abstractmethod
+    def op(self, seq: list[Any], val: Any) -> Any:
+        """The sequence-value operation to apply."""
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int, io: IOContext
@@ -438,28 +448,27 @@ class SequenceValueOp(BaseDataProcessor[C, I, O], ABC):
         """
         return {
             type(self)._OUTPUT_KEY: [
-                self.config.op(a, b)
+                self.op(a, b)
                 for a, b in zip(inputs["sequence"], inputs["value"])
             ]
         }
 
 
-class SequenceContainsOutputRefs(BinaryOpOutputRefs):
+class SequenceContainsOutputRefs(OutputRefs):
     """Output references for the :code:`contains` operation."""
 
     contains: Annotated[FeatureRef, OutputFeature(Value("bool"))]
     """The feature reference to the result of the :code:`contains` operation."""
 
 
-class SequenceContainsConfig(BinaryOpConfig):
+class SequenceContainsConfig(BaseSequenceValueOpConfig):
     """Configuration class for the :code:`contains` operation."""
 
-    op: Callable[[list[Any], Any], bool] = operator.contains
     """The :code:`contains` operation."""
 
 
 class SequenceContains(
-    SequenceValueOp[
+    BaseSequenceValueOp[
         SequenceContainsConfig,
         SequenceValueOpInputRefs,
         SequenceContainsOutputRefs,
@@ -471,24 +480,22 @@ class SequenceContains(
     """
 
     _OUTPUT_KEY: ClassVar[str] = "contains"
+    op = operator.contains
 
 
-class SequenceCountOfOutputRefs(BinaryOpOutputRefs):
+class SequenceCountOfOutputRefs(OutputRefs):
     """Output references for the :code:`countOf` operation."""
 
     count: Annotated[FeatureRef, OutputFeature(Value("int64"))]
     """The feature reference to the result of the :code:`countOf` operation."""
 
 
-class SequenceCountOfConfig(BinaryOpConfig):
+class SequenceCountOfConfig(BaseSequenceValueOpConfig):
     """Configuration class for the :code:`countOf operation."""
-
-    op: Callable[[list[Any], Any], int] = operator.countOf
-    """The :code:`countOf` operation."""
 
 
 class SequenceCountOf(
-    SequenceValueOp[
+    BaseSequenceValueOp[
         SequenceCountOfConfig,
         SequenceValueOpInputRefs,
         SequenceCountOfOutputRefs,
@@ -500,24 +507,22 @@ class SequenceCountOf(
     """
 
     _OUTPUT_KEY: ClassVar[str] = "count"
+    op = operator.countOf
 
 
-class SequenceIndexOfOutputRefs(BinaryOpOutputRefs):
+class SequenceIndexOfOutputRefs(OutputRefs):
     """Output references for the :code:`indexOf` operation."""
 
     index: Annotated[FeatureRef, OutputFeature(Value("int64"))]
     """The feature reference to the result of the :code:`indexOf` operation."""
 
 
-class SequenceIndexOfConfig(BinaryOpConfig):
+class SequenceIndexOfConfig(BaseSequenceValueOpConfig):
     """Configuration class for the :code:`indexOf` operation."""
-
-    op: Callable[[list[Any], Any], int] = operator.indexOf
-    """The :code:`indexOf` operation."""
 
 
 class SequenceIndexOf(
-    SequenceValueOp[
+    BaseSequenceValueOp[
         SequenceIndexOfConfig,
         SequenceValueOpInputRefs,
         SequenceIndexOfOutputRefs,
@@ -529,3 +534,90 @@ class SequenceIndexOf(
     """
 
     _OUTPUT_KEY: ClassVar[str] = "index"
+    op = operator.indexOf
+
+
+class MultiSequenceOpInputRefs(InputRefs):
+    """Input references for MultiSequenceOp."""
+
+    sequences: Annotated[FeatureRef, CheckFeatureIsSequence(Sequence)]
+    """The sequence of input sequences to process. This is validated to be a nested sequence."""
+
+
+class BaseMultiSequenceOpOutputRefs(OutputRefs):
+    """Output references for MultiSequenceOp."""
+
+    result: Annotated[FeatureRef, OutputFeature(None)]
+    """A reference to the result output feature."""
+
+
+class BaseMultiSequenceOpConfig(BaseDataProcessorConfig):
+    """Configuration for MultiSequenceOp."""
+
+
+C = TypeVar("C", bound=BaseMultiSequenceOpConfig)
+I = TypeVar("I", bound=MultiSequenceOpInputRefs)
+O = TypeVar("O", bound=BaseMultiSequenceOpOutputRefs)
+
+
+class BaseMultiSequenceOp(BaseDataProcessor[C, I, O], ABC):
+    """Base class for multi-sequence operations.
+
+    Inherits from BaseDataProcessor to process batches of sequences using a specified operation.
+    """
+
+    @abstractmethod
+    def op(self, *args: list[Any]) -> list[Any]:
+        """The operation to be performed on the sequences."""
+
+    async def batch_process(
+        self, inputs: Batch, index: list[int], rank: int, io: IOContext
+    ) -> Batch:
+        """Process a batch of input sequences using the configured operation.
+
+        Args:
+            inputs (Batch): The input batch containing sequences.
+            index (list[int]): List of indices for the current batch.
+            rank (int): Rank of the process.
+            io (IOContext): IO context for processing.
+
+        Returns:
+            Batch: The processed batch with the result of the operation.
+        """
+        return {
+            "result": [list(self.op(*seqs)) for seqs in inputs["sequences"]]
+        }
+
+
+class SequenceZipOutputRefs(BaseMultiSequenceOpOutputRefs):
+    """Output references for SequenceZip operation."""
+
+    result: Annotated[
+        FeatureRef,
+        LambdaOutputFeature(
+            lambda _, i: Sequence(
+                Sequence(
+                    get_sequence_feature(i.sequences.feature_).feature,
+                    length=get_sequence_length(i.sequences.feature_),
+                ),
+                length=get_sequence_length(
+                    get_sequence_feature(i.sequences.feature_)
+                ),
+            )
+        ),
+    ]
+    """A reference to the zipped sequence."""
+
+
+class SequenceZipConfig(BaseMultiSequenceOpConfig):
+    """Configuration for SequenceZip operation."""
+
+
+class SequenceZip(
+    BaseMultiSequenceOp[
+        SequenceZipConfig, MultiSequenceOpInputRefs, SequenceZipOutputRefs
+    ]
+):
+    """Data Processor for zipping sequences."""
+
+    op = zip

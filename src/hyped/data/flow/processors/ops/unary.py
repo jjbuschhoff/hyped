@@ -24,8 +24,8 @@ Specific subclasses of :class:`UnaryOp` implement various types of operations:
 - :class:`UnaryLogicalOp`: Base class for logical unary operations, such as logical not.
 """
 import operator
-from abc import ABC
-from typing import Annotated, Any, Callable, TypeVar
+from abc import ABC, abstractmethod
+from typing import Annotated, Any, TypeVar
 
 from datasets import Value
 
@@ -43,10 +43,6 @@ from hyped.data.flow.core.refs.outputs import (
 )
 from hyped.data.flow.core.refs.ref import FeatureRef
 
-INTS = {"int8", "int16", "int32", "int64"}
-FLOATS = {"float16", "float32", "float64"}
-BOOLS = {"bool"}
-
 
 class UnaryOpInputRefs(InputRefs):
     """Defines input references for unary operations."""
@@ -55,27 +51,29 @@ class UnaryOpInputRefs(InputRefs):
     """The input feature. Can be any value type."""
 
 
-class UnaryOpOutputRefs(OutputRefs, ABC):
+class BaseUnaryOpOutputRefs(OutputRefs, ABC):
     """Defines output references for unary operations."""
 
     result: Annotated[FeatureRef, OutputFeature(None)]
     """The result of the unary operation. Placeholder type."""
 
 
-class UnaryOpConfig(BaseDataProcessorConfig):
+class BaseUnaryOpConfig(BaseDataProcessorConfig):
     """Configuration class for unary operations."""
 
-    op: Callable[[Any], Any]
-    """The unary operation to be applied."""
 
-
-C = TypeVar("C", bound=UnaryOpConfig)
+C = TypeVar("C", bound=BaseUnaryOpConfig)
 I = TypeVar("I", bound=UnaryOpInputRefs)
-O = TypeVar("O", bound=UnaryOpOutputRefs)
+O = TypeVar("O", bound=BaseUnaryOpOutputRefs)
 
 
-class UnaryOp(BaseDataProcessor[C, I, O], ABC):
+class BaseUnaryOp(BaseDataProcessor[C, I, O], ABC):
     """Base class for unary operations."""
+
+    @abstractmethod
+    def op(self, val: Any) -> Any:
+        """The unary operation to apply."""
+        ...
 
     async def batch_process(
         self, inputs: Batch, index: list[int], rank: int, io: IOContext
@@ -91,10 +89,10 @@ class UnaryOp(BaseDataProcessor[C, I, O], ABC):
         Returns:
             Batch: The batch containing the result of the unary operation.
         """
-        return {"result": [self.config.op(a) for a in inputs["a"]]}
+        return {"result": [self.op(a) for a in inputs["a"]]}
 
 
-class MathUnaryOpOutputRefs(UnaryOpOutputRefs):
+class MathUnaryOpOutputRefs(BaseUnaryOpOutputRefs):
     """Defines output references for mathematical unary operations."""
 
     result: Annotated[
@@ -104,52 +102,33 @@ class MathUnaryOpOutputRefs(UnaryOpOutputRefs):
     """The result of the mathematical unary operation."""
 
 
-class LogicalUnaryOpOutputRefs(UnaryOpOutputRefs):
-    """Defines output references for logical unary operations."""
-
-    result: Annotated[FeatureRef, OutputFeature(Value("bool"))]
-    """The result of the logical unary operation. Represents a boolean feature type."""
-
-
-class MathUnaryOpConfig(UnaryOpConfig):
-    """Configuration class for mathematical unary operations."""
-
-    op: Callable[[int | float], int | float]
-    """The mathematical unary operation to be applied."""
-
-
-class LogicalUnaryOpConfig(UnaryOpConfig):
-    """Configuration class for logical unary operations."""
-
-    op: Callable[[bool], bool]
-    """The logical unary operation to be applied."""
-
-
-class NegConfig(MathUnaryOpConfig):
+class NegConfig(BaseUnaryOpConfig):
     """Configuration class for the negation operation."""
 
-    op: Callable[[int | float], int | float] = operator.neg
 
-
-class Neg(UnaryOp[NegConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]):
+class Neg(BaseUnaryOp[NegConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]):
     """Processor for the negation operation."""
 
+    op = operator.neg
 
-class AbsConfig(MathUnaryOpConfig):
+
+class AbsConfig(BaseUnaryOpConfig):
     """Configuration class for the absolute operation."""
 
-    op: Callable[[int | float], int | float] = operator.abs
 
-
-class Abs(UnaryOp[AbsConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]):
+class Abs(BaseUnaryOp[AbsConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]):
     """Processor for the absolute operation."""
 
+    op = operator.abs
 
-class InvertConfig(MathUnaryOpConfig):
+
+class InvertConfig(BaseUnaryOpConfig):
     """Configuration class for the bitwise inversion operation."""
 
-    op: Callable[[int], int] = operator.invert
 
-
-class Invert(UnaryOp[InvertConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]):
+class Invert(
+    BaseUnaryOp[InvertConfig, UnaryOpInputRefs, MathUnaryOpOutputRefs]
+):
     """Processor for the bitwise inversion operation."""
+
+    op = operator.invert

@@ -208,7 +208,7 @@ def test_len_op():
         "hyped.data.flow.processors.ops.sequence.SequenceLength"
     ) as mock:
         # test constant length sequence
-        out = ops.len_(flow.src_features.constant_seq)
+        out = flow.src_features.constant_seq.length_()
         # make sure the processor was not called and check the output
         assert not mock().call.called
         assert out == 5
@@ -217,17 +217,17 @@ def test_len_op():
         "hyped.data.flow.processors.ops.sequence.SequenceLength"
     ) as mock:
         # test dynamic length sequence
-        out = ops.len_(flow.src_features.dynamic_seq)
+        out = flow.src_features.dynamic_seq.length_()
         # make sure processor was called correctly
         mock().call.assert_called_once_with(a=flow.src_features.dynamic_seq)
 
     with pytest.raises(NotImplementedError):
         # TODO: string features are not supported yet
-        ops.len_(flow.src_features.str)
+        flow.src_features.str.length_()
 
     with pytest.raises(TypeError):
         # test with invalid feature
-        ops.len_(flow.src_features.inv)
+        flow.src_features.inv.length_()
 
 
 def test_concat_op():
@@ -255,7 +255,6 @@ def test_concat_op():
     with pytest.raises(NotImplementedError):
         # TODO: string features are not supported yet
         ops.concat(flow.src_features.strA, flow.src_features.strB)
-        ops.len_(flow.src_features.str)
 
     with pytest.raises(TypeError):
         # test with invalid feature
@@ -300,7 +299,7 @@ def test_sequence_get_set_item():
     "op, seq_proc_type",
     [
         (
-            ops.contains,
+            FeatureRef.contains_,
             "hyped.data.flow.processors.ops.sequence.SequenceContains",
         ),
         (
@@ -341,3 +340,40 @@ def test_value_lookup_op(op, seq_proc_type):
     with pytest.raises(TypeError):
         # test with invalid feature
         op(flow.src_features.inv, flow.src_features.val)
+
+
+@pytest.mark.parametrize(
+    "op, proc_type",
+    [(ops.zip_, "hyped.data.flow.processors.ops.sequence.SequenceZip")],
+)
+def test_multi_sequence_op(op, proc_type):
+    flow = DataFlow(
+        Features(
+            {
+                "a": Sequence(Value("string")),
+                "b": Sequence(Value("string")),
+                "c": Sequence(Value("string")),
+            }
+        )
+    )
+
+    with (
+        patch(proc_type) as proc_mock,
+        patch("hyped.data.flow.ops.collect") as collect_mock,
+    ):
+        # call the operator
+        op(
+            flow.src_features.a,
+            flow.src_features.b,
+            flow.src_features.c,
+        )
+        # make sure the features are collected before
+        collect_mock.assert_called_once_with(
+            [
+                flow.src_features.a,
+                flow.src_features.b,
+                flow.src_features.c,
+            ]
+        )
+        # and the processor is called on the collected features
+        proc_mock().call.assert_called_once_with(sequences=collect_mock())
