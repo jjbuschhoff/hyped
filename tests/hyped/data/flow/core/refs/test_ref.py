@@ -294,7 +294,7 @@ class TestFeatureRef(object):
             (operator.neg, "hyped.data.flow.ops.neg", "int32"),
             (operator.abs, "hyped.data.flow.ops.abs_", "int32"),
             (operator.invert, "hyped.data.flow.ops.invert", "int32"),
-            (len, "hyped.data.flow.ops.len_", "string"),
+            (FeatureRef.length_, "hyped.data.flow.ops.len_", "string"),
         ],
     )
     def test_unary_ops(self, op, op_fn, dtype):
@@ -333,7 +333,7 @@ class TestFeatureRef(object):
             (operator.add, "hyped.data.flow.ops.concat", "string"),
             (operator.concat, "hyped.data.flow.ops.concat", "string"),
             # in operator for sequences and string-likes
-            (operator.contains, "hyped.data.flow.ops.contains", "string"),
+            (FeatureRef.contains_, "hyped.data.flow.ops.contains", "string"),
         ],
     )
     def test_binary_ops(self, op, op_fn, dtype):

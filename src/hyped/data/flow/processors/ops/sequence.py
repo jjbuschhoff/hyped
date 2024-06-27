@@ -8,7 +8,6 @@ from typing import Any, ClassVar, TypeVar
 
 import numpy as np
 from datasets import Sequence, Value
-from pydantic import ConfigDict
 from typing_extensions import Annotated
 
 from hyped.common.feature_checks import (
