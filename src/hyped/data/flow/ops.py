@@ -703,4 +703,6 @@ def zip_(*sequences: FeatureRef) -> FeatureRef:
         FeatureRef: A FeatureRef instance representing the zipped sequences.
     """
     # zip collected sequences
-    return sequence.SequenceZip().call(sequences=collect(list(sequences)))
+    return (
+        sequence.SequenceZip().call(sequences=collect(list(sequences))).result
+    )
