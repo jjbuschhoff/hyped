@@ -32,6 +32,7 @@ from datasets import Features, Value
 from hyped.common.feature_key import FeatureKey
 from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
+    CollectFeaturesInputRefsModel,
     NestedContainer,
 )
 
@@ -176,7 +177,7 @@ class DataFlowGraphOptimizer(object):
                                 collection = NestedContainer[FeatureRef](
                                     data=named_refs
                                 )
-                                inputs = obj._in_refs_type(
+                                inputs = CollectFeaturesInputRefsModel(
                                     collection=collection
                                 )
                             else:
@@ -188,6 +189,9 @@ class DataFlowGraphOptimizer(object):
                             assert obj._in_refs_type is type(None)
                             inputs = None
 
+                        # validate inputs
+                        if not obj._in_refs_validator.no_refs_type:
+                            inputs = obj._in_refs_validator.validate(inputs)
                         # add the node to the optimized graph
                         identifier.node_id = cse_graph.add_processor_node(
                             obj, inputs, out_features, node_id=node_id

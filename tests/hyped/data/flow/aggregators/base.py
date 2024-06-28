@@ -51,7 +51,8 @@ class BaseDataAggregatorTest:
             k: FeatureRef(key_=k, feature_=v, node_id_=n, flow_=f)
             for k, v in cls.input_features.items()
         }
-        return aggregator._in_refs_type(**input_refs)
+        input_refs = aggregator._in_refs_type(**input_refs)
+        return aggregator._in_refs_validator.validate(input_refs)
 
     @pytest.fixture
     def output_refs(self, aggregator, input_refs) -> OutputRefs:

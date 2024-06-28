@@ -18,7 +18,7 @@ from datasets import Features
 from hyped.base.config import BaseConfig, BaseConfigurable
 from hyped.base.generic import solve_typevar
 
-from ..refs.inputs import InputRefs
+from ..refs.inputs import InputRefs, InputRefsValidator
 from ..refs.outputs import OutputRefs
 
 
@@ -93,3 +93,5 @@ class BaseNode(BaseConfigurable[C], Generic[C, I, O]):
         # get input and output reference types from typevars
         self._in_refs_type = solve_typevar(type(self), I)
         self._out_refs_type = solve_typevar(type(self), O)
+        # create input ref validator instance
+        self._in_refs_validator = InputRefsValidator(self._in_refs_type)

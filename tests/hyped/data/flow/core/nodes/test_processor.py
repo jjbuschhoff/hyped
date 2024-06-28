@@ -68,6 +68,7 @@ class TestBaseDataProcessor:
                 feature_=Value("int32"),
             )
         )
+        mock_inputs = proc._in_refs_validator.validate(mock_inputs)
 
         # this should add the processor to the mock flow
         out = proc.call(x=mock_inputs.x)

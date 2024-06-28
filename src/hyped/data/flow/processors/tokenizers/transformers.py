@@ -9,7 +9,7 @@ the output features generated during tokenization.
 """
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, NotRequired
 
 from datasets import Sequence, Value
 from transformers import AutoTokenizer
@@ -55,18 +55,18 @@ class TransformersTokenizerInputRefs(InputRefs):
     """Input feature representing the input text."""
 
     # optional input features
-    text_pair: Annotated[
-        FeatureRef, CheckFeatureEquals(Value("string"))
+    text_pair: NotRequired[
+        Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
     ] = NONE_REF
     """Optional input feature representing the paired text."""
 
-    text_target: Annotated[
-        FeatureRef, CheckFeatureEquals(Value("string"))
+    text_target: NotRequired[
+        Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
     ] = NONE_REF
     """Optional input feature representing the target text."""
 
-    text_pair_target: Annotated[
-        FeatureRef, CheckFeatureEquals(Value("string"))
+    text_pair_target: NotRequired[
+        Annotated[FeatureRef, CheckFeatureEquals(Value("string"))]
     ] = NONE_REF
     """Optional input feature representing the paired target text."""
 

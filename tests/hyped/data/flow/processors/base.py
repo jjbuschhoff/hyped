@@ -14,7 +14,7 @@ from hyped.data.flow.core.nodes.processor import (
     Batch,
     IOContext,
 )
-from hyped.data.flow.core.refs.inputs import InputRefs
+from hyped.data.flow.core.refs.inputs import InputRefsModel
 from hyped.data.flow.core.refs.outputs import OutputRefs
 from hyped.data.flow.core.refs.ref import FeatureRef
 
@@ -62,7 +62,7 @@ class BaseDataProcessorTest:
     @pytest.fixture
     def input_refs(
         self, processor, input_verification_error_handler
-    ) -> None | InputRefs:
+    ) -> None | InputRefsModel:
         cls = type(self)
 
         n, f = "in", MagicMock()
@@ -72,7 +72,8 @@ class BaseDataProcessorTest:
         }
 
         with input_verification_error_handler:
-            return processor._in_refs_type(**input_refs)
+            input_refs = processor._in_refs_type(**input_refs)
+            return processor._in_refs_validator.validate(input_refs)
 
     @pytest.fixture
     def output_refs(self, processor, input_refs) -> None | OutputRefs:

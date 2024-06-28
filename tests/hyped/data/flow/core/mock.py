@@ -11,7 +11,11 @@ from hyped.data.flow.core.nodes.processor import (
     BaseDataProcessor,
     BaseDataProcessorConfig,
 )
-from hyped.data.flow.core.refs.inputs import FeatureValidator, InputRefs
+from hyped.data.flow.core.refs.inputs import (
+    FeatureValidator,
+    InputRefs,
+    InputRefsValidator,
+)
 from hyped.data.flow.core.refs.outputs import OutputFeature, OutputRefs
 from hyped.data.flow.core.refs.ref import FeatureRef
 
@@ -19,6 +23,9 @@ from hyped.data.flow.core.refs.ref import FeatureRef
 class MockInputRefs(InputRefs):
     a: Annotated[FeatureRef, FeatureValidator(lambda *args: None)]
     b: Annotated[FeatureRef, FeatureValidator(lambda *args: None)]
+
+
+mock_input_refs_validator = InputRefsValidator(MockInputRefs)
 
 
 class MockOutputRefs(OutputRefs):

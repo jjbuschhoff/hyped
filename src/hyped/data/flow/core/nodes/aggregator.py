@@ -208,7 +208,7 @@ class BaseDataAggregator(BaseNode[C, I, O], ABC):
         Returns:
             set[str]: The set of input keys.
         """
-        return self._in_refs_type.required_keys
+        return self._in_refs_validator.required_keys
 
     def call(self, **kwargs) -> O:
         """Call the data aggregator with the provided inputs.
@@ -225,6 +225,7 @@ class BaseDataAggregator(BaseNode[C, I, O], ABC):
         """
         # build inputs from keyword arguments
         inputs = self._in_refs_type(**kwargs)
+        inputs = self._in_refs_validator.validate(inputs)
         # compute output features and add the processor to the data flow
         out_features = self._out_refs_type.build_features(self.config, inputs)
         node_id = inputs.flow.add_processor_node(self, inputs, out_features)

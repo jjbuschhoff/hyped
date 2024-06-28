@@ -11,7 +11,7 @@ from hyped.data.flow.processors.ops.collect import (
     NestedContainer,
 )
 
-from .mock import MockInputRefs, MockProcessor
+from .mock import MockInputRefs, MockProcessor, mock_input_refs_validator
 
 
 def new_graph():
@@ -31,6 +31,7 @@ def add_processor(graph, node_A, node_B, **kwargs):
         a=graph.get_node_output_ref(node_A),
         b=graph.get_node_output_ref(node_B),
     )
+    i = mock_input_refs_validator.validate(i)
     o = p._out_refs_type.build_features(p.config, i)
     # add new processor to graph
     return graph.add_processor_node(p, i, o)

@@ -22,7 +22,7 @@ from hyped.data.flow.core.nodes.aggregator import BaseDataAggregator
 from hyped.data.flow.core.nodes.base import BaseNode
 from hyped.data.flow.core.nodes.const import Const
 from hyped.data.flow.core.nodes.processor import BaseDataProcessor
-from hyped.data.flow.core.refs.inputs import InputRefs
+from hyped.data.flow.core.refs.inputs import InputRefsModel
 from hyped.data.flow.core.refs.outputs import OutputRefs
 from hyped.data.flow.core.refs.ref import FeatureRef
 
@@ -296,7 +296,7 @@ class DataFlowGraph(nx.MultiDiGraph):
     def add_processor_node(
         self,
         obj: BaseNode,
-        inputs: None | InputRefs,
+        inputs: None | InputRefsModel,
         output_features: datasets.Features,
         node_id: None | str = None,
     ) -> str:

@@ -9,7 +9,7 @@ from hyped.data.flow.core.refs.ref import FeatureRef
 from hyped.data.flow.processors.ops.collect import (
     CollectFeatures,
     CollectFeaturesConfig,
-    CollectFeaturesInputRefs,
+    CollectFeaturesInputRefsModel,
     CollectFeaturesOutputRefs,
     NestedContainer,
 )
@@ -88,7 +88,7 @@ lst_ref = FeatureRef(
 
 
 def test_invalid_sequence():
-    inputs = CollectFeaturesInputRefs(
+    inputs = CollectFeaturesInputRefsModel(
         collection=NestedContainer[FeatureRef](data=[int_ref, str_ref])
     )
     with pytest.raises(TypeError):
@@ -107,7 +107,7 @@ class BaseCollectFeaturesTest(BaseDataProcessorTest):
     @pytest.fixture
     def input_refs(self) -> InputRefs:
         cls = type(self)
-        return CollectFeaturesInputRefs(
+        return CollectFeaturesInputRefsModel(
             collection=NestedContainer[FeatureRef](data=cls.collection)
         )
 

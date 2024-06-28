@@ -79,12 +79,14 @@ class TestDataFlow:
         # create processor
         p = MockProcessor()
         i = MockInputRefs(a=agg_ref.y, b=agg_ref.y)
+        i = p._in_refs_validator.validate(i)
         o = p._out_refs_type.build_features(p.config, i)
         # add processor to graph
         node_id = graph.add_processor_node(p, i, o)
         val_ref = graph.get_node_output_ref(node_id)
 
         i = MockInputRefs(a=agg_ref.y, b=cst_ref.value)
+        i = p._in_refs_validator.validate(i)
         o = p._out_refs_type.build_features(p.config, i)
         # add processor to graph
         node_id = graph.add_processor_node(p, i, o)

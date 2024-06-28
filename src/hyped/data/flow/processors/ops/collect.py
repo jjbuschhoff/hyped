@@ -32,7 +32,7 @@ from hyped.data.flow.core.nodes.processor import (
     Batch,
     IOContext,
 )
-from hyped.data.flow.core.refs.inputs import InputRefs
+from hyped.data.flow.core.refs.inputs import InputRefs, InputRefsModel
 from hyped.data.flow.core.refs.outputs import LambdaOutputFeature, OutputRefs
 from hyped.data.flow.core.refs.ref import FeatureRef
 
@@ -53,16 +53,11 @@ def _path_to_str(path: tuple[Hashable | int]) -> str:
     return ".".join(map(str, path))
 
 
-class CollectFeaturesInputRefs(InputRefs):
+class CollectFeaturesInputRefsModel(InputRefsModel):
     """Input references class for the :class:`CollectFeatures` data processor."""
 
     collection: NestedContainer[FeatureRef]
     """The nested collection of feature references to collect."""
-
-    @classmethod
-    def type_validator(cls) -> None:
-        """Validate the type of input references."""
-        pass
 
     @property
     def named_refs(self) -> dict[str, FeatureRef]:
@@ -141,7 +136,7 @@ class CollectFeaturesOutputRefs(OutputRefs):
 class CollectFeatures(
     BaseDataProcessor[
         CollectFeaturesConfig,
-        CollectFeaturesInputRefs,
+        None,  # unused
         CollectFeaturesOutputRefs,
     ]
 ):
@@ -151,6 +146,30 @@ class CollectFeatures(
     `NestedCollection` object. It traverses the nested structure and gathers
     the features, maintaining the structure defined by the collection.
     """
+
+    def call(
+        self, collection: NestedContainer[FeatureRef]
+    ) -> CollectFeaturesOutputRefs:
+        """Collect features from a nested container and return output references.
+
+        This method takes a nested container of feature references and returns
+        the collected feature references wrapped in an output references object.
+
+        Args:
+            collection (NestedContainer[FeatureRef]): A nested container holding
+                feature references to be collected.
+
+        Returns:
+            CollectFeaturesOutputRefs: An object containing the references to the
+            collected features, preserving the structure defined by the input
+            collection.
+        """
+        inputs = CollectFeaturesInputRefsModel(collection=collection)
+        # compute output features and add the processor to the data flow
+        out_features = self._out_refs_type.build_features(self.config, inputs)
+        node_id = inputs.flow.add_processor_node(self, inputs, out_features)
+        # return the output feature refs
+        return self._out_refs_type(inputs.flow, node_id, out_features)
 
     @cache
     def _lookup(self, io: IOContext) -> NestedContainer[str]:

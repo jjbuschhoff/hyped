@@ -41,8 +41,18 @@ Usage Example:
 """
 from __future__ import annotations
 
-from typing import Callable
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    ForwardRef,
+    NotRequired,
+    TypedDict,
+    get_args,
+    get_origin,
+)
 
+import pydantic
 from datasets.features.features import Features, FeatureType
 from pydantic import AfterValidator, ConfigDict
 
@@ -258,54 +268,32 @@ class AnyFeatureType(FeatureValidator):
         super(AnyFeatureType, self).__init__(lambda r, f: None)
 
 
-class InputRefs(BaseModelWithTypeValidation):
+class InputRefs(TypedDict):
     """A collection of input references used by data processors.
 
     This class represents a collection of input references used by
     data processors. It ensures that all input references adhere to
-    specified feature types using pydantic validators. It also supports
-    optional input arguments, which can be specified by setting the field
-    to the `NONE_REF` instance. Optional input arguments are not required
-    to be present in the input data.
+    specified feature types using validators.
+
+    It also supports optional input arguments, which can be specified
+    by the `typing.NotRequired` annotation. Optional input arguments
+    are not required to be present in the input data. Keep that in
+    mind when implementing a custom processor.
+    """
+
+
+class InputRefsModel(pydantic.BaseModel):
+    """Model to handle input references for data processing.
+
+    This class is responsible for managing and validating input references
+    which are instances of `FeatureRef`. It provides properties to access
+    these references, their names, the associated data flow graph, and the
+    dataset features.
 
     Raises:
         TypeError: If any input reference does not conform to the
-            specified feature type validation.
+        specified feature type validation.
     """
-
-    model_config = ConfigDict(validate_default=True)
-
-    @classmethod
-    def type_validator(cls) -> None:
-        """Validate the type of input references.
-
-        This method validates that all input reference fields are instances of
-        FeatureRef and are annotated with FeatureValidator instances.
-
-        Raises:
-            TypeError: If any input reference does not conform to the specified
-                feature type validation.
-        """
-        for name, field in cls.model_fields.items():
-            # each field should be a feature ref with
-            # an feature validator annotation
-            if not (
-                issubclass(field.annotation, FeatureRef)
-                and len(field.metadata) == 1
-                and isinstance(field.metadata[0], FeatureValidator)
-            ):
-                raise TypeError(name)
-
-    @classmethod
-    @property
-    def required_keys(cls) -> set[str]:
-        """Get the required keys.
-
-        Returns:
-            set[str]: A set of keys corresponding to the required
-            input reference fields.
-        """
-        return set(k for k, f in cls.model_fields.items() if f.is_required())
 
     @property
     def refs(self) -> list[FeatureRef]:
@@ -363,3 +351,132 @@ class InputRefs(BaseModelWithTypeValidation):
         return Features(
             {key: ref.feature_ for key, ref in self.named_refs.items()}
         )
+
+
+class InputRefsValidator(object):
+    """Validate the type of input references.
+
+    This class validates that all input reference fields are instances of
+    FeatureRef and are annotated with FeatureValidator instances.
+
+    It further provides functionality to validate a input references
+    according to their annotated validators.
+
+    Raises:
+        TypeError: If any input reference does not conform to the specified
+            feature type validation.
+    """
+
+    def __init__(self, refs_type: type[InputRefs | None]) -> None:
+        """Initialize the InputRefsValidator with a given reference type.
+
+        Args:
+            refs_type (type[InputRefs | None]): The type of input references to be validated.
+        """
+        # check if the provided reference type is valid
+        self.refs_type = refs_type
+        self.no_refs_type = refs_type is type(None)
+        # abort processing of the input reference type
+        if self.no_refs_type:
+            return
+
+        # evaluate forward references
+        annotations = {
+            key: val
+            if not isinstance(val, ForwardRef)
+            else val._evaluate(globals(), locals(), frozenset())
+            for key, val in refs_type.__annotations__.items()
+        }
+        # get required and optional keys
+        req_keys = (
+            key
+            for key, val in annotations.items()
+            if get_origin(val) is not NotRequired
+        )
+        opt_keys = (
+            key
+            for key, val in annotations.items()
+            if get_origin(val) is NotRequired
+        )
+        # build pydantic field annotations from refs type
+        req_fields = {
+            key: (annotations[key], pydantic.Field()) for key in req_keys
+        }
+        opt_fields = {
+            key: (
+                # unpack not required annotation and set
+                # default value to none reference
+                get_args(annotations[key])[0],
+                pydantic.Field(default=NONE_REF),
+            )
+            for key in opt_keys
+        }
+        # build a pydantic model type
+        self.model_type = pydantic.create_model(
+            "InputRefsValidationModel",
+            __base__=InputRefsModel,
+            **req_fields,
+            **opt_fields,
+        )
+
+        # validate model type
+        for name, field in self.model_type.model_fields.items():
+            # each field should be a feature ref with
+            # an feature validator annotation
+            if not (
+                issubclass(field.annotation, FeatureRef)
+                and len(field.metadata) == 1
+                and isinstance(field.metadata[0], FeatureValidator)
+            ):
+                raise TypeError(name)
+
+    def __getstate__(self) -> dict[str, Any]:
+        """Get the state for pickling.
+
+        Returns:
+            dict[str, Any]: The state of the object.
+        """
+        return {"refs_type": self.refs_type}
+
+    def __setstate__(self, state: dict[str, Any]):
+        """Set the state from unpickling.
+
+        Args:
+            state (dict[str, Any]): The state of the object.
+        """
+        self.__init__(state["refs_type"])
+        return self
+
+    @property
+    def required_keys(self) -> set[str]:
+        """Get the required keys.
+
+        Returns:
+            set[str]: A set of keys corresponding to the required
+            input reference fields.
+        """
+        if self.no_refs_type:
+            return set()
+
+        return set(
+            k
+            for k, f in self.model_type.model_fields.items()
+            if f.is_required()
+        )
+
+    def validate(self, refs: InputRefs) -> InputRefsModel:
+        """Validate the input references.
+
+        Args:
+            refs (InputRefs): The input references to be validated.
+
+        Returns:
+            InputRefsModel: The validated input references as a pydantic model.
+
+        Raises:
+            TypeError: If there is no reference type to validate.
+        """
+        if self.no_refs_type:
+            raise TypeError("No reference type to validate.")
+
+        return self.model_type(**refs)

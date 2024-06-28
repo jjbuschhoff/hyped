@@ -144,7 +144,10 @@ class TestDataAggregator:
 
         # create the mock aggregator
         mock_aggregator = MockAggregator()
-        mock_aggregator._in_refs_type = MagicMock(return_value=mock_in_ref)
+        mock_aggregator._in_refs_type = MagicMock()
+        mock_aggregator._in_refs_validator.validate = MagicMock(
+            return_value=mock_in_ref
+        )
 
         # call aggregator with mock input
         ref = mock_aggregator.call(x=mock_x)
@@ -172,6 +175,6 @@ class TestDataAggregator:
         mock_aggregator = MockAggregator()
         # check required input keys property
         mock_required_keys = PropertyMock()
-        mock_aggregator._in_refs_type = MagicMock()
-        mock_aggregator._in_refs_type.required_keys = mock_required_keys
+        mock_aggregator._in_refs_validator = MagicMock()
+        mock_aggregator._in_refs_validator.required_keys = mock_required_keys
         assert mock_aggregator.required_input_keys == mock_required_keys
