@@ -41,74 +41,38 @@ Usage Example:
 """
 from __future__ import annotations
 
+from itertools import chain
 from typing import (
+    Annotated,
     Any,
     Callable,
-    ClassVar,
-    ForwardRef,
     NotRequired,
     TypedDict,
     get_args,
     get_origin,
+    get_type_hints,
 )
 
 import pydantic
 from datasets.features.features import Features, FeatureType
-from pydantic import AfterValidator, ConfigDict
 
 from hyped.common.feature_checks import (
     get_sequence_length,
     raise_feature_equals,
     raise_feature_is_sequence,
 )
-from hyped.common.pydantic import BaseModelWithTypeValidation
 
-from .ref import NONE_REF, FeatureRef
+from .ref import FeatureRef
 
 
-class ValidationWrapper(object):
-    """Wrapper class for feature validation functions.
+class FeatureValidationError(Exception):
+    """Feature Validation Error.
 
-    This class wraps a validation function and provides a call interface
-    that checks if a :class:`FeatureRef` instance conforms to the expected
-    feature type.
+    Raised by feature validators and catched by the InputRefsValidator.
     """
 
-    def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
-        """Initialize the ValidationWrapper instance.
 
-        Args:
-            f (Callable[[FeatureRef, FeatureType], None]): The validation function
-                to be wrapped.
-        """
-        self.unwrapped = f
-
-    def __call__(self, ref: FeatureRef) -> FeatureRef:
-        """Check if the provided reference conforms to the expected feature type.
-
-        Args:
-            ref (FeatureRef): The FeatureRef instance to be validated.
-
-        Returns:
-            FeatureRef: The validated FeatureRef instance.
-
-        Raises:
-            TypeError: If the feature does not conform to the expected feature type.
-        """
-        if ref is NONE_REF:
-            return ref
-
-        try:
-            self.unwrapped(ref, ref.feature_)
-        except TypeError as e:
-            raise TypeError(
-                "Feature does not conform to the expected type."
-            ) from e
-
-        return ref
-
-
-class FeatureValidator(AfterValidator):
+class FeatureValidator(object):
     """Validator for checking the type of a :class:`FeatureRef` instance.
 
     This validator checks whether the provided :class:`FeatureRef` instance
@@ -121,11 +85,8 @@ class FeatureValidator(AfterValidator):
 
     Raises:
         TypeError: If the provided reference is not a :class:`FeatureRef` instance
-        TypeError: If the feature does not conform to the expected feature type.
+        FeatureValidationError: If the feature does not conform to the expected feature type.
     """
-
-    func: ValidationWrapper
-    """The wrapped validation function to be applied to the :class:`FeatureRef`"""
 
     def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
         """Initialize the FeatureValidator instance.
@@ -134,8 +95,7 @@ class FeatureValidator(AfterValidator):
             f (Callable[[FeatureRef, FeatureType], None]): The validation function
                 to be applied to the FeatureRef.
         """
-        validator = ValidationWrapper(f)
-        super(FeatureValidator, self).__init__(validator)
+        self.f = f
 
     def __or__(self, other: FeatureValidator) -> FeatureValidator:
         """Combine this validator with another validator using logical OR.
@@ -153,25 +113,23 @@ class FeatureValidator(AfterValidator):
                 against either of the combined validators.
         """
 
-        def unwrapped_check_either(
-            ref: FeatureRef, feature: FeatureType
-        ) -> None:
+        def check_either(ref: FeatureRef, feature: FeatureType) -> None:
             try:
                 # check if feature conforms to first validator
-                return self.func.unwrapped(ref, feature)
+                return self.f(ref, feature)
 
-            except TypeError as e1:
+            except FeatureValidationError as e1:
                 try:
                     # fallback to second validator
-                    return other.func.unwrapped(ref, feature)
+                    return other.f(ref, feature)
 
-                except TypeError as e2:
+                except FeatureValidationError as e2:
                     # TODO: e1 should also be included in traceback
-                    raise TypeError(
+                    raise FeatureValidationError(
                         f"Feature does not conform to any of the expected types: `{str(e1)}` and `{str(e2)}` "
                     ) from e2
 
-        return FeatureValidator(unwrapped_check_either)
+        return FeatureValidator(check_either)
 
 
 class CheckFeatureEquals(FeatureValidator):
@@ -202,7 +160,10 @@ class CheckFeatureEquals(FeatureValidator):
         """
 
         def check(ref: FeatureRef, feature: FeatureType) -> None:
-            raise_feature_equals(ref.key_, feature, feature_type)
+            try:
+                raise_feature_equals(ref.key_, feature, feature_type)
+            except TypeError as e:
+                raise FeatureValidationError(*e.args) from e
 
         super(CheckFeatureEquals, self).__init__(check)
 
@@ -244,10 +205,13 @@ class CheckFeatureIsSequence(FeatureValidator):
         """
 
         def check(ref: FeatureRef, feature: FeatureType) -> None:
-            raise_feature_is_sequence(ref.key_, feature, value_type)
+            try:
+                raise_feature_is_sequence(ref.key_, feature, value_type)
+            except TypeError as e:
+                raise FeatureValidationError(*e.args) from e
 
             if -1 != length != get_sequence_length(feature):
-                raise TypeError(
+                raise FeatureValidationError(
                     "Expected `%s` to be a sequence of length %i, got %i"
                     % (str(ref.key_), length, get_sequence_length(feature))
                 )
@@ -282,18 +246,20 @@ class InputRefs(TypedDict):
     """
 
 
-class InputRefsModel(pydantic.BaseModel):
-    """Model to handle input references for data processing.
+class InputRefsContainer(pydantic.BaseModel):
+    """Input Reference Container.
 
-    This class is responsible for managing and validating input references
-    which are instances of `FeatureRef`. It provides properties to access
-    these references, their names, the associated data flow graph, and the
-    dataset features.
-
-    Raises:
-        TypeError: If any input reference does not conform to the
-        specified feature type validation.
+    This container class provides helper functionality to access
+    the input references, their names, the associated data flow
+    graph, and the dataset features.
     """
+
+    named_refs: dict[str, FeatureRef]
+    """A dictionary mapping input reference field names to their
+    corresponding instances."""
+
+    flow: object
+    """The data flow graph associated with the input references."""
 
     @property
     def refs(self) -> list[FeatureRef]:
@@ -306,33 +272,6 @@ class InputRefsModel(pydantic.BaseModel):
         # as equality operator is overloaded
         unique = {ref.ptr: ref for ref in self.named_refs.values()}
         return list(unique.values())
-
-    @property
-    def named_refs(self) -> dict[str, FeatureRef]:
-        """Get the named input reference instances.
-
-        Returns:
-            dict[str, FeatureRef]: A dictionary mapping input reference field names
-            to their corresponding instances.
-        """
-        named_refs = {
-            key: getattr(self, key) for key in self.model_fields.keys()
-        }
-        named_refs = {
-            key: ref for key, ref in named_refs.items() if ref is not NONE_REF
-        }
-        return named_refs
-
-    @property
-    def flow(self) -> object:
-        """Get the associated data flow graph.
-
-        Returns:
-            DataFlowGraph: The data flow graph associated with the input references.
-        """
-        # assumes that all feature refs refer to the same flow
-        # this is checked later when a processor is added to the flow
-        return next(iter(self.refs)).flow_
 
     @property
     def features_(self) -> Features:
@@ -354,18 +293,39 @@ class InputRefsModel(pydantic.BaseModel):
 
 
 class InputRefsValidator(object):
-    """Validate the type of input references.
+    """Input Reference Validator.
 
     This class validates that all input reference fields are instances of
     FeatureRef and are annotated with FeatureValidator instances.
 
-    It further provides functionality to validate a input references
+    It further provides functionality to validate input references
     according to their annotated validators.
 
     Raises:
         TypeError: If any input reference does not conform to the specified
             feature type validation.
     """
+
+    def _validate_type_hint(self, type_hint: Any) -> bool:
+        """Check if a type hint is an Annotated type with a specific origin and metadata.
+
+        Args:
+            type_hint: The type hint to check.
+
+        Returns:
+            bool: True if the type hint is an Annotated type with the specified
+            origin and metadata, False otherwise.
+        """
+        if get_origin(type_hint) is not Annotated:
+            return False
+
+        if type_hint.__origin__ is not FeatureRef:
+            return False
+
+        return all(
+            isinstance(meta, FeatureValidator)
+            for meta in type_hint.__metadata__
+        )
 
     def __init__(self, refs_type: type[InputRefs | None]) -> None:
         """Initialize the InputRefsValidator with a given reference type.
@@ -380,103 +340,84 @@ class InputRefsValidator(object):
         if self.no_refs_type:
             return
 
-        # evaluate forward references
-        annotations = {
-            key: val
-            if not isinstance(val, ForwardRef)
-            else val._evaluate(globals(), locals(), frozenset())
-            for key, val in refs_type.__annotations__.items()
+        hints = get_type_hints(refs_type, include_extras=True)
+        # separate type hints into required and optionals
+        required = {
+            key: hint
+            for key, hint in hints.items()
+            if get_origin(hint) is not NotRequired
         }
-        # get required and optional keys
-        req_keys = (
-            key
-            for key, val in annotations.items()
-            if get_origin(val) is not NotRequired
-        )
-        opt_keys = (
-            key
-            for key, val in annotations.items()
-            if get_origin(val) is NotRequired
-        )
-        # build pydantic field annotations from refs type
-        req_fields = {
-            key: (annotations[key], pydantic.Field()) for key in req_keys
+        optional = {
+            key: get_args(hint)[0]
+            for key, hint in hints.items()
+            if get_origin(hint) is NotRequired
         }
-        opt_fields = {
-            key: (
-                # unpack not required annotation and set
-                # default value to none reference
-                get_args(annotations[key])[0],
-                pydantic.Field(default=NONE_REF),
-            )
-            for key in opt_keys
+        # check type hints of refs type
+        for key, hint in chain(required.items(), optional.items()):
+            if not self._validate_type_hint(hint):
+                raise TypeError(key)  # TODO: write error message
+
+        self.required_keys = set(required.keys())
+        self.optional_keys = set(optional.keys())
+        # get all validators for each type
+        self.validators = {
+            name: hint.__metadata__
+            for name, hint in chain(required.items(), optional.items())
         }
-        # build a pydantic model type
-        self.model_type = pydantic.create_model(
-            "InputRefsValidationModel",
-            __base__=InputRefsModel,
-            **req_fields,
-            **opt_fields,
-        )
 
-        # validate model type
-        for name, field in self.model_type.model_fields.items():
-            # each field should be a feature ref with
-            # an feature validator annotation
-            if not (
-                issubclass(field.annotation, FeatureRef)
-                and len(field.metadata) == 1
-                and isinstance(field.metadata[0], FeatureValidator)
-            ):
-                raise TypeError(name)
+    def validate(self, **refs: FeatureRef) -> InputRefsContainer:
+        """Validate input references.
 
-    def __getstate__(self) -> dict[str, Any]:
-        """Get the state for pickling.
-
-        Returns:
-            dict[str, Any]: The state of the object.
-        """
-        return {"refs_type": self.refs_type}
-
-    def __setstate__(self, state: dict[str, Any]):
-        """Set the state from unpickling.
+        This function validates the given input references according to the
+        input references type specified in the constructor. It makes sure
+        all required arguments are present and executes the validators.
 
         Args:
-            state (dict[str, Any]): The state of the object.
-        """
-        self.__init__(state["refs_type"])
-        return self
-
-    @property
-    def required_keys(self) -> set[str]:
-        """Get the required keys.
+            **refs (FeatureRef): The feature references to validate.
 
         Returns:
-            set[str]: A set of keys corresponding to the required
-            input reference fields.
-        """
-        if self.no_refs_type:
-            return set()
-
-        return set(
-            k
-            for k, f in self.model_type.model_fields.items()
-            if f.is_required()
-        )
-
-    def validate(self, refs: InputRefs) -> InputRefsModel:
-        """Validate the input references.
-
-        Args:
-            refs (InputRefs): The input references to be validated.
-
-        Returns:
-            InputRefsModel: The validated input references as a pydantic model.
-
-        Raises:
-            TypeError: If there is no reference type to validate.
+            container (InputRefsContainer): A container wrapping the validates
+            feature references.
         """
         if self.no_refs_type:
             raise TypeError("No reference type to validate.")
 
-        return self.model_type(**refs)
+        if len(refs) == 0:
+            raise RuntimeError("No references provided")
+
+        # check all required keys are present in the reference dict
+        missing = self.required_keys - set(refs.keys())
+        if len(missing) > 0:
+            raise TypeError(
+                f"`{self.refs_type.__name__}` missing {len(missing)} required "
+                f"keyword argument: {', '.join(map(repr, missing))}."
+            )
+        # check for unexpected keyword arguments
+        unexpected = set(refs.keys()) - self.required_keys - self.optional_keys
+        if len(unexpected) > 0:
+            raise TypeError(
+                f"`{self.refs_type.__name__}` got {len(unexpected)} unexpected "
+                f"keyword arguments: {' '.join(map(repr, unexpected))}."
+            )
+
+        # run all validators
+        for key, validators in self.validators.items():
+            # if the key is not present in the input then
+            # it must be an optional argument
+            if key in refs:
+                continue
+
+            try:
+                # run all validators
+                for validator in validators:
+                    validator.f(refs[key])
+            except FeatureValidationError as e:
+                raise FeatureValidationError(
+                    f"Error in feature validation: {repr(key)}."
+                ) from e
+
+        # get the flow from the given references
+        flow = next(iter(refs.values())).flow_
+
+        # build the container
+        return InputRefsContainer(named_refs=refs, flow=flow)
