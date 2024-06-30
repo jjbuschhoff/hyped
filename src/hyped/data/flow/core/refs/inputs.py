@@ -17,9 +17,9 @@ Usage Example:
 
         # Import necessary classes from the module
         from hyped.data.processors.inputs import InputRefs, CheckFeatureEquals, CheckFeatureIsSequence
-        from hyped.data.ref import FeatureRef, NONE_REF
+        from hyped.data.ref import FeatureRef
         from datasets.features.features import Value
-        from typing_extensions import Annotated
+        from typing_extensions import Annotated, NotRequired
         
         # Define a custom collection of input references with validators
         class CustomInputRefs(InputRefs):
@@ -32,9 +32,12 @@ Usage Example:
                 FeatureRef, CheckFeatureIsSequence(Value("int32"), length=4)
             ]
             # optional input argument
-            z: Annotated[
-                FeatureRef, CheckFeatureEquals(Value("int32"))
-            ] = NONE_REF
+            z: NotRequired[
+                Annotated[
+                    FeatureRef,
+                    CheckFeatureEquals(Value("int32"))
+                ]
+            ]
 
     In this example, :class:`CustomInputRefs` extends :class:`InputRefs` to define a collection of input
     references with specified validators for feature type checking.
@@ -56,6 +59,7 @@ from typing import (
 import pydantic
 from datasets.features.features import Features, FeatureType
 
+from hyped.base.config import BaseConfig
 from hyped.common.feature_checks import (
     get_sequence_length,
     raise_feature_equals,
@@ -65,11 +69,43 @@ from hyped.common.feature_checks import (
 from .ref import FeatureRef
 
 
+# TODO:
+class InputRefsModel:
+    """Temporary."""
+
+    pass
+
+
 class FeatureValidationError(Exception):
     """Feature Validation Error.
 
     Raised by feature validators and catched by the InputRefsValidator.
     """
+
+
+class GlobalValidator(object):
+    """Validator for checking the validity of the input references as a whole.
+
+    This validator applies a specified validation function to the entire set of input references,
+    ensuring that the configuration and the collective input references meet the necessary criteria.
+    This is in contrast to the :class:`FeatureValidator`, which validates individual input references.
+
+    Args:
+        f (Callable[[BaseConfig, InputRefs], None]): The validation function to be applied to
+            the input references as a whole.
+
+    Raises:
+        TypeError: If the input references do not conform to the expected structure or types.
+    """
+
+    def __init__(self, f: Callable[[BaseConfig, InputRefs], None]) -> None:
+        """Initialize the GlobalValidator instance.
+
+        Args:
+            f (Callable[[BaseConfig, InputRefs], None]): The validation function to be applied to
+                the input references as a whole.
+        """
+        self.f = f
 
 
 class FeatureValidator(object):
@@ -80,7 +116,7 @@ class FeatureValidator(object):
     function.
 
     Args:
-        f (Callable[[FeatureRef, FeatureType], None]): The validation function
+        f (Callable[[BaseConfig, FeatureRef], None]): The validation function
             to be applied to the :class:`FeatureRef`.
 
     Raises:
@@ -88,11 +124,11 @@ class FeatureValidator(object):
         FeatureValidationError: If the feature does not conform to the expected feature type.
     """
 
-    def __init__(self, f: Callable[[FeatureRef, FeatureType], None]) -> None:
+    def __init__(self, f: Callable[[BaseConfig, FeatureRef], None]) -> None:
         """Initialize the FeatureValidator instance.
 
         Args:
-            f (Callable[[FeatureRef, FeatureType], None]): The validation function
+            f (Callable[[BaseConfig, FeatureRef], None]): The validation function
                 to be applied to the FeatureRef.
         """
         self.f = f
@@ -113,15 +149,15 @@ class FeatureValidator(object):
                 against either of the combined validators.
         """
 
-        def check_either(ref: FeatureRef, feature: FeatureType) -> None:
+        def check_either(config: BaseConfig, ref: FeatureRef) -> None:
             try:
                 # check if feature conforms to first validator
-                return self.f(ref, feature)
+                return self.f(ref, ref.feature_)
 
             except FeatureValidationError as e1:
                 try:
                     # fallback to second validator
-                    return other.f(ref, feature)
+                    return other.f(ref, ref.feature_)
 
                 except FeatureValidationError as e2:
                     # TODO: e1 should also be included in traceback
@@ -159,9 +195,9 @@ class CheckFeatureEquals(FeatureValidator):
                 feature type or types.
         """
 
-        def check(ref: FeatureRef, feature: FeatureType) -> None:
+        def check(config: BaseConfig, ref: FeatureRef) -> None:
             try:
-                raise_feature_equals(ref.key_, feature, feature_type)
+                raise_feature_equals(ref.key_, ref.feature_, feature_type)
             except TypeError as e:
                 raise FeatureValidationError(*e.args) from e
 
@@ -204,16 +240,20 @@ class CheckFeatureIsSequence(FeatureValidator):
                 if its length does not match the expected length.
         """
 
-        def check(ref: FeatureRef, feature: FeatureType) -> None:
+        def check(config: BaseConfig, ref: FeatureRef) -> None:
             try:
-                raise_feature_is_sequence(ref.key_, feature, value_type)
+                raise_feature_is_sequence(ref.key_, ref.feature_, value_type)
             except TypeError as e:
                 raise FeatureValidationError(*e.args) from e
 
-            if -1 != length != get_sequence_length(feature):
+            if -1 != length != get_sequence_length(ref.feature_):
                 raise FeatureValidationError(
                     "Expected `%s` to be a sequence of length %i, got %i"
-                    % (str(ref.key_), length, get_sequence_length(feature))
+                    % (
+                        str(ref.key_),
+                        length,
+                        get_sequence_length(ref.feature_),
+                    )
                 )
             return ref
 
@@ -229,7 +269,7 @@ class AnyFeatureType(FeatureValidator):
 
     def __init__(self) -> None:
         """Initialize the AnyFeatureType validator."""
-        super(AnyFeatureType, self).__init__(lambda r, f: None)
+        super(AnyFeatureType, self).__init__(lambda c, r: None)
 
 
 class InputRefs(TypedDict):
@@ -306,11 +346,18 @@ class InputRefsValidator(object):
             feature type validation.
     """
 
-    def _validate_type_hint(self, type_hint: Any) -> bool:
+    def _validate_type_hint(
+        self,
+        type_hint: object,
+        origin_type: type[FeatureRef | InputRefs],
+        meta_type: type[FeatureValidator | GlobalValidator],
+    ) -> bool:
         """Check if a type hint is an Annotated type with a specific origin and metadata.
 
         Args:
-            type_hint: The type hint to check.
+            type_hint (object): The type hint to check.
+            origin_type (type[FeatureRef | InputRefs]): The origin type to check for.
+            meta_type (type[FeatureValidator | GlobalValidator]): The validator type to check for.
 
         Returns:
             bool: True if the type hint is an Annotated type with the specified
@@ -319,26 +366,36 @@ class InputRefsValidator(object):
         if get_origin(type_hint) is not Annotated:
             return False
 
-        if type_hint.__origin__ is not FeatureRef:
+        if type_hint.__origin__ is not origin_type:
             return False
 
         return all(
-            isinstance(meta, FeatureValidator)
-            for meta in type_hint.__metadata__
+            isinstance(meta, meta_type) for meta in type_hint.__metadata__
         )
 
-    def __init__(self, refs_type: type[InputRefs | None]) -> None:
+    def __init__(
+        self, config: BaseConfig, refs_type: type[InputRefs | None]
+    ) -> None:
         """Initialize the InputRefsValidator with a given reference type.
 
         Args:
             refs_type (type[InputRefs | None]): The type of input references to be validated.
+            config (BaseConfig): The configuration of the node corresponding to the input
+                references. Will be passed to all validators as context information.
         """
+        self.config = config
         # check if the provided reference type is valid
         self.refs_type = refs_type
         self.no_refs_type = refs_type is type(None)
         # abort processing of the input reference type
         if self.no_refs_type:
             return
+
+        self.global_validators: list[GlobalValidator] = []
+        # get the global validators from the base type
+        for base in refs_type.__orig_bases__:
+            if self._validate_type_hint(base, InputRefs, GlobalValidator):
+                self.global_validators = base.__metadata__
 
         hints = get_type_hints(refs_type, include_extras=True)
         # separate type hints into required and optionals
@@ -354,13 +411,15 @@ class InputRefsValidator(object):
         }
         # check type hints of refs type
         for key, hint in chain(required.items(), optional.items()):
-            if not self._validate_type_hint(hint):
+            if not self._validate_type_hint(
+                hint, FeatureRef, FeatureValidator
+            ):
                 raise TypeError(key)  # TODO: write error message
 
         self.required_keys = set(required.keys())
         self.optional_keys = set(optional.keys())
         # get all validators for each type
-        self.validators = {
+        self.validators: dict[str, list[FeatureValidator]] = {
             name: hint.__metadata__
             for name, hint in chain(required.items(), optional.items())
         }
@@ -380,7 +439,7 @@ class InputRefsValidator(object):
             feature references.
         """
         if self.no_refs_type:
-            raise TypeError("No reference type to validate.")
+            raise TypeError("No reference type to validate for was provided.")
 
         if len(refs) == 0:
             raise RuntimeError("No references provided")
@@ -404,17 +463,27 @@ class InputRefsValidator(object):
         for key, validators in self.validators.items():
             # if the key is not present in the input then
             # it must be an optional argument
-            if key in refs:
+            if key not in refs:
                 continue
 
             try:
                 # run all validators
                 for validator in validators:
-                    validator.f(refs[key])
+                    validator.f(self.config, refs[key])
             except FeatureValidationError as e:
-                raise FeatureValidationError(
-                    f"Error in feature validation: {repr(key)}."
+                raise RuntimeError(
+                    f"Error in feature validation of `{self.refs_type.__name__}`: {repr(key)}."
                 ) from e
+
+        try:
+            # run global validators
+            for validator in self.global_validators:
+                print(validator)
+                validator.f(self.config, refs)
+        except FeatureValidationError as e:
+            raise RuntimeError(
+                f"Error in global feature validation of `{self.refs_type.__name__}`."
+            )
 
         # get the flow from the given references
         flow = next(iter(refs.values())).flow_
